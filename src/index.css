@@ -25,23 +25,23 @@
     --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
 
-    /* Danfy Finance design tokens */
-    --app-bg: 257 62% 7%;
-    --app-surface: 258 50% 12%;
-    --app-panel: 259 42% 16%;
-    --app-elevated: 260 33% 20%;
-    --app-text: 250 29% 96%;
-    --app-muted: 248 16% 72%;
-    --app-border: 259 24% 30%;
+    /* Obsidian design tokens */
+    --app-bg: 240 10% 4%;
+    --app-surface: 240 11% 5%;
+    --app-panel: 240 9% 8%;
+    --app-elevated: 240 7% 11%;
+    --app-text: 0 0% 98%;
+    --app-muted: 240 5% 65%;
+    --app-border: 240 4% 16%;
 
-    --brand: 270 84% 62%;
-    --brand-intense: 284 86% 58%;
-    --brand-soft: 268 92% 80%;
-    --brand-foreground: 0 0% 100%;
+    --brand: 258 90% 76%;
+    --brand-intense: 262 83% 58%;
+    --brand-soft: 252 95% 85%;
+    --brand-foreground: 0 0% 6%;
 
-    --state-success: 146 63% 44%;
+    --state-success: 158 64% 52%;
     --state-warning: 38 92% 50%;
-    --state-danger: 0 78% 58%;
+    --state-danger: 0 84% 60%;
     --state-info: 221 83% 61%;
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
@@ -54,43 +54,43 @@
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 240 10% 4%;
+    --foreground: 0 0% 98%;
+    --card: 240 11% 5%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 11% 5%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 258 90% 76%;
+    --primary-foreground: 0 0% 6%;
+    --secondary: 240 4% 46%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 7% 11%;
+    --muted-foreground: 240 5% 65%;
+    --accent: 240 7% 11%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 4% 16%;
+    --input: 240 4% 16%;
+    --ring: 258 90% 76%;
 
-    /* Danfy Finance design tokens */
-    --app-bg: 257 62% 7%;
-    --app-surface: 258 50% 12%;
-    --app-panel: 259 42% 16%;
-    --app-elevated: 260 33% 20%;
-    --app-text: 250 29% 96%;
-    --app-muted: 248 16% 72%;
-    --app-border: 259 24% 30%;
+    /* Obsidian design tokens */
+    --app-bg: 240 10% 4%;
+    --app-surface: 240 11% 5%;
+    --app-panel: 240 9% 8%;
+    --app-elevated: 240 7% 11%;
+    --app-text: 0 0% 98%;
+    --app-muted: 240 5% 65%;
+    --app-border: 240 4% 16%;
 
-    --brand: 270 84% 62%;
-    --brand-intense: 284 86% 58%;
-    --brand-soft: 268 92% 80%;
-    --brand-foreground: 0 0% 100%;
+    --brand: 258 90% 76%;
+    --brand-intense: 262 83% 58%;
+    --brand-soft: 252 95% 85%;
+    --brand-foreground: 0 0% 6%;
 
-    --state-success: 146 63% 44%;
+    --state-success: 158 64% 52%;
     --state-warning: 38 92% 50%;
-    --state-danger: 0 78% 58%;
+    --state-danger: 0 84% 60%;
     --state-info: 221 83% 61%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;

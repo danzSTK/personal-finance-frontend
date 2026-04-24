@@ -1,5 +1,6 @@
 export const AUTH_ROUTES = {
   login: '/login',
+  signUp: '/sign-up',
   dashboard: '/dashboard',
   settings: '/settings',
   authCallback: '/auth/callback',
@@ -40,7 +41,3 @@ export const GOOGLE_LINK_ERROR_MESSAGES = {
 } as const
 
 export const DEFAULT_API_BASE_URL = 'http://localhost:3000'
-
-export const APP_BRAND = {
-  name: 'Danfy Finance',
-} as const

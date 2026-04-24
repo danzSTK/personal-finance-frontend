@@ -68,9 +68,23 @@ export function AppRoutes() {
     <Routes>
       <Route
         path={AUTH_ROUTES.login}
+        element={<Navigate to={AUTH_ROUTES.signInAlias} replace />}
+      />
+
+      <Route
+        path={AUTH_ROUTES.signInAlias}
         element={
           <PublicRoute isBootstrappingAuth={isBootstrappingAuth}>
-            <LoginPage />
+            <LoginPage mode="sign-in" />
+          </PublicRoute>
+        }
+      />
+
+      <Route
+        path={AUTH_ROUTES.signUp}
+        element={
+          <PublicRoute isBootstrappingAuth={isBootstrappingAuth}>
+            <LoginPage mode="sign-up" />
           </PublicRoute>
         }
       />
@@ -98,11 +112,6 @@ export function AppRoutes() {
         path={AUTH_ROUTES.linkProviderCallback}
         element={<LinkProviderCallbackPage />}
       />
-      <Route
-        path={AUTH_ROUTES.signInAlias}
-        element={<Navigate to={AUTH_ROUTES.login} replace />}
-      />
-      
       <Route path="/" element={<Navigate to={AUTH_ROUTES.dashboard} replace />} />
       <Route path="*" element={<Navigate to={AUTH_ROUTES.dashboard} replace />} />
     </Routes>

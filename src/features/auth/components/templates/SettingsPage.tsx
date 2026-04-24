@@ -27,6 +27,7 @@ import {
 import type { AuthProvider, LinkEmailDto, Session, User } from '../../types'
 import { resolveApiErrorMessage } from '../../utils/error.utils'
 import { SessionCard } from '../organisms/SessionCard'
+import { GoogleLogo } from '../atoms/GoogleLogo'
 import { AuthAppShell } from './AuthAppShell'
 
 type SettingsSectionId = 'account' | 'security' | 'notifications' | 'preferences'
@@ -83,7 +84,6 @@ export function SettingsPage() {
   const providers = user?.providers ?? []
   const emailProvider = findProvider(providers, 'EMAIL')
   const googleProvider = findProvider(providers, 'GOOGLE')
-  const appleProvider = findProvider(providers, 'APPLE')
   const orderedSessions = useMemo(
     () =>
       [...sessions].sort(
@@ -204,7 +204,6 @@ export function SettingsPage() {
         <SecuritySection
           emailProvider={emailProvider}
           googleProvider={googleProvider}
-          appleProvider={appleProvider}
           sessions={orderedSessions}
           isLoadingUser={isLoadingUser}
           isLoadingSessions={isLoadingSessions}
@@ -255,28 +254,28 @@ const SettingsSubSidebar = ({
   onChangeSection,
 }: SettingsSubSidebarProps) => (
   <aside className="rounded-2xl border border-app-border bg-app-surface p-3">
-    <p className="px-2 pb-3 text-xs font-semibold uppercase tracking-wide text-app-muted">
+    <p className="hidden px-2 pb-3 text-xs font-semibold uppercase tracking-wide text-app-muted lg:block">
       Configurações
     </p>
 
-    <div className="grid gap-2 lg:block">
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:block lg:space-y-2 lg:overflow-visible lg:px-0 lg:pb-0">
       {settingsSections.map((section) => (
         <button
           key={section.id}
           type="button"
           onClick={() => onChangeSection(section.id)}
           className={cn(
-            'flex w-full items-start gap-3 rounded-xl border px-3 py-2 text-left transition',
+            'min-w-[10.5rem] shrink-0 rounded-xl border px-3 py-2 text-left transition lg:min-w-0',
             activeSection === section.id
               ? 'border-brand bg-brand/15 text-app-text'
               : 'border-transparent bg-transparent text-app-muted hover:border-app-border hover:bg-app-panel hover:text-app-text'
           )}
         >
-          <span className="mt-0.5">{section.icon}</span>
-          <span>
+          <span className="inline-flex items-center gap-2 whitespace-nowrap">
+            <span className="shrink-0">{section.icon}</span>
             <span className="block text-sm font-medium">{section.title}</span>
-            <span className="block text-xs text-app-muted">{section.description}</span>
           </span>
+          <span className="mt-1 hidden text-xs text-app-muted lg:block">{section.description}</span>
         </button>
       ))}
     </div>
@@ -326,7 +325,6 @@ const AccountSection = ({ user, isLoading }: AccountSectionProps) => {
 interface SecuritySectionProps {
   emailProvider: AuthProvider | undefined
   googleProvider: AuthProvider | undefined
-  appleProvider: AuthProvider | undefined
   sessions: Session[]
   isLoadingUser: boolean
   isLoadingSessions: boolean
@@ -342,7 +340,6 @@ interface SecuritySectionProps {
 const SecuritySection = ({
   emailProvider,
   googleProvider,
-  appleProvider,
   sessions,
   isLoadingUser,
   isLoadingSessions,
@@ -355,14 +352,15 @@ const SecuritySection = ({
   onRevokeSession,
 }: SecuritySectionProps) => (
   <>
-    <Card className="border-app-border bg-app-surface">
-      <CardHeader>
+    <Card className="relative min-w-0 overflow-hidden border-app-border bg-app-surface">
+      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/10 blur-3xl" />
+      <CardHeader className="relative z-10">
         <CardTitle className="flex items-center gap-2 text-base text-app-text">
           <ShieldCheck className="h-4 w-4 text-brand-soft" />
           Métodos de login
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="relative z-10 space-y-4">
         <ProviderStatusRow
           title="Google"
           description={
@@ -371,6 +369,7 @@ const SecuritySection = ({
               : 'Conecte sua conta Google para login social.'
           }
           isLinked={Boolean(googleProvider)}
+          icon={<GoogleLogo />}
           action={
             googleProvider ? null : (
               <Button
@@ -393,6 +392,8 @@ const SecuritySection = ({
               : 'Adicione email e senha para ter um método alternativo de acesso.'
           }
           isLinked={Boolean(emailProvider)}
+          icon={<Mail className="h-5 w-5 text-brand" />}
+          isPrimary
           action={
             emailProvider ? null : (
               <form onSubmit={onLinkEmail} className="grid gap-2 sm:grid-cols-3">
@@ -439,23 +440,13 @@ const SecuritySection = ({
           }
         />
 
-        <ProviderStatusRow
-          title="Apple"
-          description={
-            appleProvider
-              ? `Vinculado em ${formatDateTime(appleProvider.linkedAt)}`
-              : 'Método não configurado nesta versão.'
-          }
-          isLinked={Boolean(appleProvider)}
-        />
-
         {isLoadingUser ? (
           <p className="text-sm text-app-muted">Sincronizando métodos...</p>
         ) : null}
       </CardContent>
     </Card>
 
-    <Card className="border-app-border bg-app-surface">
+    <Card className="min-w-0 border-app-border bg-app-surface">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base text-app-text">
           <ShieldCheck className="h-4 w-4 text-brand-soft" />
@@ -473,14 +464,18 @@ const SecuritySection = ({
           </p>
         ) : null}
 
-        {sessions.map((session) => (
-          <SessionCard
-            key={session.jti}
-            session={session}
-            onRevoke={onRevokeSession}
-            isRevoking={revokingJti === session.jti}
-          />
-        ))}
+        {sessions.length > 0 ? (
+          <div className="space-y-2 rounded-xl border border-app-border bg-app-bg p-2">
+            {sessions.map((session) => (
+              <SessionCard
+                key={session.jti}
+                session={session}
+                onRevoke={onRevokeSession}
+                isRevoking={revokingJti === session.jti}
+              />
+            ))}
+          </div>
+        ) : null}
       </CardContent>
     </Card>
   </>
@@ -490,6 +485,8 @@ interface ProviderStatusRowProps {
   title: string
   description: string
   isLinked: boolean
+  icon?: ReactNode
+  isPrimary?: boolean
   action?: ReactNode
 }
 
@@ -497,11 +494,28 @@ const ProviderStatusRow = ({
   title,
   description,
   isLinked,
+  icon,
+  isPrimary = false,
   action,
 }: ProviderStatusRowProps) => (
-  <div className="rounded-xl border border-app-border bg-app-panel p-3">
+  <div
+    className={cn(
+      'relative rounded-xl border border-app-border bg-app-panel p-4',
+      isPrimary && 'border-brand/40'
+    )}
+  >
+    {isPrimary ? (
+      <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-r bg-brand" aria-hidden />
+    ) : null}
     <div className="flex flex-wrap items-center justify-between gap-2">
-      <p className="text-sm font-semibold text-app-text">{title}</p>
+      <div className="flex items-center gap-2">
+        {icon ? (
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-app-border bg-app-bg">
+            {icon}
+          </span>
+        ) : null}
+        <p className="text-sm font-semibold text-app-text">{title}</p>
+      </div>
       <span
         className={cn(
           'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',

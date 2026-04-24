@@ -5,18 +5,17 @@ import {
   ChevronRight,
   LayoutDashboard,
   LogOut,
-  Menu,
   Settings,
   X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { APP_BRAND } from '@/shared/config/brand'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
 import { useLogout } from '../../api/mutations'
 import { useUser } from '../../api/queries'
 import {
-  APP_BRAND,
   AUTH_ROUTES,
   AUTH_UI_STORAGE_KEYS,
 } from '../../constants/auth.constants'
@@ -119,7 +118,7 @@ export const AuthAppShell = ({
   }
 
   return (
-    <div className="dark min-h-screen bg-app-bg text-app-text">
+    <div className="dark min-h-screen overflow-x-hidden bg-app-bg text-app-text">
       <div className="flex min-h-screen">
         <div className="hidden lg:block">
           <aside
@@ -180,7 +179,7 @@ export const AuthAppShell = ({
                   onClick={() => setIsMobileSidebarOpen(true)}
                   aria-label="Abrir menu lateral"
                 >
-                  <Menu className="h-4 w-4" />
+                  <MenuBarsIcon />
                 </Button>
                 <div>
                   <h1 className="text-sm font-semibold text-app-text sm:text-base">
@@ -195,14 +194,14 @@ export const AuthAppShell = ({
             </div>
           </header>
 
-          <main className="flex-1 p-4 sm:p-6 lg:p-8">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
             {settingsSidebar ? (
-              <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-                {settingsSidebar}
-                <section className="space-y-4">{children}</section>
+              <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
+                <div className="min-w-0">{settingsSidebar}</div>
+                <section className="min-w-0 space-y-4">{children}</section>
               </div>
             ) : (
-              <section className="space-y-4">{children}</section>
+              <section className="min-w-0 space-y-4">{children}</section>
             )}
           </main>
         </div>
@@ -221,6 +220,7 @@ interface SidebarContentProps {
   isProfileMenuOpen: boolean
   isCollapsed: boolean
   showCollapseControl: boolean
+  hideBrandButton?: boolean
   onToggleProfileMenu: () => void
   onToggleCollapse?: () => void
   onNavigate: (route: string) => void
@@ -236,45 +236,48 @@ const SidebarContent = ({
   isProfileMenuOpen,
   isCollapsed,
   showCollapseControl,
+  hideBrandButton = false,
   onToggleProfileMenu,
   onToggleCollapse,
   onNavigate,
   onLogout,
 }: SidebarContentProps) => (
   <>
-    <div className={cn('border-b border-app-border', isCollapsed ? 'p-3' : 'p-5')}>
-      {isCollapsed && showCollapseControl ? (
-        <div className="flex flex-col items-center gap-2">
-          <BrandButton onNavigate={onNavigate} isCollapsed />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-9 w-9 rounded-lg border border-app-border bg-app-panel text-app-muted hover:bg-app-elevated hover:text-app-text"
-            onClick={onToggleCollapse}
-            aria-label="Expandir menu lateral"
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      ) : (
-        <div className="flex items-center justify-between gap-2">
-          <BrandButton onNavigate={onNavigate} isCollapsed={false} />
-          {showCollapseControl ? (
+    {!hideBrandButton || showCollapseControl ? (
+      <div className={cn('border-b border-app-border', isCollapsed ? 'p-3' : 'p-5')}>
+        {isCollapsed && showCollapseControl ? (
+          <div className="flex flex-col items-center gap-2">
+            {!hideBrandButton ? <BrandButton onNavigate={onNavigate} isCollapsed /> : null}
             <Button
               type="button"
               variant="ghost"
               size="icon"
               className="h-9 w-9 rounded-lg border border-app-border bg-app-panel text-app-muted hover:bg-app-elevated hover:text-app-text"
               onClick={onToggleCollapse}
-              aria-label="Recolher menu lateral"
+              aria-label="Expandir menu lateral"
             >
-              <ChevronLeft className="h-4 w-4" />
+              <ChevronRight className="h-4 w-4" />
             </Button>
-          ) : null}
-        </div>
-      )}
-    </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between gap-2">
+            {!hideBrandButton ? <BrandButton onNavigate={onNavigate} isCollapsed={false} /> : null}
+            {showCollapseControl ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 rounded-lg border border-app-border bg-app-panel text-app-muted hover:bg-app-elevated hover:text-app-text"
+                onClick={onToggleCollapse}
+                aria-label="Recolher menu lateral"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            ) : null}
+          </div>
+        )}
+      </div>
+    ) : null}
 
     <nav className={cn('flex-1 space-y-2 p-3', isCollapsed && 'px-2')}>
       {primaryNavigation.map((item) => (
@@ -393,8 +396,11 @@ const BrandButton = ({ isCollapsed, onNavigate }: BrandButtonProps) => (
     )}
     aria-label={`Ir para ${APP_BRAND.name}`}
   >
-    <span className="inline-flex h-9 w-9 items-center justify-center rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
-      DF
+    <span
+      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-panel"
+      aria-hidden
+    >
+      <span className="h-2.5 w-2.5 rounded-full bg-brand" />
     </span>
     {isCollapsed ? null : (
       <span className="text-left">
@@ -442,12 +448,25 @@ const MobileSidebar = ({
           onClick={onClose}
           aria-label="Fechar menu lateral"
         >
-          <X className="h-4 w-4" />
+          <X className="h-5 w-5" />
         </Button>
       </div>
-      <SidebarContent {...sidebarProps} isCollapsed={false} showCollapseControl={false} />
+      <SidebarContent
+        {...sidebarProps}
+        isCollapsed={false}
+        showCollapseControl={false}
+        hideBrandButton
+      />
     </aside>
   </>
+)
+
+const MenuBarsIcon = () => (
+  <span className="inline-flex h-4 w-4 flex-col justify-center gap-1" aria-hidden>
+    <span className="h-0.5 w-4 rounded-full bg-current" />
+    <span className="h-0.5 w-4 rounded-full bg-current" />
+    <span className="h-0.5 w-4 rounded-full bg-current" />
+  </span>
 )
 
 const getInitials = (name: string): string => {

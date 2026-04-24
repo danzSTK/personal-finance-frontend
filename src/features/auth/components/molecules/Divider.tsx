@@ -12,7 +12,7 @@ export const Divider = ({ text = 'OR', className }: DividerProps) => {
         <span className="w-full border-t border-app-border" />
       </div>
       {text && (
-        <div className="relative flex justify-center text-xs uppercase tracking-[0.22em]">
+        <div className="relative flex justify-center text-xs uppercase tracking-[0.2em]">
           <span className="bg-app-surface px-4 font-medium text-app-muted">
             {text}
           </span>

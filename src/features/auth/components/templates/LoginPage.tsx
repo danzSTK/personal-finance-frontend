@@ -1,113 +1,138 @@
-import { ReactNode, useState } from 'react'
-import { ShieldCheck, Sparkles, WalletCards } from 'lucide-react'
+import { ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ShieldCheck, WalletCards } from 'lucide-react'
+import { APP_BRAND, APP_COPY } from '@/shared/config/brand'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/lib/card'
-import { cn } from '@/shared/lib/utils'
-import { APP_BRAND } from '../../constants/auth.constants'
+import { Button } from '../atoms'
 import { SignInForm } from '../organisms/SignInForm'
 import { SignUpForm } from '../organisms/SignUpForm'
 import { SocialButton } from '../molecules/SocialButton'
 import { Divider } from '../molecules/Divider'
-import { Button } from '../atoms'
+import { AUTH_ROUTES } from '../../constants/auth.constants'
 
 type AuthMode = 'sign-in' | 'sign-up'
 
+interface LoginPageProps {
+  mode?: AuthMode
+}
+
 const authModeContent = {
   'sign-in': {
-    title: 'Bem-vindo de volta',
-    description: 'Entre para gerenciar suas finanças com foco e clareza.',
+    title: 'Entrar na sua conta',
+    description: 'Acesse seu painel com segurança e continue de onde parou.',
+    switchPrompt: 'Ainda não possui conta?',
+    switchAction: 'Criar conta',
+    switchRoute: AUTH_ROUTES.signUp,
   },
   'sign-up': {
-    title: 'Crie sua conta',
-    description: 'Comece com um fluxo rápido e seguro para organizar seu dinheiro.',
+    title: 'Criar sua conta',
+    description: 'Organize sua vida financeira com um começo simples e seguro.',
+    switchPrompt: 'Já possui conta?',
+    switchAction: 'Entrar',
+    switchRoute: AUTH_ROUTES.signInAlias,
   },
 } as const
 
-export function LoginPage() {
-  const [mode, setMode] = useState<AuthMode>('sign-in')
+export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
+  const navigate = useNavigate()
   const copy = authModeContent[mode]
 
   return (
-    <div className="dark min-h-screen bg-gradient-to-br from-app-bg via-app-surface to-app-elevated text-app-text">
-      <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center p-4 sm:p-8">
-        <div className="grid w-full gap-8 lg:grid-cols-[1.05fr_0.95fr]">
-          <section className="hidden lg:flex lg:flex-col lg:justify-between">
-            <div className="space-y-5">
-              <span className="inline-flex w-fit items-center gap-2 rounded-full border border-app-border bg-brand/15 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-brand-soft">
-                <Sparkles className="h-3.5 w-3.5" />
-                Dark-first Auth
-              </span>
-              <h1 className="max-w-xl text-4xl font-semibold leading-tight text-app-text">
-                {APP_BRAND.name}: uma autenticação premium inspirada em produtos modernos.
-              </h1>
-              <p className="max-w-lg text-base text-app-muted">
-                Fluxo simples, feedback claro e foco total na ação principal: entrar e
-                seguir para seu painel financeiro.
-              </p>
-            </div>
-
-            <div className="grid gap-3">
-              <FeaturePill
-                icon={<ShieldCheck className="h-4 w-4" />}
-                title="Segurança em primeiro lugar"
-                description="Sessões, refresh e vínculo de contas integrados ao backend."
-              />
-              <FeaturePill
-                icon={<WalletCards className="h-4 w-4" />}
-                title="Interface orientada à ação"
-                description="Menos ruído, hierarquia visual forte e estados claros."
-              />
-            </div>
-          </section>
-
-          <Card className="w-full border-app-border bg-app-surface">
-            <CardHeader className="space-y-3">
-              <CardTitle className="text-2xl font-semibold text-app-text">{copy.title}</CardTitle>
-              <CardDescription className="text-app-muted">{copy.description}</CardDescription>
-              <div className="grid grid-cols-2 gap-2 rounded-xl border border-app-border bg-app-panel p-1">
-                <ModeButton active={mode === 'sign-in'} onClick={() => setMode('sign-in')}>
-                  Entrar
-                </ModeButton>
-                <ModeButton active={mode === 'sign-up'} onClick={() => setMode('sign-up')}>
-                  Criar conta
-                </ModeButton>
+    <div className="dark min-h-screen bg-gradient-to-br from-app-bg via-app-surface to-app-panel text-app-text">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center p-4 sm:p-6 lg:p-8">
+        <Card className="w-full overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl shadow-app-bg/60">
+          <div className="grid lg:grid-cols-[1fr_minmax(0,30rem)]">
+            <section className="hidden bg-app-panel/60 p-8 lg:flex lg:flex-col lg:justify-between xl:p-10">
+              <div className="space-y-5">
+                <span className="inline-flex w-fit items-center rounded-full border border-app-border bg-app-panel px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-app-muted">
+                  {APP_BRAND.name}
+                </span>
+                <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-app-text">
+                  {APP_COPY.auth.headline}
+                </h1>
+                <p className="max-w-lg text-sm leading-relaxed text-app-muted">
+                  {APP_COPY.auth.supporting}
+                </p>
               </div>
-            </CardHeader>
 
-            <CardContent className="space-y-5">
-              {mode === 'sign-in' ? <SignInForm /> : <SignUpForm />}
-              <Divider text="ou continue com" />
-              <SocialButton provider="google" />
-              <p className="text-center text-xs text-app-muted">
-                Ao continuar, você aceita os termos e políticas da plataforma.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+              <div className="grid gap-3">
+                <FeaturePill
+                  icon={<ShieldCheck className="h-4 w-4" />}
+                  title="Segurança em primeiro plano"
+                  description="Fluxo com feedback claro e estados de erro explícitos."
+                />
+                <FeaturePill
+                  icon={<WalletCards className="h-4 w-4" />}
+                  title="Conforto visual consistente"
+                  description="Card focado na ação certa em cada etapa: entrar ou criar conta."
+                />
+              </div>
+            </section>
+
+            <div className="p-5 sm:p-8 lg:p-10">
+              <CardHeader className="p-0">
+                <p className="text-xs font-medium uppercase tracking-[0.12em] text-app-muted lg:hidden">
+                  {APP_BRAND.name}
+                </p>
+              </CardHeader>
+
+              <CardContent className="p-0 pt-4 sm:pt-6">
+                <div
+                  key={mode}
+                  className="animate-in fade-in-0 duration-1000 ease-out"
+                >
+                  <div className="space-y-5 animate-in slide-in-from-bottom-1 duration-500 ease-out">
+                    <div className="space-y-2">
+                      <CardTitle className="text-2xl font-semibold tracking-tight text-app-text sm:text-3xl">
+                        {copy.title}
+                      </CardTitle>
+                      <CardDescription className="text-sm text-app-muted">
+                        {copy.description}
+                      </CardDescription>
+                    </div>
+                    {mode === 'sign-in' ? <SignInCardFlow /> : <SignUpCardFlow />}
+
+                    <p className="text-center text-xs text-app-muted">
+                      Ao continuar, você aceita os termos e políticas da plataforma.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 border-t border-app-border pt-4 text-sm text-app-muted">
+                      <span>{copy.switchPrompt}</span>
+                      <Button
+                        type="button"
+                        variant="link"
+                        className="h-auto p-0 text-brand hover:text-brand-soft"
+                        onClick={() => navigate(copy.switchRoute)}
+                      >
+                        {copy.switchAction}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </div>
+          </div>
+        </Card>
       </div>
       <Toaster />
     </div>
   )
 }
 
-interface ModeButtonProps {
-  active: boolean
-  onClick: () => void
-  children: string
-}
+const SignInCardFlow = () => (
+  <>
+    <SocialButton provider="google" />
+    <Divider text="ou entre com email" />
+    <SignInForm />
+  </>
+)
 
-const ModeButton = ({ active, onClick, children }: ModeButtonProps) => (
-  <Button
-    type="button"
-    onClick={onClick}
-    variant="ghost"
-    className={cn(
-      'h-10 rounded-lg border border-transparent text-sm font-medium text-app-muted transition-all hover:bg-app-elevated hover:text-app-text',
-      active && 'border-brand bg-brand text-brand-foreground hover:bg-brand-intense'
-    )}
-  >
-    {children}
-  </Button>
+const SignUpCardFlow = () => (
+  <>
+    <SocialButton provider="google" />
+    <Divider text="ou crie com email" />
+    <SignUpForm />
+  </>
 )
 
 interface FeaturePillProps {
@@ -117,8 +142,8 @@ interface FeaturePillProps {
 }
 
 const FeaturePill = ({ icon, title, description }: FeaturePillProps) => (
-  <div className="rounded-xl border border-app-border bg-app-panel p-4">
-    <div className="mb-2 flex items-center gap-2 text-brand-soft">
+  <div className="rounded-xl border border-app-border bg-app-bg p-4">
+    <div className="mb-2 flex items-center gap-2 text-brand">
       {icon}
       <p className="text-sm font-semibold text-app-text">{title}</p>
     </div>

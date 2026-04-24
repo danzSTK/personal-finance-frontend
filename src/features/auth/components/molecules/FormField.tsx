@@ -15,8 +15,11 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
     const inputId = id || label.toLowerCase().replace(/\s/g, '-')
 
     return (
-      <div className="space-y-1.5">
-        <Label htmlFor={inputId} className="text-app-text">
+      <div className="space-y-2">
+        <Label
+          htmlFor={inputId}
+          className="text-xs font-medium uppercase tracking-[0.08em] text-app-muted"
+        >
           {label}
           {required ? <span className="ml-1 text-state-danger">*</span> : null}
         </Label>
@@ -47,7 +50,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         {error ? <ErrorMessage id={`${inputId}-error`}>{error}</ErrorMessage> : null}
 
         {helperText && !error ? (
-          <p id={`${inputId}-helper`} className="text-sm text-app-muted">
+          <p id={`${inputId}-helper`} className="text-xs text-app-muted">
             {helperText}
           </p>
         ) : null}

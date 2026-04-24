@@ -11,7 +11,7 @@ import { resolveApiErrorMessage } from '../../utils/error.utils'
 import { AUTH_ROUTES } from '../../constants/auth.constants'
 
 const inputClassName =
-  'h-11 rounded-xl border-app-border bg-app-panel text-app-text placeholder:text-app-muted focus-visible:ring-brand focus-visible:ring-offset-app-panel'
+  'h-11 rounded-lg border-app-border bg-app-bg text-app-text placeholder:text-app-muted focus-visible:border-brand focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel'
 
 export const SignInForm = () => {
   const navigate = useNavigate()
@@ -46,7 +46,7 @@ export const SignInForm = () => {
         type="email"
         {...register('email')}
         error={errors.email?.message}
-        prefixIcon={<Mail className="h-4 w-4 text-brand-soft" />}
+        prefixIcon={<Mail className="h-4 w-4 text-app-muted" />}
         disabled={isPending}
         required
         autoComplete="email"
@@ -58,7 +58,7 @@ export const SignInForm = () => {
         type="password"
         {...register('password')}
         error={errors.password?.message}
-        prefixIcon={<Lock className="h-4 w-4 text-brand-soft" />}
+        prefixIcon={<Lock className="h-4 w-4 text-app-muted" />}
         disabled={isPending}
         required
         autoComplete="current-password"
@@ -68,7 +68,7 @@ export const SignInForm = () => {
       {error && (
         <div
           role="alert"
-          className="rounded-xl border border-state-danger/60 bg-state-danger/10 p-3 text-sm text-state-danger"
+          className="rounded-lg border border-state-danger/50 bg-state-danger/10 p-3 text-sm text-state-danger"
         >
           <p className="font-medium">Erro ao fazer login</p>
           <p className="mt-1">{errorMessage}</p>
@@ -78,7 +78,7 @@ export const SignInForm = () => {
       <Button
         type="submit"
         disabled={!canSubmit}
-        className="h-11 w-full rounded-xl bg-brand text-brand-foreground transition hover:bg-brand-intense"
+        className="h-11 w-full rounded-lg bg-brand text-brand-foreground transition-colors hover:bg-brand-intense focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel"
       >
         {isPending ? (
           <>
