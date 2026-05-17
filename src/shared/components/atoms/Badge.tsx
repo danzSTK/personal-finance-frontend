@@ -2,15 +2,16 @@ import { cn } from '@/shared/lib/utils'
 
 interface BadgeProps {
   children: React.ReactNode
-  variant?: 'default' | 'success' | 'warning' | 'danger'
+  variant?: 'default' | 'income' | 'warning' | 'expense' | 'info'
   className?: string
 }
 
 const variantClasses = {
-  default: 'bg-slate-100 text-slate-800',
-  success: 'bg-green-100 text-green-800',
-  warning: 'bg-yellow-100 text-yellow-800',
-  danger: 'bg-red-100 text-red-800',
+  default: 'bg-app-elevated text-app-text',
+  income: 'bg-state-income/20 text-state-income',
+  warning: 'bg-state-warning/20 text-state-warning',
+  expense: 'bg-state-expense/20 text-state-expense',
+  info: 'bg-state-info/20 text-state-info',
 }
 
 export function Badge({
