@@ -1,113 +1,219 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
 
-@layer base {
-  :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
-    --radius: 0.5rem;
+@import 'tw-animate-css';
 
-    /* Obsidian design tokens */
-    --app-bg: 240 10% 4%;
-    --app-surface: 240 11% 5%;
-    --app-panel: 240 9% 8%;
-    --app-elevated: 240 7% 11%;
-    --app-text: 0 0% 98%;
-    --app-muted: 240 5% 65%;
-    --app-border: 240 4% 16%;
+@custom-variant dark (&:where(.dark, .dark *));
 
-    --brand: 258 90% 76%;
-    --brand-intense: 262 83% 58%;
-    --brand-soft: 252 95% 85%;
-    --brand-foreground: 0 0% 6%;
-
-    --state-success: 158 64% 52%;
-    --state-warning: 38 92% 50%;
-    --state-danger: 0 84% 60%;
-    --state-info: 221 83% 61%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
-
-  .dark {
-    --background: 240 10% 4%;
-    --foreground: 0 0% 98%;
-    --card: 240 11% 5%;
-    --card-foreground: 0 0% 98%;
-    --popover: 240 11% 5%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 258 90% 76%;
-    --primary-foreground: 0 0% 6%;
-    --secondary: 240 4% 46%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 240 7% 11%;
-    --muted-foreground: 240 5% 65%;
-    --accent: 240 7% 11%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 4% 16%;
-    --input: 240 4% 16%;
-    --ring: 258 90% 76%;
-
-    /* Obsidian design tokens */
-    --app-bg: 240 10% 4%;
-    --app-surface: 240 11% 5%;
-    --app-panel: 240 9% 8%;
-    --app-elevated: 240 7% 11%;
-    --app-text: 0 0% 98%;
-    --app-muted: 240 5% 65%;
-    --app-border: 240 4% 16%;
-
-    --brand: 258 90% 76%;
-    --brand-intense: 262 83% 58%;
-    --brand-soft: 252 95% 85%;
-    --brand-foreground: 0 0% 6%;
-
-    --state-success: 158 64% 52%;
-    --state-warning: 38 92% 50%;
-    --state-danger: 0 84% 60%;
-    --state-info: 221 83% 61%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+@utility container {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (width >= 1400px) {
+    max-width: 1400px;
   }
 }
 
+@theme inline {
+  --font-sans: Inter Variable, Inter, ui-sans-serif, system-ui, sans-serif;
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-app-bg: var(--app-bg);
+  --color-app-surface: var(--app-surface);
+  --color-app-panel: var(--app-panel);
+  --color-app-elevated: var(--app-elevated);
+  --color-app-text: var(--app-text);
+  --color-app-muted: var(--app-muted);
+  --color-app-border: var(--app-border);
+
+  --color-brand: var(--brand);
+  --color-brand-intense: var(--brand-intense);
+  --color-brand-soft: var(--brand-soft);
+  --color-brand-foreground: var(--brand-foreground);
+
+  --color-state-income: var(--state-income);
+  --color-state-warning: var(--state-warning);
+  --color-state-expense: var(--state-expense);
+  --color-state-info: var(--state-info);
+
+  --color-sidebar: var(--sidebar-background);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+@utility numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+:root {
+  --background: hsl(0 0% 100%);
+  --foreground: hsl(222.2 84% 4.9%);
+  --card: hsl(0 0% 100%);
+  --card-foreground: hsl(222.2 84% 4.9%);
+  --popover: hsl(0 0% 100%);
+  --popover-foreground: hsl(222.2 84% 4.9%);
+  --primary: hsl(222.2 47.4% 11.2%);
+  --primary-foreground: hsl(210 40% 98%);
+  --secondary: hsl(210 40% 96.1%);
+  --secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --muted: hsl(210 40% 96.1%);
+  --muted-foreground: hsl(215.4 16.3% 46.9%);
+  --accent: hsl(210 40% 96.1%);
+  --accent-foreground: hsl(222.2 47.4% 11.2%);
+  --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: hsl(210 40% 98%);
+  --border: hsl(214.3 31.8% 91.4%);
+  --input: hsl(214.3 31.8% 91.4%);
+  --ring: hsl(222.2 84% 4.9%);
+  --radius: 0.5rem;
+
+  /* Danfy Dark design tokens */
+  --app-bg: hsl(240 10% 4%);
+  --app-surface: hsl(240 9% 7%);
+  --app-panel: hsl(240 7% 10%);
+  --app-elevated: hsl(240 6% 13%);
+  --app-text: hsl(0 0% 96%);
+  --app-muted: hsl(240 5% 65%);
+  --app-border: hsl(240 5% 18%);
+
+  --brand: hsl(258 90% 76%);
+  --brand-intense: hsl(262 83% 58%);
+  --brand-soft: hsl(252 95% 85%);
+  --brand-foreground: hsl(0 0% 6%);
+
+  --state-income: hsl(158 64% 52%);
+  --state-warning: hsl(38 92% 50%);
+  --state-expense: hsl(0 84% 60%);
+  --state-info: hsl(221 83% 61%);
+  --sidebar-background: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+.dark {
+  --background: hsl(240 10% 4%);
+  --foreground: hsl(0 0% 98%);
+  --card: hsl(240 9% 7%);
+  --card-foreground: hsl(0 0% 98%);
+  --popover: hsl(240 9% 7%);
+  --popover-foreground: hsl(0 0% 98%);
+  --primary: hsl(258 90% 76%);
+  --primary-foreground: hsl(0 0% 6%);
+  --secondary: hsl(240 4% 46%);
+  --secondary-foreground: hsl(0 0% 98%);
+  --muted: hsl(240 6% 13%);
+  --muted-foreground: hsl(240 5% 65%);
+  --accent: hsl(240 6% 13%);
+  --accent-foreground: hsl(0 0% 98%);
+  --destructive: hsl(0 84% 60%);
+  --destructive-foreground: hsl(0 0% 98%);
+  --border: hsl(240 5% 18%);
+  --input: hsl(240 5% 18%);
+  --ring: hsl(258 90% 76%);
+
+  /* Danfy Dark design tokens */
+  --app-bg: hsl(240 10% 4%);
+  --app-surface: hsl(240 9% 7%);
+  --app-panel: hsl(240 7% 10%);
+  --app-elevated: hsl(240 6% 13%);
+  --app-text: hsl(0 0% 96%);
+  --app-muted: hsl(240 5% 65%);
+  --app-border: hsl(240 5% 18%);
+
+  --brand: hsl(258 90% 76%);
+  --brand-intense: hsl(262 83% 58%);
+  --brand-soft: hsl(252 95% 85%);
+  --brand-foreground: hsl(0 0% 6%);
+
+  --state-income: hsl(158 64% 52%);
+  --state-warning: hsl(38 92% 50%);
+  --state-expense: hsl(0 84% 60%);
+  --state-info: hsl(221 83% 61%);
+  --sidebar-background: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
 @layer base {
-  * {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-app-bg font-sans text-app-text;
+    font-feature-settings:
+      'liga' 1,
+      'calt' 1;
+  }
+  button:not(:disabled),
+  [role='button']:not([aria-disabled='true']) {
+    cursor: pointer;
   }
 }
