@@ -5,19 +5,31 @@ import type {
   UpdateExampleDto,
 } from '../types'
 
+export const EXAMPLE_API_ENDPOINTS = {
+  examples: '/examples',
+  byId: (id: string) => `/examples/${id}`,
+} as const
+
 export const exampleService = {
   getAll: async (): Promise<ExampleEntity[]> => {
-    const response = await api.get<ExampleEntity[]>('/examples')
+    const response = await api.get<ExampleEntity[]>(
+      EXAMPLE_API_ENDPOINTS.examples
+    )
     return response.data
   },
 
   getById: async (id: string): Promise<ExampleEntity> => {
-    const response = await api.get<ExampleEntity>(`/examples/${id}`)
+    const response = await api.get<ExampleEntity>(
+      EXAMPLE_API_ENDPOINTS.byId(id)
+    )
     return response.data
   },
 
   create: async (data: CreateExampleDto): Promise<ExampleEntity> => {
-    const response = await api.post<ExampleEntity>('/examples', data)
+    const response = await api.post<ExampleEntity>(
+      EXAMPLE_API_ENDPOINTS.examples,
+      data
+    )
     return response.data
   },
 
@@ -25,11 +37,14 @@ export const exampleService = {
     id: string,
     data: UpdateExampleDto
   ): Promise<ExampleEntity> => {
-    const response = await api.put<ExampleEntity>(`/examples/${id}`, data)
+    const response = await api.put<ExampleEntity>(
+      EXAMPLE_API_ENDPOINTS.byId(id),
+      data
+    )
     return response.data
   },
 
   delete: async (id: string): Promise<void> => {
-    await api.delete(`/examples/${id}`)
+    await api.delete(EXAMPLE_API_ENDPOINTS.byId(id))
   },
 }
