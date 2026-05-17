@@ -124,7 +124,7 @@ export const AuthAppShell = ({
           <aside
             className={cn(
               'fixed inset-y-0 left-0 z-40 flex flex-col border-r border-app-border bg-app-surface transition-[width] duration-200',
-              isDesktopSidebarCollapsed ? 'w-[5.5rem]' : 'w-72'
+              isDesktopSidebarCollapsed ? 'w-22' : 'w-72'
             )}
           >
             <SidebarContent
@@ -166,10 +166,10 @@ export const AuthAppShell = ({
         <div
           className={cn(
             'flex min-h-screen flex-1 flex-col transition-[margin] duration-200',
-            isDesktopSidebarCollapsed ? 'lg:ml-[5.5rem]' : 'lg:ml-72'
+            isDesktopSidebarCollapsed ? 'lg:ml-22' : 'lg:ml-72'
           )}
         >
-          <header className="sticky top-0 z-30 border-b border-app-border bg-app-surface/95 backdrop-blur">
+          <header className="sticky top-0 z-30 border-b border-app-border bg-app-surface/95 backdrop-blur-sm">
             <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
               <div className="flex items-center gap-3">
                 <Button
@@ -332,7 +332,7 @@ const SidebarContent = ({
             </button>
             <button
               type="button"
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-state-danger transition hover:bg-state-danger/10"
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-destructive transition hover:bg-destructive/10"
               onClick={onLogout}
               disabled={isLoadingUser}
             >
@@ -427,7 +427,7 @@ const MobileSidebar = ({
   <>
     <div
       className={cn(
-        'fixed inset-0 z-40 bg-app-bg/70 backdrop-blur-sm transition-opacity lg:hidden',
+        'fixed inset-0 z-40 bg-app-bg/70 backdrop-blur-xs transition-opacity lg:hidden',
         isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
       )}
       onClick={onClose}

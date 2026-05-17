@@ -37,16 +37,16 @@ const checks: StrengthCheck[] = [
 
 const strengthTone = {
   weak: {
-    bar: 'bg-state-danger',
-    text: 'text-state-danger',
+    bar: 'bg-destructive',
+    text: 'text-destructive',
   },
   medium: {
     bar: 'bg-state-warning',
     text: 'text-state-warning',
   },
   strong: {
-    bar: 'bg-state-success',
-    text: 'text-state-success',
+    bar: 'bg-state-income',
+    text: 'text-state-income',
   },
 } as const
 
@@ -82,7 +82,7 @@ export const PasswordStrength = ({ password, className }: PasswordStrengthProps)
             <li
               key={check.id}
               className={cn('flex items-center gap-2 text-sm', {
-                'text-state-success': passed,
+                'text-state-income': passed,
                 'text-app-muted': !passed,
               })}
             >

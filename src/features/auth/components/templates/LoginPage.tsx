@@ -39,7 +39,7 @@ export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
   const copy = authModeContent[mode]
 
   return (
-    <div className="dark min-h-screen bg-gradient-to-br from-app-bg via-app-surface to-app-panel text-app-text">
+    <div className="dark min-h-screen bg-linear-to-br from-app-bg via-app-surface to-app-panel text-app-text">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center p-4 sm:p-6 lg:p-8">
         <Card className="w-full overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl shadow-app-bg/60">
           <div className="grid lg:grid-cols-[1fr_minmax(0,30rem)]">
