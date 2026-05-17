@@ -55,7 +55,7 @@ export const SessionCard = ({
       )}
 
       <div className="flex items-start gap-4">
-        <div className="flex-shrink-0 text-app-muted">
+        <div className="shrink-0 text-app-muted">
           {getDeviceIcon(session.device)}
         </div>
 
@@ -86,7 +86,7 @@ export const SessionCard = ({
             size="sm"
             onClick={() => onRevoke(session.jti)}
             disabled={isRevoking}
-            className="text-state-danger hover:bg-state-danger/10 hover:text-state-danger"
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />
           </Button>

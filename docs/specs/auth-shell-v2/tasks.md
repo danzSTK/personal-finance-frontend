@@ -202,7 +202,7 @@ Este documento quebra a implementação em tarefas para corrigir shell, dashboar
 ### Task 5.1 — Governança de cores
 **Arquivos-alvo**
 - `src/index.css`
-- `tailwind.config.js`
+- Tailwind v4 `@theme inline` em `src/index.css`
 - componentes da feature auth
 
 **Entregas**

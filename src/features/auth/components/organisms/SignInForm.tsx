@@ -68,7 +68,7 @@ export const SignInForm = () => {
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-state-danger/50 bg-state-danger/10 p-3 text-sm text-state-danger"
+          className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
         >
           <p className="font-medium">Erro ao fazer login</p>
           <p className="mt-1">{errorMessage}</p>

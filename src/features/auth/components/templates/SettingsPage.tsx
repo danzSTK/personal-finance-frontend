@@ -258,14 +258,14 @@ const SettingsSubSidebar = ({
       Configurações
     </p>
 
-    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:block lg:space-y-2 lg:overflow-visible lg:px-0 lg:pb-0">
+    <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 scrollbar-none [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden lg:mx-0 lg:block lg:space-y-2 lg:overflow-visible lg:px-0 lg:pb-0">
       {settingsSections.map((section) => (
         <button
           key={section.id}
           type="button"
           onClick={() => onChangeSection(section.id)}
           className={cn(
-            'min-w-[10.5rem] shrink-0 rounded-xl border px-3 py-2 text-left transition lg:min-w-0',
+            'min-w-42 shrink-0 rounded-xl border px-3 py-2 text-left transition lg:min-w-0',
             activeSection === section.id
               ? 'border-brand bg-brand/15 text-app-text'
               : 'border-transparent bg-transparent text-app-muted hover:border-app-border hover:bg-app-panel hover:text-app-text'
@@ -352,15 +352,14 @@ const SecuritySection = ({
   onRevokeSession,
 }: SecuritySectionProps) => (
   <>
-    <Card className="relative min-w-0 overflow-hidden border-app-border bg-app-surface">
-      <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-brand/10 blur-3xl" />
-      <CardHeader className="relative z-10">
+    <Card className="min-w-0 overflow-hidden border-app-border bg-app-surface">
+      <CardHeader>
         <CardTitle className="flex items-center gap-2 text-base text-app-text">
           <ShieldCheck className="h-4 w-4 text-brand-soft" />
           Métodos de login
         </CardTitle>
       </CardHeader>
-      <CardContent className="relative z-10 space-y-4">
+      <CardContent className="space-y-4">
         <ProviderStatusRow
           title="Google"
           description={
@@ -520,7 +519,7 @@ const ProviderStatusRow = ({
         className={cn(
           'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
           isLinked
-            ? 'bg-state-success/20 text-state-success'
+            ? 'bg-brand/15 text-brand-soft'
             : 'bg-app-elevated text-app-muted'
         )}
       >

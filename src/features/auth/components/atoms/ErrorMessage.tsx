@@ -12,7 +12,7 @@ export const ErrorMessage = ({ children, id, className }: ErrorMessageProps) => 
     id={id}
     role="alert"
     className={cn(
-      'animate-in slide-in-from-top-1 text-sm font-medium text-state-danger',
+      'animate-in slide-in-from-top-1 text-sm font-medium text-destructive',
       className
     )}
   >
