@@ -114,8 +114,9 @@ export const Label = ({ children, ...props }) => (
 // src/shared/components/atoms/Badge.tsx
 export const Badge = ({ children, variant = 'default' }) => (
   <span className={cn('rounded-full px-2 py-1 text-xs', {
-    'bg-blue-100 text-blue-800': variant === 'default',
-    'bg-red-100 text-red-800': variant === 'error',
+    'bg-app-elevated text-app-text': variant === 'default',
+    'bg-state-info/20 text-state-info': variant === 'info',
+    'bg-destructive/10 text-destructive': variant === 'error',
   })}>
     {children}
   </span>

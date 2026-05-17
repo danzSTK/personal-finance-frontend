@@ -213,7 +213,7 @@ O ponto ainda opcional para UX avançada é o **método usado na sessão atual**
 ### Tokens de cor (obrigatório)
 - Todas as cores devem vir de:
   - `src/index.css` (`--app-*`, `--brand-*`, `--state-*`)
-  - `tailwind.config.js` (`app`, `brand`, `state`)
+  - Tailwind v4 `@theme inline` em `src/index.css` (`app`, `brand`, `state`)
 
 ### Proibições
 - Sem `#hex`, `rgb`, `rgba`, `hsl` inline em componentes.
