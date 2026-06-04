@@ -61,6 +61,12 @@
   --color-state-expense: var(--state-expense);
   --color-state-info: var(--state-info);
 
+  --color-account-lavender: var(--acct-lav);
+  --color-account-cyan: var(--acct-cyan);
+  --color-account-mint: var(--acct-mint);
+  --color-account-gold: var(--acct-gold);
+  --color-account-rose: var(--acct-rose);
+
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -139,6 +145,12 @@
   --state-warning: hsl(38 92% 50%);
   --state-expense: hsl(0 84% 60%);
   --state-info: hsl(221 83% 61%);
+
+  --acct-lav: hsl(258 90% 76%);
+  --acct-cyan: hsl(190 84% 58%);
+  --acct-mint: hsl(164 62% 56%);
+  --acct-gold: hsl(44 90% 58%);
+  --acct-rose: hsl(344 82% 68%);
   --sidebar-background: hsl(0 0% 98%);
   --sidebar-foreground: hsl(240 5.3% 26.1%);
   --sidebar-primary: hsl(240 5.9% 10%);
@@ -188,6 +200,12 @@
   --state-warning: hsl(38 92% 50%);
   --state-expense: hsl(0 84% 60%);
   --state-info: hsl(221 83% 61%);
+
+  --acct-lav: hsl(258 90% 76%);
+  --acct-cyan: hsl(190 84% 58%);
+  --acct-mint: hsl(164 62% 56%);
+  --acct-gold: hsl(44 90% 58%);
+  --acct-rose: hsl(344 82% 68%);
   --sidebar-background: hsl(240 5.9% 10%);
   --sidebar-foreground: hsl(240 4.8% 95.9%);
   --sidebar-primary: hsl(224.3 76.3% 48%);
@@ -215,5 +233,15 @@
   button:not(:disabled),
   [role='button']:not([aria-disabled='true']) {
     cursor: pointer;
+  }
+  input[type='number'] {
+    appearance: textfield;
+    -moz-appearance: textfield;
+  }
+  input[type='number']::-webkit-outer-spin-button,
+  input[type='number']::-webkit-inner-spin-button {
+    margin: 0;
+    appearance: none;
+    -webkit-appearance: none;
   }
 }

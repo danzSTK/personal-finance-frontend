@@ -6,6 +6,8 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
+  Tags,
+  WalletCards,
   X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
@@ -21,7 +23,7 @@ import {
 } from '../../constants/auth.constants'
 import { useAuthStore } from '../../stores/auth.store'
 
-type MainSection = 'dashboard' | 'settings'
+type MainSection = 'dashboard' | 'accounts' | 'categories' | 'settings'
 
 interface AuthAppShellProps {
   activeSection: MainSection
@@ -32,7 +34,7 @@ interface AuthAppShellProps {
 }
 
 const primaryNavigation: Array<{
-  id: 'dashboard'
+  id: MainSection
   label: string
   description: string
   icon: ReactNode
@@ -45,6 +47,27 @@ const primaryNavigation: Array<{
     icon: <LayoutDashboard className="h-4 w-4" />,
     route: AUTH_ROUTES.dashboard,
   },
+  {
+    id: 'accounts',
+    label: 'Contas',
+    description: 'Carteiras e bancos',
+    icon: <WalletCards className="h-4 w-4" />,
+    route: AUTH_ROUTES.accounts,
+  },
+  {
+    id: 'categories',
+    label: 'Categorias',
+    description: 'Receitas e despesas',
+    icon: <Tags className="h-4 w-4" />,
+    route: AUTH_ROUTES.categories,
+  },
+  {
+    id: 'settings',
+    label: 'Ajustes',
+    description: 'Conta e segurança',
+    icon: <Settings className="h-4 w-4" />,
+    route: AUTH_ROUTES.settings,
+  },
 ]
 
 const getStoredSidebarCollapsedState = (): boolean => {
@@ -53,7 +76,8 @@ const getStoredSidebarCollapsedState = (): boolean => {
   }
 
   return (
-    window.localStorage.getItem(AUTH_UI_STORAGE_KEYS.sidebarCollapsed) === 'true'
+    window.localStorage.getItem(AUTH_UI_STORAGE_KEYS.sidebarCollapsed) ===
+    'true'
   )
 }
 
@@ -169,32 +193,20 @@ export const AuthAppShell = ({
             isDesktopSidebarCollapsed ? 'lg:ml-22' : 'lg:ml-72'
           )}
         >
-          <header className="sticky top-0 z-30 border-b border-app-border bg-app-surface/95 backdrop-blur-sm">
-            <div className="flex h-16 items-center justify-between gap-3 px-4 sm:px-6">
-              <div className="flex items-center gap-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-10 w-10 rounded-xl border border-app-border bg-app-panel text-app-text hover:bg-app-elevated lg:hidden"
-                  onClick={() => setIsMobileSidebarOpen(true)}
-                  aria-label="Abrir menu lateral"
-                >
-                  <MenuBarsIcon />
-                </Button>
-                <div>
-                  <h1 className="text-sm font-semibold text-app-text sm:text-base">
-                    {title}
-                  </h1>
-                  <p className="text-xs text-app-muted">{subtitle}</p>
-                </div>
-              </div>
-              <span className="hidden text-xs font-medium uppercase tracking-wide text-app-muted sm:block">
-                {APP_BRAND.name}
-              </span>
-            </div>
-          </header>
+          <Button
+            type="button"
+            variant="ghost"
+            className="fixed left-4 top-4 z-30 h-11 w-11 rounded-xl border border-app-border bg-app-surface/95 text-app-text shadow-lg shadow-app-bg/30 backdrop-blur-sm hover:bg-app-elevated lg:hidden"
+            onClick={() => setIsMobileSidebarOpen(true)}
+            aria-label="Abrir menu lateral"
+          >
+            <MenuBarsIcon />
+          </Button>
 
-          <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 lg:p-8">
+          <main
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8"
+            aria-label={`${title}: ${subtitle}`}
+          >
             {settingsSidebar ? (
               <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
                 <div className="min-w-0">{settingsSidebar}</div>
@@ -244,51 +256,48 @@ const SidebarContent = ({
 }: SidebarContentProps) => (
   <>
     {!hideBrandButton || showCollapseControl ? (
-      <div className={cn('border-b border-app-border', isCollapsed ? 'p-3' : 'p-5')}>
+      <div
+        className={cn(
+          'border-b border-app-border px-4 py-4',
+          isCollapsed && showCollapseControl && 'px-2'
+        )}
+      >
         {isCollapsed && showCollapseControl ? (
-          <div className="flex flex-col items-center gap-2">
-            {!hideBrandButton ? <BrandButton onNavigate={onNavigate} isCollapsed /> : null}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9 rounded-lg border border-app-border bg-app-panel text-app-muted hover:bg-app-elevated hover:text-app-text"
+          <div className="flex flex-col items-center gap-3">
+            {!hideBrandButton ? (
+              <BrandButton onNavigate={onNavigate} isCollapsed />
+            ) : null}
+            <SidebarCollapseButton
+              isCollapsed={isCollapsed}
               onClick={onToggleCollapse}
-              aria-label="Expandir menu lateral"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            />
           </div>
         ) : (
-          <div className="flex items-center justify-between gap-2">
-            {!hideBrandButton ? <BrandButton onNavigate={onNavigate} isCollapsed={false} /> : null}
+          <div className="flex items-center justify-between gap-3">
+            {!hideBrandButton ? (
+              <BrandButton onNavigate={onNavigate} isCollapsed={false} />
+            ) : null}
             {showCollapseControl ? (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 rounded-lg border border-app-border bg-app-panel text-app-muted hover:bg-app-elevated hover:text-app-text"
+              <SidebarCollapseButton
+                isCollapsed={isCollapsed}
                 onClick={onToggleCollapse}
-                aria-label="Recolher menu lateral"
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
+              />
             ) : null}
           </div>
         )}
       </div>
     ) : null}
 
-    <nav className={cn('flex-1 space-y-2 p-3', isCollapsed && 'px-2')}>
+    <nav className={cn('flex-1 space-y-1.5 p-3', isCollapsed && 'px-2')}>
       {primaryNavigation.map((item) => (
         <button
           key={item.id}
           type="button"
           onClick={() => onNavigate(item.route)}
           className={cn(
-            'w-full rounded-xl border transition-all',
+            'w-full rounded-xl border transition-all focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-surface',
             activeSection === item.id
-              ? 'border-brand bg-brand/15 text-app-text'
+              ? 'border-brand/40 bg-brand/15 text-app-text'
               : 'border-transparent bg-transparent text-app-muted hover:border-app-border hover:bg-app-panel hover:text-app-text',
             isCollapsed
               ? 'flex items-center justify-center px-2 py-3'
@@ -307,13 +316,24 @@ const SidebarContent = ({
             {isCollapsed ? null : item.label}
           </span>
           {isCollapsed ? null : (
-            <p className="mt-1 text-xs text-app-muted">{item.description}</p>
+            <p
+              className={cn(
+                'mt-1 text-xs',
+                activeSection === item.id
+                  ? 'text-brand-soft'
+                  : 'text-app-muted'
+              )}
+            >
+              {item.description}
+            </p>
           )}
         </button>
       ))}
     </nav>
 
-    <div className={cn('border-t border-app-border p-3', isCollapsed && 'px-2')}>
+    <div
+      className={cn('border-t border-app-border p-3', isCollapsed && 'px-2')}
+    >
       <div className="relative">
         {isProfileMenuOpen ? (
           <div
@@ -354,10 +374,10 @@ const SidebarContent = ({
           aria-haspopup="menu"
           aria-expanded={isProfileMenuOpen}
           aria-label={`Abrir menu de perfil de ${fullName}`}
-          >
-            {isCollapsed ? (
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
-                {initials}
+        >
+          {isCollapsed ? (
+            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
+              {initials}
             </span>
           ) : (
             <span className="flex min-w-0 items-center gap-3">
@@ -374,11 +394,39 @@ const SidebarContent = ({
               </span>
             </span>
           )}
-          {isCollapsed ? null : <ChevronDown className="h-4 w-4 text-app-muted" />}
+          {isCollapsed ? null : (
+            <ChevronDown className="h-4 w-4 text-app-muted" />
+          )}
         </button>
       </div>
     </div>
   </>
+)
+
+interface SidebarCollapseButtonProps {
+  isCollapsed: boolean
+  onClick?: () => void
+}
+
+const SidebarCollapseButton = ({
+  isCollapsed,
+  onClick,
+}: SidebarCollapseButtonProps) => (
+  <Button
+    type="button"
+    variant="ghost"
+    size="icon"
+    className="h-9 w-9 shrink-0 rounded-lg text-app-muted hover:bg-app-panel hover:text-app-text"
+    onClick={onClick}
+    aria-label={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+    title={isCollapsed ? 'Expandir menu lateral' : 'Recolher menu lateral'}
+  >
+    {isCollapsed ? (
+      <ChevronRight className="h-4 w-4" />
+    ) : (
+      <ChevronLeft className="h-4 w-4" />
+    )}
+  </Button>
 )
 
 interface BrandButtonProps {
@@ -391,30 +439,37 @@ const BrandButton = ({ isCollapsed, onNavigate }: BrandButtonProps) => (
     type="button"
     onClick={() => onNavigate(AUTH_ROUTES.dashboard)}
     className={cn(
-      'group rounded-xl border border-transparent transition hover:border-app-border hover:bg-app-panel',
-      isCollapsed ? 'h-12 w-12' : 'flex items-center gap-3 px-2 py-1'
+      'group min-w-0 rounded-xl text-left transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-surface',
+      isCollapsed
+        ? 'inline-flex h-12 w-12 items-center justify-center bg-brand/15 text-brand-soft hover:bg-brand/20'
+        : 'flex flex-1 items-center gap-3 py-1.5'
     )}
     aria-label={`Ir para ${APP_BRAND.name}`}
+    title={isCollapsed ? APP_BRAND.name : undefined}
   >
     <span
-      className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-app-border bg-app-panel"
+      className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-brand text-brand-foreground"
       aria-hidden
     >
-      <span className="h-2.5 w-2.5 rounded-full bg-brand" />
+      <WalletCards className="h-5 w-5" />
     </span>
     {isCollapsed ? null : (
-      <span className="text-left">
-        <span className="block text-sm font-semibold text-app-text">
+      <span className="min-w-0 text-left">
+        <span className="block text-base font-semibold leading-5 text-app-text">
           {APP_BRAND.name}
         </span>
-        <span className="block text-xs text-app-muted">Painel privado</span>
+        <span className="block truncate text-xs text-app-muted">
+          Controle financeiro
+        </span>
       </span>
     )}
   </button>
 )
 
-interface MobileSidebarProps
-  extends Omit<SidebarContentProps, 'isCollapsed' | 'showCollapseControl'> {
+interface MobileSidebarProps extends Omit<
+  SidebarContentProps,
+  'isCollapsed' | 'showCollapseControl'
+> {
   isOpen: boolean
   onClose: () => void
 }
@@ -439,8 +494,11 @@ const MobileSidebar = ({
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}
     >
-      <div className="flex items-center justify-between border-b border-app-border p-4">
-        <p className="text-sm font-semibold text-app-text">{APP_BRAND.name}</p>
+      <div className="flex items-center justify-between gap-2 border-b border-app-border p-3">
+        <BrandButton
+          onNavigate={sidebarProps.onNavigate}
+          isCollapsed={false}
+        />
         <Button
           type="button"
           variant="ghost"
@@ -462,7 +520,10 @@ const MobileSidebar = ({
 )
 
 const MenuBarsIcon = () => (
-  <span className="inline-flex h-4 w-4 flex-col justify-center gap-1" aria-hidden>
+  <span
+    className="inline-flex h-4 w-4 flex-col justify-center gap-1"
+    aria-hidden
+  >
     <span className="h-0.5 w-4 rounded-full bg-current" />
     <span className="h-0.5 w-4 rounded-full bg-current" />
     <span className="h-0.5 w-4 rounded-full bg-current" />
@@ -470,10 +531,7 @@ const MenuBarsIcon = () => (
 )
 
 const getInitials = (name: string): string => {
-  const words = name
-    .trim()
-    .split(' ')
-    .filter(Boolean)
+  const words = name.trim().split(' ').filter(Boolean)
 
   if (words.length === 0) {
     return 'DF'

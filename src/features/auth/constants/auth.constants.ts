@@ -2,6 +2,8 @@ export const AUTH_ROUTES = {
   login: '/login',
   signUp: '/sign-up',
   dashboard: '/dashboard',
+  accounts: '/accounts',
+  categories: '/categories',
   settings: '/settings',
   authCallback: '/auth/callback',
   linkProviderCallback: '/auth/link',
@@ -37,7 +39,8 @@ export const AUTH_UI_STORAGE_KEYS = {
 export const GOOGLE_LINK_ERROR_MESSAGES = {
   missing_state: 'Sessão de vínculo inválida. Tente novamente.',
   invalid_state: 'Sessão de vínculo expirada. Tente novamente.',
-  google_provider_conflict: 'Esta conta Google já está vinculada a outro usuário.',
+  google_provider_conflict:
+    'Esta conta Google já está vinculada a outro usuário.',
 } as const
 
 export const DEFAULT_API_BASE_URL = 'http://localhost:3000'
