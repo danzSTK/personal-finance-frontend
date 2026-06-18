@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/features/auth/api/auth.api'
-import { resolveApiErrorMessage } from '@/features/auth/utils/error.utils'
+import { showApiErrorToast } from '@/shared/errors'
 import { toast } from '@/shared/hooks/use-toast'
 import {
   CATEGORY_API_ENDPOINTS,
@@ -44,16 +44,6 @@ export const useCreateCategory = () => {
         description: `${category.displayName} já está disponível.`,
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao criar categoria',
-        description: resolveApiErrorMessage(
-          error,
-          'Confira os dados e tente novamente.'
-        ),
-      })
-    },
   })
 }
 
@@ -78,16 +68,6 @@ export const useUpdateCategory = () => {
         description: `${category.displayName} foi salva com sucesso.`,
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao atualizar categoria',
-        description: resolveApiErrorMessage(
-          error,
-          'Não foi possível salvar as alterações agora.'
-        ),
-      })
-    },
   })
 }
 
@@ -105,16 +85,7 @@ export const useArchiveCategory = () => {
         description: 'Ela pode ser restaurada pela visualização de arquivadas.',
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao arquivar categoria',
-        description: resolveApiErrorMessage(
-          error,
-          'Esta categoria não pode ser arquivada agora.'
-        ),
-      })
-    },
+    onError: (error) => showApiErrorToast(error, 'categories.archive'),
   })
 }
 
@@ -132,16 +103,7 @@ export const useUnarchiveCategory = () => {
         description: 'Ela voltou para a lista de categorias ativas.',
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao restaurar categoria',
-        description: resolveApiErrorMessage(
-          error,
-          'Já pode existir uma categoria ativa com o mesmo nome.'
-        ),
-      })
-    },
+    onError: (error) => showApiErrorToast(error, 'categories.unarchive'),
   })
 }
 
@@ -180,16 +142,6 @@ export const useDeleteCategoryWithMerge = () => {
       toast({
         title: 'Categoria excluída',
         description: 'Os lançamentos foram movidos para a categoria escolhida.',
-      })
-    },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao mover lançamentos',
-        description: resolveApiErrorMessage(
-          error,
-          'Escolha uma categoria ativa do mesmo tipo e tente novamente.'
-        ),
       })
     },
   })

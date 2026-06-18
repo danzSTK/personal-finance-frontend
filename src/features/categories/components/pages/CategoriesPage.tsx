@@ -29,10 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import {
-  useArchiveCategory,
-  useUnarchiveCategory,
-} from '../../api/mutations'
+import { useArchiveCategory, useUnarchiveCategory } from '../../api/mutations'
 import { useCategories } from '../../api/queries'
 import {
   CATEGORY_DEFAULT_LIMIT,
@@ -61,8 +58,7 @@ import { CategoriesTable } from '../organisms/CategoriesTable'
 export function CategoriesPage() {
   const [activeType, setActiveType] =
     useState<CategoryManagementType>('EXPENSE')
-  const [archiveView, setArchiveView] =
-    useState<CategoryArchiveView>('active')
+  const [archiveView, setArchiveView] = useState<CategoryArchiveView>('active')
   const [page, setPage] = useState(CATEGORY_DEFAULT_PAGE)
   const [limit, setLimit] = useState(CATEGORY_DEFAULT_LIMIT)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -95,6 +91,7 @@ export function CategoriesPage() {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useCategories({
     page,
@@ -104,18 +101,15 @@ export function CategoriesPage() {
     includeArchived: archiveView === 'archived',
   })
 
-  const visibleCategories = useMemo(
-    () => {
-      const categories = categoriesResponse?.data ?? []
+  const visibleCategories = useMemo(() => {
+    const categories = categoriesResponse?.data ?? []
 
-      return categories.filter(
-        (category) =>
-          category.type === activeType &&
-          category.isArchived === (archiveView === 'archived')
-      )
-    },
-    [activeType, archiveView, categoriesResponse?.data]
-  )
+    return categories.filter(
+      (category) =>
+        category.type === activeType &&
+        category.isArchived === (archiveView === 'archived')
+    )
+  }, [activeType, archiveView, categoriesResponse?.data])
   const meta = categoriesResponse?.meta
   const totalPages = Math.max(meta?.totalPages ?? 1, 1)
   const currentTypeLabel = getCategoryTypeLabel(activeType)
@@ -271,7 +265,10 @@ export function CategoriesPage() {
           {isLoading ? <CategoriesSkeleton /> : null}
 
           {!isLoading && isError ? (
-            <CategoriesErrorState onRetry={() => void refetch()} />
+            <CategoriesErrorState
+              error={error}
+              onRetry={() => void refetch()}
+            />
           ) : null}
 
           {!isLoading && !isError && visibleCategories.length > 0 ? (
@@ -285,9 +282,7 @@ export function CategoriesPage() {
                 onDelete={(category) =>
                   setDeleteState({ mode: 'confirm', category })
                 }
-                onEdit={(category) =>
-                  setSheetState({ mode: 'edit', category })
-                }
+                onEdit={(category) => setSheetState({ mode: 'edit', category })}
                 onUnarchive={(category) =>
                   unarchiveCategoryMutation.mutate(category.id)
                 }

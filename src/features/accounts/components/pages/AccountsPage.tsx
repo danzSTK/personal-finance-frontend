@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CircleDollarSign, Clock3, EllipsisVertical } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { resolveApiError } from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency } from '@/shared/utils/formatters'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -55,6 +56,7 @@ export function AccountsPage() {
     isLoading,
     isFetching,
     isError,
+    error,
     refetch,
   } = useAccounts({
     includeArchived,
@@ -115,6 +117,11 @@ export function AccountsPage() {
     archiveMutation.mutate(archiveTarget.id, {
       onSuccess: () => setArchiveTarget(null),
     })
+  }
+
+  const closeArchiveDialog = () => {
+    archiveMutation.reset()
+    setArchiveTarget(null)
   }
 
   const openCreateSheet = () => setSheetState({ mode: 'create' })
@@ -212,7 +219,7 @@ export function AccountsPage() {
           {isLoading ? <AccountsSkeleton /> : null}
 
           {!isLoading && isError ? (
-            <AccountsErrorState onRetry={() => void refetch()} />
+            <AccountsErrorState error={error} onRetry={() => void refetch()} />
           ) : null}
 
           {!isLoading &&
@@ -260,7 +267,7 @@ export function AccountsPage() {
         open={archiveTarget !== null}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
-            setArchiveTarget(null)
+            closeArchiveDialog()
           }
         }}
       >
@@ -273,17 +280,23 @@ export function AccountsPage() {
                 : 'A conta deixará de aparecer na lista principal.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {archiveMutation.error ? (
+            <ApiErrorAlert
+              error={resolveApiError(archiveMutation.error, 'accounts.archive')}
+            />
+          ) : null}
           <AlertDialogFooter>
             <AlertDialogCancel className="border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text">
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              type="button"
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={handleArchive}
               disabled={archiveMutation.isPending}
             >
               {archiveMutation.isPending ? 'Arquivando...' : 'Arquivar'}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

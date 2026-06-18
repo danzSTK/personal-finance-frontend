@@ -1,13 +1,15 @@
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { Loader2, Lock, Mail } from 'lucide-react'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 
 import { FormField } from '../molecules/FormField'
 import { Button } from '../atoms'
 import { useSignIn } from '../../api/mutations'
 import { signInSchema, SignInFormData } from '../../utils/validation'
-import { resolveApiErrorMessage } from '../../utils/error.utils'
 import { AUTH_ROUTES } from '../../constants/auth.constants'
 
 const inputClassName =
@@ -18,16 +20,32 @@ export const SignInForm = () => {
   const location = useLocation()
   const { mutate: signIn, isPending, error } = useSignIn()
   const from = resolveRedirectPath(location.state)
-  const errorMessage = resolveApiErrorMessage(error, 'Email ou senha incorretos')
+  const errorPresentation = useMemo(
+    () => (error ? resolveApiError(error, 'auth.sign-in') : null),
+    [error]
+  )
 
   const {
     register,
     handleSubmit,
+    setError,
+    setFocus,
     formState: { errors, isValid },
   } = useForm<SignInFormData>({
     resolver: zodResolver(signInSchema),
     mode: 'onChange',
   })
+
+  useEffect(() => {
+    if (!errorPresentation) return
+
+    applyApiFieldErrors<SignInFormData>({
+      fieldErrors: errorPresentation.fieldErrors,
+      fieldMap: { email: 'email', password: 'password' },
+      setError,
+      setFocus,
+    })
+  }, [errorPresentation, setError, setFocus])
 
   const canSubmit = !isPending && isValid
 
@@ -65,15 +83,7 @@ export const SignInForm = () => {
         className={inputClassName}
       />
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          <p className="font-medium">Erro ao fazer login</p>
-          <p className="mt-1">{errorMessage}</p>
-        </div>
-      )}
+      {errorPresentation ? <ApiErrorAlert error={errorPresentation} /> : null}
 
       <Button
         type="submit"

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Check, Ellipsis } from 'lucide-react'
@@ -6,6 +6,8 @@ import { Button } from '@/shared/lib/button'
 import { Input } from '@/shared/lib/input'
 import { cn } from '@/shared/lib/utils'
 import { Textarea } from '@/shared/components/ui/textarea'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,10 +24,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
-import {
-  useCreateCategory,
-  useUpdateCategory,
-} from '../../api/mutations'
+import { useCreateCategory, useUpdateCategory } from '../../api/mutations'
 import { useCategoryMetadata } from '../../api/queries'
 import {
   mergeCategoryColorMetadata,
@@ -71,19 +70,57 @@ export function CategoryFormSheet({
   const isEditing = state?.mode === 'edit'
   const isPending =
     createCategoryMutation.isPending || updateCategoryMutation.isPending
+  const mutationError = isEditing
+    ? updateCategoryMutation.error
+    : createCategoryMutation.error
+  const errorPresentation = useMemo(
+    () =>
+      mutationError
+        ? resolveApiError(
+            mutationError,
+            isEditing ? 'categories.update' : 'categories.create'
+          )
+        : null,
+    [isEditing, mutationError]
+  )
 
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categoryFormSchema),
     defaultValues: getCategoryFormDefaults(state),
   })
+  const resetCategoryForm = form.reset
+  const resetCreateCategory = createCategoryMutation.reset
+  const resetUpdateCategory = updateCategoryMutation.reset
 
   useEffect(() => {
     if (!state) {
       return
     }
 
-    form.reset(getCategoryFormDefaults(state))
-  }, [form, state])
+    resetCreateCategory()
+    resetUpdateCategory()
+    resetCategoryForm(getCategoryFormDefaults(state))
+  }, [resetCategoryForm, resetCreateCategory, resetUpdateCategory, state])
+
+  useEffect(() => {
+    if (!errorPresentation) return
+
+    applyApiFieldErrors<CategoryFormValues>({
+      fieldErrors: errorPresentation.fieldErrors,
+      fieldMap: {
+        displayName: 'displayName',
+        description: 'description',
+        color: 'color',
+        colorToken: 'color',
+        icon: 'icon',
+        iconKey: 'icon',
+        includeInReports: 'includeInReports',
+        sortOrder: 'sortOrder',
+      },
+      setError: form.setError,
+      setFocus: form.setFocus,
+    })
+  }, [errorPresentation, form.setError, form.setFocus])
 
   const selectedColor = form.watch('color')
   const selectedIcon = form.watch('icon')
@@ -386,6 +423,10 @@ export function CategoryFormSheet({
               aria-hidden
             />
           </label>
+
+          {errorPresentation ? (
+            <ApiErrorAlert error={errorPresentation} />
+          ) : null}
 
           <SheetFooter className="gap-2 pt-2">
             <Button

@@ -1,8 +1,4 @@
-export interface ApiError {
-  message: string
-  statusCode: number
-  errors?: Record<string, string[]>
-}
+export type { PlatformErrorResponse as ApiError } from '@/shared/errors'
 
 export interface PaginatedResponse<T> {
   data: T[]

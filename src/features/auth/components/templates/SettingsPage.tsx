@@ -15,6 +15,12 @@ import { Input } from '@/shared/lib/input'
 import { Button } from '@/shared/lib/button'
 import { toast } from '@/shared/hooks/use-toast'
 import { cn } from '@/shared/lib/utils'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import {
+  resolveApiError,
+  showApiErrorToast,
+  type ApiErrorPresentation,
+} from '@/shared/errors'
 import api from '../../api/auth.api'
 import { useLinkEmail, useRevokeSession } from '../../api/mutations'
 import { useSessions, useUser } from '../../api/queries'
@@ -25,12 +31,15 @@ import {
   GOOGLE_LINK_ERROR_MESSAGES,
 } from '../../constants/auth.constants'
 import type { AuthProvider, LinkEmailDto, Session, User } from '../../types'
-import { resolveApiErrorMessage } from '../../utils/error.utils'
 import { SessionCard } from '../organisms/SessionCard'
 import { GoogleLogo } from '../atoms/GoogleLogo'
 import { AuthAppShell } from './AuthAppShell'
 
-type SettingsSectionId = 'account' | 'security' | 'notifications' | 'preferences'
+type SettingsSectionId =
+  | 'account'
+  | 'security'
+  | 'notifications'
+  | 'preferences'
 
 const settingsSections: Array<{
   id: SettingsSectionId
@@ -69,7 +78,8 @@ const inputClassName =
 
 export function SettingsPage() {
   const queryClient = useQueryClient()
-  const [activeSection, setActiveSection] = useState<SettingsSectionId>('account')
+  const [activeSection, setActiveSection] =
+    useState<SettingsSectionId>('account')
   const [linkEmailForm, setLinkEmailForm] = useState<LinkEmailDto>({
     email: '',
     password: '',
@@ -77,9 +87,28 @@ export function SettingsPage() {
   const [revokingJti, setRevokingJti] = useState<string | null>(null)
 
   const { data: user, isLoading: isLoadingUser } = useUser()
-  const { data: sessions = [], isLoading: isLoadingSessions } = useSessions()
+  const {
+    data: sessions = [],
+    isLoading: isLoadingSessions,
+    error: sessionsError,
+    refetch: refetchSessions,
+  } = useSessions()
   const linkEmailMutation = useLinkEmail()
   const revokeSessionMutation = useRevokeSession()
+  const linkEmailError = useMemo(
+    () =>
+      linkEmailMutation.error
+        ? resolveApiError(linkEmailMutation.error, 'auth.link-email')
+        : null,
+    [linkEmailMutation.error]
+  )
+  const sessionsErrorPresentation = useMemo(
+    () =>
+      sessionsError
+        ? resolveApiError(sessionsError, 'auth.sessions.list')
+        : null,
+    [sessionsError]
+  )
 
   const providers = user?.providers ?? []
   const emailProvider = findProvider(providers, 'EMAIL')
@@ -155,29 +184,13 @@ export function SettingsPage() {
           description: 'Agora você pode acessar também com email e senha.',
         })
       },
-      onError: (error) => {
-        toast({
-          variant: 'destructive',
-          title: 'Falha ao vincular email',
-          description: resolveApiErrorMessage(error, 'Confira os dados e tente novamente.'),
-        })
-      },
     })
   }
 
   const handleRevokeSession = (jti: string) => {
     setRevokingJti(jti)
     revokeSessionMutation.mutate(jti, {
-      onError: (error) => {
-        toast({
-          variant: 'destructive',
-          title: 'Falha ao revogar sessão',
-          description: resolveApiErrorMessage(
-            error,
-            'Não foi possível revogar esta sessão agora.'
-          ),
-        })
-      },
+      onError: (error) => showApiErrorToast(error, 'auth.sessions.revoke'),
       onSettled: () => {
         setRevokingJti((current) => (current === jti ? null : current))
       },
@@ -209,11 +222,14 @@ export function SettingsPage() {
           isLoadingSessions={isLoadingSessions}
           linkEmailForm={linkEmailForm}
           isLinkingEmail={linkEmailMutation.isPending}
+          linkEmailError={linkEmailError}
+          sessionsError={sessionsErrorPresentation}
           revokingJti={revokingJti}
           onLinkGoogle={handleLinkGoogle}
           onLinkEmail={handleLinkEmail}
           onChangeLinkEmailForm={setLinkEmailForm}
           onRevokeSession={handleRevokeSession}
+          onRetrySessions={() => void refetchSessions()}
         />
       ) : null}
 
@@ -275,7 +291,9 @@ const SettingsSubSidebar = ({
             <span className="shrink-0">{section.icon}</span>
             <span className="block text-sm font-medium">{section.title}</span>
           </span>
-          <span className="mt-1 hidden text-xs text-app-muted lg:block">{section.description}</span>
+          <span className="mt-1 hidden text-xs text-app-muted lg:block">
+            {section.description}
+          </span>
         </button>
       ))}
     </div>
@@ -330,11 +348,14 @@ interface SecuritySectionProps {
   isLoadingSessions: boolean
   linkEmailForm: LinkEmailDto
   isLinkingEmail: boolean
+  linkEmailError: ApiErrorPresentation | null
+  sessionsError: ApiErrorPresentation | null
   revokingJti: string | null
   onLinkGoogle: () => void
   onLinkEmail: (event: FormEvent<HTMLFormElement>) => void
   onChangeLinkEmailForm: (value: LinkEmailDto) => void
   onRevokeSession: (jti: string) => void
+  onRetrySessions: () => void
 }
 
 const SecuritySection = ({
@@ -345,11 +366,14 @@ const SecuritySection = ({
   isLoadingSessions,
   linkEmailForm,
   isLinkingEmail,
+  linkEmailError,
+  sessionsError,
   revokingJti,
   onLinkGoogle,
   onLinkEmail,
   onChangeLinkEmailForm,
   onRevokeSession,
+  onRetrySessions,
 }: SecuritySectionProps) => (
   <>
     <Card className="min-w-0 overflow-hidden border-app-border bg-app-surface">
@@ -395,46 +419,54 @@ const SecuritySection = ({
           isPrimary
           action={
             emailProvider ? null : (
-              <form onSubmit={onLinkEmail} className="grid gap-2 sm:grid-cols-3">
-                <Input
-                  type="email"
-                  placeholder="Email"
-                  autoComplete="email"
-                  value={linkEmailForm.email}
-                  onChange={(event) =>
-                    onChangeLinkEmailForm({
-                      ...linkEmailForm,
-                      email: event.target.value,
-                    })
-                  }
-                  className={inputClassName}
-                />
-                <Input
-                  type="password"
-                  placeholder="Senha"
-                  autoComplete="new-password"
-                  value={linkEmailForm.password}
-                  onChange={(event) =>
-                    onChangeLinkEmailForm({
-                      ...linkEmailForm,
-                      password: event.target.value,
-                    })
-                  }
-                  className={inputClassName}
-                />
-                <Button
-                  type="submit"
-                  disabled={
-                    isLinkingEmail ||
-                    linkEmailForm.email.trim() === '' ||
-                    linkEmailForm.password.trim() === ''
-                  }
-                  className="h-10 rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
+              <div className="space-y-3">
+                <form
+                  onSubmit={onLinkEmail}
+                  className="grid gap-2 sm:grid-cols-3"
                 >
-                  <Mail className="mr-2 h-4 w-4" />
-                  {isLinkingEmail ? 'Vinculando...' : 'Vincular email'}
-                </Button>
-              </form>
+                  <Input
+                    type="email"
+                    placeholder="Email"
+                    autoComplete="email"
+                    value={linkEmailForm.email}
+                    onChange={(event) =>
+                      onChangeLinkEmailForm({
+                        ...linkEmailForm,
+                        email: event.target.value,
+                      })
+                    }
+                    className={inputClassName}
+                  />
+                  <Input
+                    type="password"
+                    placeholder="Senha"
+                    autoComplete="new-password"
+                    value={linkEmailForm.password}
+                    onChange={(event) =>
+                      onChangeLinkEmailForm({
+                        ...linkEmailForm,
+                        password: event.target.value,
+                      })
+                    }
+                    className={inputClassName}
+                  />
+                  <Button
+                    type="submit"
+                    disabled={
+                      isLinkingEmail ||
+                      linkEmailForm.email.trim() === '' ||
+                      linkEmailForm.password.trim() === ''
+                    }
+                    className="h-10 rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
+                  >
+                    <Mail className="mr-2 h-4 w-4" />
+                    {isLinkingEmail ? 'Vinculando...' : 'Vincular email'}
+                  </Button>
+                </form>
+                {linkEmailError ? (
+                  <ApiErrorAlert error={linkEmailError} />
+                ) : null}
+              </div>
             )
           }
         />
@@ -453,6 +485,9 @@ const SecuritySection = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        {sessionsError ? (
+          <ApiErrorAlert error={sessionsError} onRetry={onRetrySessions} />
+        ) : null}
         {isLoadingSessions ? (
           <p className="text-sm text-app-muted">Carregando sessões...</p>
         ) : null}
@@ -504,7 +539,10 @@ const ProviderStatusRow = ({
     )}
   >
     {isPrimary ? (
-      <span className="absolute bottom-3 left-0 top-3 w-0.5 rounded-r bg-brand" aria-hidden />
+      <span
+        className="absolute bottom-3 left-0 top-3 w-0.5 rounded-r bg-brand"
+        aria-hidden
+      />
     ) : null}
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex items-center gap-2">
@@ -584,7 +622,8 @@ const InfoField = ({ label, value }: InfoFieldProps) => (
 const findProvider = (
   providers: AuthProvider[],
   providerType: AuthProvider['provider']
-): AuthProvider | undefined => providers.find((provider) => provider.provider === providerType)
+): AuthProvider | undefined =>
+  providers.find((provider) => provider.provider === providerType)
 
 const resolveFullName = (user: User | undefined): string => {
   const firstName = user?.firstName?.trim()
@@ -652,5 +691,5 @@ const resolveGoogleLinkError = (errorCode: string | undefined): string => {
     return GOOGLE_LINK_ERROR_MESSAGES[errorCode]
   }
 
-  return errorCode
+  return 'Não foi possível concluir o vínculo da conta Google.'
 }

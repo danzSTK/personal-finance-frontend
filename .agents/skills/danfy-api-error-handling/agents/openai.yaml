@@ -1,0 +1,4 @@
+interface:
+  display_name: "Danfy API Error Handling"
+  short_description: "Padroniza erros da API com UX clara e recuperável"
+  default_prompt: "Use $danfy-api-error-handling para implementar ou revisar o tratamento de erros desta integração."

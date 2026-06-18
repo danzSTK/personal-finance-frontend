@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
-import { Archive, FolderOpen, SearchX, TriangleAlert } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Archive, FolderOpen, SearchX } from 'lucide-react'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { resolveApiError } from '@/shared/errors'
 import { CategoryCreateButton } from '../molecules/CategoryCreateButton'
 import type { CategoryArchiveView } from '../../types/category-ui.types'
 import type { CategoryManagementType } from '../../types/category.types'
@@ -48,36 +49,28 @@ export function CategoriesEmptyState({
       title={`Nenhuma categoria de ${typeLabel.toLowerCase()} ainda`}
       description="Crie a primeira categoria para organizar lançamentos e relatórios."
       action={
-        <CategoryCreateButton
-          type={type}
-          className="mt-4"
-          onClick={onCreate}
-        />
+        <CategoryCreateButton type={type} className="mt-4" onClick={onCreate} />
       }
     />
   )
 }
 
 interface CategoriesErrorStateProps {
+  error: unknown
   onRetry: () => void
 }
 
-export function CategoriesErrorState({ onRetry }: CategoriesErrorStateProps) {
+export function CategoriesErrorState({
+  error,
+  onRetry,
+}: CategoriesErrorStateProps) {
   return (
-    <StatePanel
-      icon={<TriangleAlert className="h-6 w-6" />}
-      title="Não foi possível carregar categorias"
-      description="Confira sua conexão e tente novamente. Nada foi alterado."
-      action={
-        <Button
-          type="button"
-          className="mt-4 rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
-          onClick={onRetry}
-        >
-          Tentar novamente
-        </Button>
-      }
-    />
+    <div className="min-h-72 rounded-2xl border border-app-border bg-app-surface p-6">
+      <ApiErrorAlert
+        error={resolveApiError(error, 'categories.list')}
+        onRetry={onRetry}
+      />
+    </div>
   )
 }
 

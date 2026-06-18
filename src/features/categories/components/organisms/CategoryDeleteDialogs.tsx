@@ -1,12 +1,15 @@
 import { useMemo, useState } from 'react'
 import { ArrowRight, Trash2 } from 'lucide-react'
-import { resolveApiErrorMessage } from '@/features/auth/utils/error.utils'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import {
+  API_ERROR_CODES,
+  isApiErrorCode,
+  resolveApiError,
+} from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
-import { toast } from '@/shared/hooks/use-toast'
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -34,7 +37,6 @@ import {
   getCategoryIconKey,
   getCategoryIconOption,
   getCategoryTypeLabel,
-  isConflictError,
   isManagementType,
 } from '../../utils/category.utils'
 
@@ -56,6 +58,12 @@ export function CategoryDeleteDialogs({
     category && isManagementType(category.type) ? category.type : 'EXPENSE'
   const isMergeOpen = state?.mode === 'merge' && category !== null
   const isConfirmOpen = state?.mode === 'confirm' && category !== null
+  const deleteError = deleteCategoryMutation.error
+    ? resolveApiError(deleteCategoryMutation.error, 'categories.delete')
+    : null
+  const mergeError = deleteWithMergeMutation.error
+    ? resolveApiError(deleteWithMergeMutation.error, 'categories.merge-delete')
+    : null
 
   const { data: targetCategoriesResponse, isLoading: isLoadingTargets } =
     useCategories({
@@ -81,6 +89,8 @@ export function CategoryDeleteDialogs({
 
   const close = () => {
     setTargetCategoryId(null)
+    deleteCategoryMutation.reset()
+    deleteWithMergeMutation.reset()
     onStateChange(null)
   }
 
@@ -92,20 +102,11 @@ export function CategoryDeleteDialogs({
     deleteCategoryMutation.mutate(category.id, {
       onSuccess: close,
       onError: (error) => {
-        if (isConflictError(error)) {
+        if (isApiErrorCode(error, API_ERROR_CODES.categoryHasTransactions)) {
+          deleteCategoryMutation.reset()
           setTargetCategoryId(null)
           onStateChange({ mode: 'merge', category })
-          return
         }
-
-        toast({
-          variant: 'destructive',
-          title: 'Falha ao excluir categoria',
-          description: resolveApiErrorMessage(
-            error,
-            'Não foi possível excluir esta categoria agora.'
-          ),
-        })
       },
     })
   }
@@ -143,17 +144,19 @@ export function CategoryDeleteDialogs({
                 : 'A categoria será removida se não houver lançamentos vinculados.'}
             </AlertDialogDescription>
           </AlertDialogHeader>
+          {deleteError ? <ApiErrorAlert error={deleteError} /> : null}
           <AlertDialogFooter>
             <AlertDialogCancel className="border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text">
               Cancelar
             </AlertDialogCancel>
-            <AlertDialogAction
+            <Button
+              type="button"
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               disabled={deleteCategoryMutation.isPending}
               onClick={handleDelete}
             >
               {deleteCategoryMutation.isPending ? 'Excluindo...' : 'Excluir'}
-            </AlertDialogAction>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -176,6 +179,7 @@ export function CategoryDeleteDialogs({
           </DialogHeader>
 
           <div className="space-y-3">
+            {mergeError ? <ApiErrorAlert error={mergeError} /> : null}
             {isLoadingTargets ? (
               <div className="rounded-2xl border border-app-border bg-app-panel p-4 text-sm text-app-muted">
                 Carregando categorias disponíveis...
@@ -190,7 +194,9 @@ export function CategoryDeleteDialogs({
             ) : null}
 
             {targetCategories.map((target) => {
-              const Icon = getCategoryIconOption(getCategoryIconKey(target)).icon
+              const Icon = getCategoryIconOption(
+                getCategoryIconKey(target)
+              ).icon
               const isSelected = targetCategoryId === target.id
 
               return (

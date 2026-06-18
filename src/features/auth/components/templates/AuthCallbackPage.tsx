@@ -3,11 +3,15 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from '@/shared/hooks/use-toast'
 import { Toaster } from '@/shared/components/organisms/Toaster'
+import { showApiErrorToast } from '@/shared/errors'
 import api from '../../api/auth.api'
 import { useAuthStore } from '../../stores/auth.store'
 import type { OAuthCallbackParams, User } from '../../types'
-import { AUTH_API_ENDPOINTS, AUTH_QUERY_KEYS, AUTH_ROUTES } from '../../constants/auth.constants'
-import { resolveApiErrorMessage } from '../../utils/error.utils'
+import {
+  AUTH_API_ENDPOINTS,
+  AUTH_QUERY_KEYS,
+  AUTH_ROUTES,
+} from '../../constants/auth.constants'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -25,7 +29,7 @@ export function AuthCallbackPage() {
       toast({
         variant: 'destructive',
         title: 'Falha no login com Google',
-        description: callbackParams.error_description || callbackParams.error,
+        description: 'Não foi possível concluir o acesso. Tente novamente.',
       })
 
       navigate(AUTH_ROUTES.login, { replace: true })
@@ -41,11 +45,7 @@ export function AuthCallbackPage() {
 
         navigate(AUTH_ROUTES.dashboard, { replace: true })
       } catch (requestError) {
-        toast({
-          variant: 'destructive',
-          title: 'Não foi possível concluir o login',
-          description: resolveApiErrorMessage(requestError, 'Tente novamente.'),
-        })
+        showApiErrorToast(requestError, 'auth.sign-in')
 
         navigate(AUTH_ROUTES.login, { replace: true })
       }

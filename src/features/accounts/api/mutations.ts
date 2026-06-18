@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from '@/features/auth/api/auth.api'
 import { toast } from '@/shared/hooks/use-toast'
-import { resolveApiErrorMessage } from '@/features/auth/utils/error.utils'
+import { showApiErrorToast } from '@/shared/errors'
 import {
   ACCOUNT_API_ENDPOINTS,
   ACCOUNT_QUERY_KEYS,
@@ -43,16 +43,6 @@ export const useCreateAccount = () => {
         description: `${account.name} já está disponível na sua lista.`,
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao criar conta',
-        description: resolveApiErrorMessage(
-          error,
-          'Confira os dados e tente novamente.'
-        ),
-      })
-    },
   })
 }
 
@@ -77,16 +67,6 @@ export const useUpdateAccount = () => {
         description: `${account.name} foi salva com sucesso.`,
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao atualizar conta',
-        description: resolveApiErrorMessage(
-          error,
-          'Não foi possível salvar as alterações agora.'
-        ),
-      })
-    },
   })
 }
 
@@ -102,16 +82,6 @@ export const useArchiveAccount = () => {
       toast({
         title: 'Conta arquivada',
         description: 'Ela fica oculta dos totais e pode ser restaurada depois.',
-      })
-    },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao arquivar conta',
-        description: resolveApiErrorMessage(
-          error,
-          'Contas padrão, carteira ou contas com restrições não podem ser arquivadas.'
-        ),
       })
     },
   })
@@ -131,16 +101,7 @@ export const useUnarchiveAccount = () => {
         description: 'Ela voltou para a lista de contas ativas.',
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao restaurar conta',
-        description: resolveApiErrorMessage(
-          error,
-          'Não foi possível restaurar esta conta agora.'
-        ),
-      })
-    },
+    onError: (error) => showApiErrorToast(error, 'accounts.unarchive'),
   })
 }
 
@@ -158,15 +119,6 @@ export const useSetDefaultAccount = () => {
         description: 'Novas movimentações podem usar essa conta por padrão.',
       })
     },
-    onError: (error) => {
-      toast({
-        variant: 'destructive',
-        title: 'Falha ao definir padrão',
-        description: resolveApiErrorMessage(
-          error,
-          'Contas arquivadas ou já padrão não podem ser escolhidas.'
-        ),
-      })
-    },
+    onError: (error) => showApiErrorToast(error, 'accounts.set-default'),
   })
 }

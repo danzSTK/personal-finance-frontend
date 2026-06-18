@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { exampleService } from '../api'
 import type { CreateExampleDto, UpdateExampleDto } from '../types'
 import { toast } from '@/shared/hooks/use-toast'
+import { showApiErrorToast } from '@/shared/errors'
 
 export const EXAMPLE_QUERY_KEYS = {
   all: ['examples'] as const,
@@ -35,13 +36,7 @@ export const useCreateExample = () => {
         description: 'Item criado com sucesso',
       })
     },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao criar item',
-      })
-    },
+    onError: (error) => showApiErrorToast(error),
   })
 }
 
@@ -58,13 +53,7 @@ export const useUpdateExample = () => {
         description: 'Item atualizado com sucesso',
       })
     },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao atualizar item',
-      })
-    },
+    onError: (error) => showApiErrorToast(error),
   })
 }
 
@@ -80,12 +69,6 @@ export const useDeleteExample = () => {
         description: 'Item excluído com sucesso',
       })
     },
-    onError: () => {
-      toast({
-        variant: 'destructive',
-        title: 'Erro',
-        description: 'Erro ao excluir item',
-      })
-    },
+    onError: (error) => showApiErrorToast(error),
   })
 }

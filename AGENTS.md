@@ -55,6 +55,17 @@ Lower levels must not import higher levels.
 - Use React Hook Form + Zod for forms. Infer form types from schemas when possible.
 - Validate early, disable invalid submissions, and show field-level errors in clear human language.
 
+## API Error Handling
+
+- Follow `.agents/skills/danfy-api-error-handling/SKILL.md` whenever adding or changing an API query, mutation, form submission, retry, or error state.
+- Read the global backend error contract and the complete integration documentation for the resource before implementing its errors.
+- Keep backend codes in `src/shared/errors/apiErrorCodes.ts`; do not scatter code literals or translations through feature components.
+- Parse `unknown` failures with `src/shared/errors`, branch on stable `code`, and use HTTP status only as fallback.
+- Never expose raw backend messages, codes, paths, identifiers, or technical details in product copy.
+- Use `ApiErrorAlert` for blocking form/query failures and `showApiErrorToast` only for brief, non-blocking action feedback.
+- Map `VALIDATION_ERROR.details.fields` to React Hook Form fields with `applyApiFieldErrors` and preserve all entered values after failure.
+- Unknown, network, and server failures need safe actionable copy and a retry path where the operation is safe.
+
 ## UI and UX
 
 - Follow the Danfy Finance design system in `docs/design-system/danfy-finance-design-system.md`.

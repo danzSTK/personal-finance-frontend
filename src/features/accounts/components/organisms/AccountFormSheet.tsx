@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { ChangeEvent } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
@@ -7,6 +7,8 @@ import { Button } from '@/shared/lib/button'
 import { Input } from '@/shared/lib/input'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrency } from '@/shared/utils/formatters'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 import {
   Sheet,
   SheetContent,
@@ -15,10 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
-import {
-  useCreateAccount,
-  useUpdateAccount,
-} from '../../api/mutations'
+import { useCreateAccount, useUpdateAccount } from '../../api/mutations'
 import {
   ACCOUNT_COLOR_OPTIONS,
   ACCOUNT_ICON_OPTIONS,
@@ -63,6 +62,19 @@ export function AccountFormSheet({
   const isCashAccount = editingAccount?.type === 'CASH'
   const isPending =
     createAccountMutation.isPending || updateAccountMutation.isPending
+  const mutationError = isEditing
+    ? updateAccountMutation.error
+    : createAccountMutation.error
+  const errorPresentation = useMemo(
+    () =>
+      mutationError
+        ? resolveApiError(
+            mutationError,
+            isEditing ? 'accounts.update' : 'accounts.create'
+          )
+        : null,
+    [isEditing, mutationError]
+  )
 
   const form = useForm<AccountFormValues>({
     resolver: zodResolver(
@@ -70,6 +82,9 @@ export function AccountFormSheet({
     ),
     defaultValues: getAccountFormDefaults(state),
   })
+  const resetAccountForm = form.reset
+  const resetCreateAccount = createAccountMutation.reset
+  const resetUpdateAccount = updateAccountMutation.reset
   const [initialBalanceDisplay, setInitialBalanceDisplay] = useState('')
 
   useEffect(() => {
@@ -78,13 +93,34 @@ export function AccountFormSheet({
     }
 
     const defaults = getAccountFormDefaults(state)
-    form.reset(defaults)
+    resetCreateAccount()
+    resetUpdateAccount()
+    resetAccountForm(defaults)
     setInitialBalanceDisplay(
       'initialBalance' in defaults && defaults.initialBalance
         ? formatCurrency(defaults.initialBalance)
         : ''
     )
-  }, [form, state])
+  }, [resetAccountForm, resetCreateAccount, resetUpdateAccount, state])
+
+  useEffect(() => {
+    if (!errorPresentation) return
+
+    applyApiFieldErrors<AccountFormValues>({
+      fieldErrors: errorPresentation.fieldErrors,
+      fieldMap: {
+        name: 'name',
+        type: 'type',
+        initialBalance: 'initialBalance',
+        color: 'color',
+        icon: 'icon',
+        includeInTotal: 'includeInTotal',
+        isDefault: 'isDefault',
+      },
+      setError: form.setError,
+      setFocus: form.setFocus,
+    })
+  }, [errorPresentation, form.setError, form.setFocus])
 
   const selectedColor = form.watch('color')
   const selectedIcon = form.watch('icon')
@@ -183,9 +219,7 @@ export function AccountFormSheet({
           >
             {isCashAccount ? (
               <div className="rounded-2xl border border-app-border bg-app-panel p-4">
-                <p className="text-sm font-semibold text-app-text">
-                  Carteira
-                </p>
+                <p className="text-sm font-semibold text-app-text">Carteira</p>
                 <p className="mt-1 text-xs leading-5 text-app-muted">
                   Você pode ajustar nome, cor e ícone dessa conta inicial.
                 </p>
@@ -234,7 +268,11 @@ export function AccountFormSheet({
             )}
           </AccountFormField>
 
-          <input type="hidden" value={selectedType} {...form.register('type')} />
+          <input
+            type="hidden"
+            value={selectedType}
+            {...form.register('type')}
+          />
 
           {!isEditing ? (
             <AccountFormField
@@ -387,6 +425,10 @@ export function AccountFormSheet({
               </label>
             ) : null}
           </div>
+
+          {errorPresentation ? (
+            <ApiErrorAlert error={errorPresentation} />
+          ) : null}
 
           <SheetFooter className="gap-2 pt-2">
             <Button

@@ -1,4 +1,3 @@
-import { isAxiosError } from 'axios'
 import {
   CATEGORY_COLOR_OPTIONS,
   CATEGORY_ICON_OPTIONS,
@@ -79,9 +78,6 @@ export const getDefaultCategoryColor = (type: CategoryManagementType) =>
 
 export const getDefaultCategoryIcon = (type: CategoryManagementType) =>
   DEFAULT_CATEGORY_ICON_BY_TYPE[type]
-
-export const isConflictError = (error: unknown): boolean =>
-  isAxiosError(error) && error.response?.status === 409
 
 export const categoryTypeTone = (type: CategoryType) => {
   if (type === 'INCOME') {

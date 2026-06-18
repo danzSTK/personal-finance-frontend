@@ -2,14 +2,15 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useNavigate } from 'react-router-dom'
 import { Loader2, Lock, Mail, User } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 
 import { FormField } from '../molecules/FormField'
 import { Button } from '../atoms'
 import { PasswordStrength } from '../molecules/PasswordStrength'
 import { useSignUp } from '../../api/mutations'
 import { signUpSchema, SignUpFormData } from '../../utils/validation'
-import { resolveApiErrorMessage } from '../../utils/error.utils'
 import { AUTH_ROUTES } from '../../constants/auth.constants'
 
 const inputClassName =
@@ -19,19 +20,39 @@ export const SignUpForm = () => {
   const navigate = useNavigate()
   const { mutate: signUp, isPending, error } = useSignUp()
   const [password, setPassword] = useState('')
-  const errorMessage = resolveApiErrorMessage(
-    error,
-    'Não foi possível concluir o cadastro.'
+  const errorPresentation = useMemo(
+    () => (error ? resolveApiError(error, 'auth.sign-up') : null),
+    [error]
   )
 
   const {
     register,
     handleSubmit,
+    setError,
+    setFocus,
     formState: { errors, isValid },
   } = useForm<SignUpFormData>({
     resolver: zodResolver(signUpSchema),
     mode: 'onChange',
   })
+
+  useEffect(() => {
+    if (!errorPresentation) return
+
+    applyApiFieldErrors<SignUpFormData>({
+      fieldErrors: errorPresentation.fieldErrors,
+      fieldMap: {
+        userName: 'userName',
+        username: 'userName',
+        email: 'email',
+        password: 'password',
+        firstName: 'firstName',
+        lastName: 'lastName',
+      },
+      setError,
+      setFocus,
+    })
+  }, [errorPresentation, setError, setFocus])
 
   const canSubmit = !isPending && isValid
 
@@ -111,15 +132,7 @@ export const SignUpForm = () => {
         <PasswordStrength password={password} />
       </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          <p className="font-medium">Erro ao criar conta</p>
-          <p className="mt-1">{errorMessage}</p>
-        </div>
-      )}
+      {errorPresentation ? <ApiErrorAlert error={errorPresentation} /> : null}
 
       <Button
         type="submit"
