@@ -39,6 +39,28 @@ export const linkEmailSchema = z.object({
   password: z.string().min(6, 'Senha deve ter pelo menos 6 caracteres').max(50, 'Senha deve ter no máximo 50 caracteres'),
 });
 
+const PROFILE_NAME_MIN_LENGTH = 2;
+const PROFILE_NAME_MAX_LENGTH = 255;
+
+const optionalProfileName = (label: string) =>
+  z
+    .string()
+    .trim()
+    .max(
+      PROFILE_NAME_MAX_LENGTH,
+      `${label} deve ter no máximo ${PROFILE_NAME_MAX_LENGTH} caracteres`
+    )
+    .refine(
+      (value) => value.length === 0 || value.length >= PROFILE_NAME_MIN_LENGTH,
+      `${label} deve ter pelo menos ${PROFILE_NAME_MIN_LENGTH} caracteres`
+    );
+
+export const updateProfileSchema = z.object({
+  firstName: optionalProfileName('Nome'),
+  lastName: optionalProfileName('Sobrenome'),
+});
+
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 export type LinkEmailFormData = z.infer<typeof linkEmailSchema>;
+export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;

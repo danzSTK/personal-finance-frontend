@@ -5,6 +5,8 @@ export type {
   SignInDto,
   Session,
   LinkEmailDto,
+  UpdateProfileDto,
+  UpdateUserAvatarResponse,
   MessageResponse,
 } from './auth.types';
 

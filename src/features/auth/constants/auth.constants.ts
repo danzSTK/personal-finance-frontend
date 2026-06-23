@@ -1,10 +1,23 @@
+const SETTINGS_BASE_ROUTE = '/settings'
+
+export const SETTINGS_SECTION_PATHS = {
+  account: 'account',
+  security: 'security',
+  notifications: 'notifications',
+  preferences: 'preferences',
+} as const
+
 export const AUTH_ROUTES = {
   login: '/login',
   signUp: '/sign-up',
   dashboard: '/dashboard',
   accounts: '/accounts',
   categories: '/categories',
-  settings: '/settings',
+  settings: SETTINGS_BASE_ROUTE,
+  settingsAccount: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.account}`,
+  settingsSecurity: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.security}`,
+  settingsNotifications: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.notifications}`,
+  settingsPreferences: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.preferences}`,
   authCallback: '/auth/callback',
   linkProviderCallback: '/auth/link',
   signInAlias: '/sign-in',
@@ -17,6 +30,7 @@ export const AUTH_API_ENDPOINTS = {
   refresh: '/auth/refresh',
   logout: '/auth/logout',
   sessions: '/auth/sessions',
+  userAvatar: '/users/me/avatar',
   linkEmail: '/auth/providers/link/email',
   loginGoogle: '/auth/google',
   linkGoogle: '/auth/providers/link/google',

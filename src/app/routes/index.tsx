@@ -4,12 +4,17 @@ import api from '@/features/auth/api/auth.api'
 import {
   AUTH_API_ENDPOINTS,
   AUTH_ROUTES,
+  SETTINGS_SECTION_PATHS,
 } from '@/features/auth/constants/auth.constants'
 import { useAuthStore } from '@/features/auth/stores/auth.store'
 import type { User } from '@/features/auth/types'
 import { LoginPage } from '@/features/auth/components/templates/LoginPage'
 import { DashboardPage } from '@/features/auth/components/templates/DashboardPage'
-import { SettingsPage } from '@/features/auth/components/templates/SettingsPage'
+import { SettingsLayout } from '@/features/auth/components/templates/SettingsLayout'
+import { SettingsAccountPage } from '@/features/auth/components/pages/SettingsAccountPage'
+import { SettingsSecurityPage } from '@/features/auth/components/pages/SettingsSecurityPage'
+import { SettingsNotificationsPage } from '@/features/auth/components/pages/SettingsNotificationsPage'
+import { SettingsPreferencesPage } from '@/features/auth/components/pages/SettingsPreferencesPage'
 import { AccountsPage } from '@/features/accounts/components/pages/AccountsPage'
 import { CategoriesPage } from '@/features/categories/components/pages/CategoriesPage'
 import { AuthCallbackPage } from '@/features/auth/components/templates/AuthCallbackPage'
@@ -129,10 +134,31 @@ export function AppRoutes() {
         path={AUTH_ROUTES.settings}
         element={
           <PrivateRoute isBootstrappingAuth={isBootstrappingAuth}>
-            <SettingsPage />
+            <SettingsLayout />
           </PrivateRoute>
         }
-      />
+      >
+        <Route
+          index
+          element={<Navigate to={AUTH_ROUTES.settingsAccount} replace />}
+        />
+        <Route
+          path={SETTINGS_SECTION_PATHS.account}
+          element={<SettingsAccountPage />}
+        />
+        <Route
+          path={SETTINGS_SECTION_PATHS.security}
+          element={<SettingsSecurityPage />}
+        />
+        <Route
+          path={SETTINGS_SECTION_PATHS.notifications}
+          element={<SettingsNotificationsPage />}
+        />
+        <Route
+          path={SETTINGS_SECTION_PATHS.preferences}
+          element={<SettingsPreferencesPage />}
+        />
+      </Route>
 
       <Route path={AUTH_ROUTES.authCallback} element={<AuthCallbackPage />} />
       <Route

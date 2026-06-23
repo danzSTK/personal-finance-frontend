@@ -14,6 +14,11 @@ import { useNavigate } from 'react-router-dom'
 import { APP_BRAND } from '@/shared/config/brand'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { Button } from '@/shared/lib/button'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/shared/components/ui/avatar'
 import { cn } from '@/shared/lib/utils'
 import { useLogout } from '../../api/mutations'
 import { useUser } from '../../api/queries'
@@ -22,6 +27,7 @@ import {
   AUTH_UI_STORAGE_KEYS,
 } from '../../constants/auth.constants'
 import { useAuthStore } from '../../stores/auth.store'
+import { getUserInitials, resolveUserFullName } from '../../utils/user'
 
 type MainSection = 'dashboard' | 'accounts' | 'categories' | 'settings'
 
@@ -60,13 +66,6 @@ const primaryNavigation: Array<{
     description: 'Receitas e despesas',
     icon: <Tags className="h-4 w-4" />,
     route: AUTH_ROUTES.categories,
-  },
-  {
-    id: 'settings',
-    label: 'Ajustes',
-    description: 'Conta e segurança',
-    icon: <Settings className="h-4 w-4" />,
-    route: AUTH_ROUTES.settings,
   },
 ]
 
@@ -111,19 +110,13 @@ export const AuthAppShell = ({
     )
   }, [isDesktopSidebarCollapsed])
 
-  const fullName = useMemo(() => {
-    const firstName = currentUser?.firstName?.trim()
-    const lastName = currentUser?.lastName?.trim()
-
-    if (firstName || lastName) {
-      return [firstName, lastName].filter(Boolean).join(' ')
-    }
-
-    return currentUser?.userName ?? currentUser?.email ?? 'Usuário'
-  }, [currentUser])
+  const fullName = useMemo(
+    () => resolveUserFullName(currentUser),
+    [currentUser]
+  )
 
   const email = currentUser?.email ?? 'Email indisponível'
-  const initials = getInitials(fullName)
+  const initials = getUserInitials(fullName)
 
   const goTo = (route: string) => {
     setIsMobileSidebarOpen(false)
@@ -156,6 +149,7 @@ export const AuthAppShell = ({
               fullName={fullName}
               email={email}
               initials={initials}
+              avatarUrl={currentUser?.avatarUrl ?? null}
               isLoadingUser={isLoadingUser}
               isProfileMenuOpen={isProfileMenuOpen}
               isCollapsed={isDesktopSidebarCollapsed}
@@ -176,6 +170,7 @@ export const AuthAppShell = ({
           fullName={fullName}
           email={email}
           initials={initials}
+          avatarUrl={currentUser?.avatarUrl ?? null}
           isLoadingUser={isLoadingUser}
           isProfileMenuOpen={isProfileMenuOpen}
           onClose={() => {
@@ -228,6 +223,7 @@ interface SidebarContentProps {
   fullName: string
   email: string
   initials: string
+  avatarUrl: string | null
   isLoadingUser: boolean
   isProfileMenuOpen: boolean
   isCollapsed: boolean
@@ -244,6 +240,7 @@ const SidebarContent = ({
   fullName,
   email,
   initials,
+  avatarUrl,
   isLoadingUser,
   isProfileMenuOpen,
   isCollapsed,
@@ -376,14 +373,18 @@ const SidebarContent = ({
           aria-label={`Abrir menu de perfil de ${fullName}`}
         >
           {isCollapsed ? (
-            <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
-              {initials}
-            </span>
+            <SidebarAvatar
+              avatarUrl={avatarUrl}
+              fullName={fullName}
+              initials={initials}
+            />
           ) : (
             <span className="flex min-w-0 items-center gap-3">
-              <span className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
-                {initials}
-              </span>
+              <SidebarAvatar
+                avatarUrl={avatarUrl}
+                fullName={fullName}
+                initials={initials}
+              />
               <span className="min-w-0 text-left">
                 <span className="block truncate text-sm font-medium text-app-text">
                   {fullName}
@@ -401,6 +402,31 @@ const SidebarContent = ({
       </div>
     </div>
   </>
+)
+
+interface SidebarAvatarProps {
+  avatarUrl: string | null
+  fullName: string
+  initials: string
+}
+
+const SidebarAvatar = ({
+  avatarUrl,
+  fullName,
+  initials,
+}: SidebarAvatarProps) => (
+  <Avatar className="h-10 w-10 rounded-lg border border-app-border">
+    {avatarUrl ? (
+      <AvatarImage
+        src={avatarUrl}
+        alt={`Foto de perfil de ${fullName}`}
+        className="rounded-lg object-cover"
+      />
+    ) : null}
+    <AvatarFallback className="rounded-lg bg-brand/20 text-sm font-semibold text-brand-soft">
+      {initials}
+    </AvatarFallback>
+  </Avatar>
 )
 
 interface SidebarCollapseButtonProps {
@@ -529,16 +555,3 @@ const MenuBarsIcon = () => (
     <span className="h-0.5 w-4 rounded-full bg-current" />
   </span>
 )
-
-const getInitials = (name: string): string => {
-  const words = name.trim().split(' ').filter(Boolean)
-
-  if (words.length === 0) {
-    return 'DF'
-  }
-
-  const first = words[0]?.[0] ?? ''
-  const second = words[1]?.[0] ?? ''
-
-  return `${first}${second}`.toUpperCase()
-}

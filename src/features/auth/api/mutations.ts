@@ -5,6 +5,8 @@ import type {
   MessageResponse,
   SignInDto,
   SignUpDto,
+  UpdateProfileDto,
+  UpdateUserAvatarResponse,
   User,
 } from '../types'
 import { useAuthStore } from '../stores/auth.store'
@@ -92,6 +94,75 @@ export const useLinkEmail = () => {
       return data
     },
     onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+    },
+  })
+}
+
+export const useUpdateProfile = () => {
+  const queryClient = useQueryClient()
+  const setAuth = useAuthStore((state) => state.setAuth)
+
+  return useMutation({
+    mutationFn: async (dto: UpdateProfileDto) => {
+      const { data } = await api.patch<User>(AUTH_API_ENDPOINTS.me, dto)
+      return data
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(AUTH_QUERY_KEYS.user, user)
+      setAuth(user)
+    },
+  })
+}
+
+export const useUpdateUserAvatar = () => {
+  const queryClient = useQueryClient()
+  const updateUser = useAuthStore((state) => state.updateUser)
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const { data } = await api.put<UpdateUserAvatarResponse>(
+        AUTH_API_ENDPOINTS.userAvatar,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      )
+
+      return data
+    },
+    onSuccess: ({ url }) => {
+      queryClient.setQueryData<User | undefined>(
+        AUTH_QUERY_KEYS.user,
+        (currentUser) =>
+          currentUser ? { ...currentUser, avatarUrl: url } : currentUser
+      )
+      updateUser({ avatarUrl: url })
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+    },
+  })
+}
+
+export const useRemoveUserAvatar = () => {
+  const queryClient = useQueryClient()
+  const updateUser = useAuthStore((state) => state.updateUser)
+
+  return useMutation({
+    mutationFn: async () => {
+      await api.delete(AUTH_API_ENDPOINTS.userAvatar)
+    },
+    onSuccess: () => {
+      queryClient.setQueryData<User | undefined>(
+        AUTH_QUERY_KEYS.user,
+        (currentUser) =>
+          currentUser ? { ...currentUser, avatarUrl: null } : currentUser
+      )
+      updateUser({ avatarUrl: null })
       void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
     },
   })

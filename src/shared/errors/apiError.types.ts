@@ -28,6 +28,8 @@ export type ApiErrorContext =
   | 'auth.link-google'
   | 'auth.sessions.list'
   | 'auth.sessions.revoke'
+  | 'user.avatar.remove'
+  | 'user.avatar.update'
   | 'user.profile.update'
   | 'accounts.list'
   | 'accounts.create'

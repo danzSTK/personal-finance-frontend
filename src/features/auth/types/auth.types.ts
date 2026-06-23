@@ -2,6 +2,7 @@ export interface User {
   id: string;
   userName: string | null;
   email: string;
+  avatarUrl: string | null;
   firstName: string | null;
   lastName: string | null;
   status: string;
@@ -42,6 +43,16 @@ export interface Session {
 export interface LinkEmailDto {
   email: string;
   password: string;
+}
+
+export interface UpdateProfileDto {
+  firstName?: string | null;
+  lastName?: string | null;
+}
+
+export interface UpdateUserAvatarResponse {
+  assetId: string;
+  url: string;
 }
 
 export interface MessageResponse {

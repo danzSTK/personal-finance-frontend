@@ -11,6 +11,11 @@ export const API_ERROR_CODES = {
   sessionNotFound: 'SESSION_NOT_FOUND',
 
   invalidUsernameFormat: 'INVALID_USERNAME_FORMAT',
+  avatarFileTooLarge: 'AVATAR_FILE_TOO_LARGE',
+  avatarUploadFailed: 'AVATAR_UPLOAD_FAILED',
+  invalidAvatarImage: 'INVALID_AVATAR_IMAGE',
+  payloadTooLarge: 'PAYLOAD_TOO_LARGE',
+  unsupportedAvatarFile: 'UNSUPPORTED_AVATAR_FILE',
   userEmailAlreadyExists: 'USER_EMAIL_ALREADY_EXISTS',
   usernameAlreadyExists: 'USERNAME_ALREADY_EXISTS',
   userNotFound: 'USER_NOT_FOUND',

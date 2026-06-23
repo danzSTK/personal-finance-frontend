@@ -41,6 +41,25 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     description: 'Revise o nome de usuário e tente novamente.',
     recovery: 'correct-fields',
   },
+  [API_ERROR_CODES.avatarFileTooLarge]: avatarTooLarge(),
+  [API_ERROR_CODES.payloadTooLarge]: avatarTooLarge(),
+  [API_ERROR_CODES.avatarUploadFailed]: {
+    title: 'Serviço indisponível no momento',
+    description:
+      'Não foi possível enviar a foto agora. Tente novamente em instantes.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.invalidAvatarImage]: {
+    title: 'Não foi possível ler esta imagem',
+    description:
+      'Escolha outra foto em JPEG, PNG ou WebP e tente novamente.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.unsupportedAvatarFile]: {
+    title: 'Formato de imagem não aceito',
+    description: 'Use uma foto em JPEG, PNG ou WebP.',
+    recovery: 'correct-fields',
+  },
   [API_ERROR_CODES.userEmailAlreadyExists]: {
     title: 'Este email já está em uso',
     description: 'Entre com esse email ou informe outro endereço.',
@@ -185,6 +204,13 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     title: 'Não foi possível encerrar a sessão',
     description: 'Atualize a lista e tente novamente.',
     recovery: 'retry',
+  },
+  'user.avatar.remove': actionFailure('remover a foto de perfil'),
+  'user.avatar.update': {
+    title: 'Não foi possível atualizar a foto',
+    description:
+      'Ajuste a imagem ou tente outra foto. Sua foto atual foi preservada.',
+    recovery: 'correct-fields',
   },
   'user.profile.update': {
     title: 'Não foi possível salvar o perfil',
@@ -335,6 +361,14 @@ function invalidAccount(): Copy {
   return {
     title: 'Dados da conta inválidos',
     description: 'Revise os campos destacados e tente novamente.',
+    recovery: 'correct-fields',
+  }
+}
+
+function avatarTooLarge(): Copy {
+  return {
+    title: 'Imagem muito grande',
+    description: 'Escolha uma foto de até 5 MB para continuar.',
     recovery: 'correct-fields',
   }
 }
