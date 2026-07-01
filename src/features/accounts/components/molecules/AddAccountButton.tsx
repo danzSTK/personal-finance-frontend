@@ -9,7 +9,7 @@ export function AddAccountButton({ onClick }: AddAccountButtonProps) {
   return (
     <Button
       type="button"
-      className="group h-11 w-11 justify-center gap-0 overflow-hidden rounded-xl bg-brand px-0 text-brand-foreground transition-[width,background-color] duration-300 ease-out hover:w-36 hover:bg-brand-intense focus-visible:w-36"
+      className="group h-11 w-11 justify-center gap-0 overflow-hidden rounded-xl bg-primary px-0 text-primary-foreground transition-[width,background-color] duration-300 ease-out hover:w-36 hover:bg-primary/90 focus-visible:w-36"
       onClick={onClick}
       aria-label="Nova conta"
       title="Nova conta"

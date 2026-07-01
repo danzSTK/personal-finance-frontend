@@ -18,8 +18,8 @@ const summaryToneClasses: Record<
   { icon: string; value: string }
 > = {
   brand: {
-    icon: 'bg-brand/15 text-brand-soft',
-    value: 'text-app-text',
+    icon: 'bg-primary/15 text-primary',
+    value: 'text-foreground',
   },
   info: {
     icon: 'bg-state-info/15 text-state-info',
@@ -42,10 +42,10 @@ export function AccountSummaryCard({
   const classes = summaryToneClasses[tone]
 
   return (
-    <Card className="min-w-0 border-app-border bg-app-surface shadow-none">
+    <Card className="min-w-0 border-border bg-card shadow-none">
       <CardContent className="relative p-5">
         <div className="min-w-0">
-          <p className="pr-12 text-sm font-medium text-app-muted">{label}</p>
+          <p className="pr-12 text-sm font-medium text-muted-foreground">{label}</p>
           <p
             className={cn(
               'mt-3 text-xl font-semibold leading-tight tracking-tight sm:text-2xl',
@@ -65,7 +65,7 @@ export function AccountSummaryCard({
         >
           {icon}
         </span>
-        <p className="mt-3 text-xs leading-5 text-app-muted">{helper}</p>
+        <p className="mt-3 text-xs leading-5 text-muted-foreground">{helper}</p>
       </CardContent>
     </Card>
   )

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CircleDollarSign, Clock3, EllipsisVertical } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
+import { useCategoryMetadata } from '@/features/categories/api/queries'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { resolveApiError } from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
-import { formatCurrency } from '@/shared/utils/formatters'
+import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -29,11 +30,19 @@ import {
   useSetDefaultAccount,
   useUnarchiveAccount,
 } from '../../api/mutations'
+import { mergeAccountColorMetadata } from '../../constants/account.constants'
 import type { Account } from '../../types/account.types'
 import type { AccountSheetState } from '../../types/account-ui.types'
 import { buildAccountSummary } from '../../utils/account.utils'
+import {
+  compareYearMonth,
+  formatAccountMonthYearLabel,
+  getCurrentYearMonth,
+  getMonthEndDateOnly,
+} from '../../utils/accountPeriod.utils'
 import { AddAccountButton } from '../molecules/AddAccountButton'
 import { AccountSummaryCard } from '../molecules/AccountSummaryCard'
+import { AccountsPeriodPicker } from '../molecules/AccountsPeriodPicker'
 import { CreateAccountCard } from '../molecules/CreateAccountCard'
 import { AccountCard } from '../organisms/AccountCard'
 import { AccountFormSheet } from '../organisms/AccountFormSheet'
@@ -47,9 +56,29 @@ const DEFAULT_ACCOUNT_PROVISION_RETRY_MS = 1800
 
 export function AccountsPage() {
   const [includeArchived, setIncludeArchived] = useState(false)
+  const [selectedPeriod, setSelectedPeriod] = useState(getCurrentYearMonth)
   const [sheetState, setSheetState] = useState<AccountSheetState>(null)
   const [archiveTarget, setArchiveTarget] = useState<Account | null>(null)
   const [defaultProvisionAttempts, setDefaultProvisionAttempts] = useState(0)
+  const { data: visualMetadata } = useCategoryMetadata()
+  const accountColorOptions = useMemo(
+    () => mergeAccountColorMetadata(visualMetadata?.colors),
+    [visualMetadata?.colors]
+  )
+  const projectedUntil = useMemo(
+    () => getMonthEndDateOnly(selectedPeriod),
+    [selectedPeriod]
+  )
+  const periodRelation = useMemo(
+    () => compareYearMonth(selectedPeriod),
+    [selectedPeriod]
+  )
+  const projectedSummaryLabel =
+    periodRelation === 'past'
+      ? `Saldo no fim de ${formatAccountMonthYearLabel(selectedPeriod)}`
+      : 'Saldo previsto'
+  const projectedAccountLabel =
+    periodRelation === 'past' ? 'Saldo no fim do período' : 'Saldo previsto'
 
   const {
     data: accounts = [],
@@ -60,6 +89,7 @@ export function AccountsPage() {
     refetch,
   } = useAccounts({
     includeArchived,
+    projectedUntil,
   })
   const archiveMutation = useArchiveAccount()
   const unarchiveMutation = useUnarchiveAccount()
@@ -130,28 +160,47 @@ export function AccountsPage() {
     <AuthAppShell
       activeSection="accounts"
       title="Contas"
-      subtitle="Ações de contas, cartões e investimentos"
+      subtitle="Contas bancárias e saldos"
     >
       <div className="space-y-5">
-        <section
-          className="grid gap-3 md:grid-cols-2"
-          aria-label="Resumo de saldos"
-        >
-          <AccountSummaryCard
-            icon={<CircleDollarSign className="h-4 w-4" />}
-            label="Saldo atual"
-            value={formatCurrency(summary.totalInitialBalance)}
-            helper="Soma dos saldos iniciais das contas incluídas no total."
-            tone="brand"
-          />
-          <AccountSummaryCard
-            icon={<Clock3 className="h-4 w-4" />}
-            label="Saldo previsto"
-            value="A calcular"
-            helper="Será calculado quando houver lançamentos futuros."
-            tone="info"
-            isNumeric={false}
-          />
+        <section className="space-y-3" aria-label="Resumo de saldos">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Visão de saldos
+              </p>
+              <p className="text-xs leading-5 text-muted-foreground">
+                O saldo atual não muda pelo filtro. O período calcula a leitura
+                prevista ou final.
+              </p>
+            </div>
+            <AccountsPeriodPicker
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+            />
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <AccountSummaryCard
+              icon={<CircleDollarSign className="h-4 w-4" />}
+              label="Saldo atual"
+              value={formatCurrencyFromCents(summary.totalCurrentCents)}
+              helper="Soma do saldo atual das contas incluídas no total."
+              tone="brand"
+            />
+            <AccountSummaryCard
+              icon={<Clock3 className="h-4 w-4" />}
+              label={projectedSummaryLabel}
+              value={
+                summary.hasProjectedBalance
+                  ? formatCurrencyFromCents(summary.totalProjectedCents)
+                  : 'Não calculado'
+              }
+              helper={`Calculado até ${projectedUntil}.`}
+              tone="info"
+              isNumeric={summary.hasProjectedBalance}
+            />
+          </div>
         </section>
 
         <section className="space-y-4" aria-labelledby="accounts-title">
@@ -159,12 +208,13 @@ export function AccountsPage() {
             <div className="min-w-0">
               <h1
                 id="accounts-title"
-                className="text-2xl font-semibold tracking-tight text-app-text"
+                className="text-2xl font-semibold tracking-tight text-foreground"
               >
                 Contas
               </h1>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-app-muted">
-                Gerencie contas e use o menu de cada card para ações rápidas.
+              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
+                Gerencie contas bancárias e use o menu de cada card para ações
+                rápidas.
               </p>
             </div>
 
@@ -178,9 +228,9 @@ export function AccountsPage() {
                     variant="outline"
                     size="icon"
                     className={cn(
-                      'h-11 w-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text',
+                      'h-11 w-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground',
                       includeArchived &&
-                        'border-brand bg-brand/15 text-brand-soft hover:text-brand-soft'
+                        'border-primary bg-primary/15 text-primary hover:text-primary'
                     )}
                     aria-label="Mais opções de contas"
                     title="Mais opções"
@@ -190,15 +240,15 @@ export function AccountsPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-64 rounded-2xl border-app-border bg-app-surface p-2 text-app-text"
+                  className="w-64 rounded-2xl border-border bg-card p-2 text-foreground"
                 >
-                  <DropdownMenuLabel className="text-xs text-app-muted">
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
                     Visualização
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator className="bg-app-border" />
+                  <DropdownMenuSeparator className="bg-border" />
                   <DropdownMenuCheckboxItem
                     checked={includeArchived}
-                    className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+                    className="rounded-xl focus:bg-accent focus:text-foreground"
                     onCheckedChange={(checked) =>
                       setIncludeArchived(checked === true)
                     }
@@ -211,7 +261,7 @@ export function AccountsPage() {
           </div>
 
           {isFetching && !isLoading ? (
-            <span className="block text-xs font-medium text-app-muted">
+            <span className="block text-xs font-medium text-muted-foreground">
               Atualizando contas...
             </span>
           ) : null}
@@ -238,6 +288,8 @@ export function AccountsPage() {
                     key={account.id}
                     account={account}
                     isMutating={isMutatingAccount}
+                    projectedBalanceLabel={projectedAccountLabel}
+                    colorOptions={accountColorOptions}
                     onEdit={() => setSheetState({ mode: 'edit', account })}
                     onArchive={() => setArchiveTarget(account)}
                     onUnarchive={() => unarchiveMutation.mutate(account.id)}
@@ -271,10 +323,10 @@ export function AccountsPage() {
           }
         }}
       >
-        <AlertDialogContent className="border-app-border bg-app-surface text-app-text">
+        <AlertDialogContent className="border-border bg-card text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Arquivar conta?</AlertDialogTitle>
-            <AlertDialogDescription className="text-app-muted">
+            <AlertDialogDescription className="text-muted-foreground">
               {archiveTarget
                 ? `${archiveTarget.name} deixará de aparecer na lista principal, mas o histórico permanece preservado.`
                 : 'A conta deixará de aparecer na lista principal.'}
@@ -286,7 +338,7 @@ export function AccountsPage() {
             />
           ) : null}
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text">
+            <AlertDialogCancel className="border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground">
               Cancelar
             </AlertDialogCancel>
             <Button

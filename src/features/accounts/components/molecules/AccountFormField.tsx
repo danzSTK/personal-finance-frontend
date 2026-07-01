@@ -13,7 +13,7 @@ export function AccountFormField({
 }: AccountFormFieldProps) {
   return (
     <div className="space-y-2">
-      <span className="text-xs font-semibold uppercase text-app-muted">
+      <span className="text-xs font-semibold uppercase text-muted-foreground">
         {label}
       </span>
       {children}

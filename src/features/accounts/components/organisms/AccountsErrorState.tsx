@@ -11,7 +11,7 @@ export function AccountsErrorState({
   onRetry,
 }: AccountsErrorStateProps) {
   return (
-    <div className="min-h-56 rounded-2xl border border-app-border bg-app-surface p-6">
+    <div className="min-h-56 rounded-2xl border border-border bg-card p-6">
       <ApiErrorAlert
         error={resolveApiError(error, 'accounts.list')}
         onRetry={onRetry}

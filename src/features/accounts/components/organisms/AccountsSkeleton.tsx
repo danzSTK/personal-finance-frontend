@@ -9,7 +9,7 @@ export function AccountsSkeleton() {
       {skeletonKeys.map((key) => (
         <div
           key={key}
-          className="min-h-56 animate-pulse rounded-2xl border border-app-border bg-app-panel"
+          className="min-h-56 animate-pulse rounded-2xl border border-border bg-secondary"
         />
       ))}
     </div>

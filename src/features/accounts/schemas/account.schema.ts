@@ -13,8 +13,8 @@ const accountNameSchema = z
 
 export const createAccountSchema = z.object({
   name: accountNameSchema,
-  type: z.enum(['BANK', 'CREDIT_CARD', 'INVESTMENT']),
-  initialBalance: z.preprocess(
+  type: z.literal('BANK'),
+  initialBalanceCents: z.preprocess(
     emptyStringToUndefined,
     z.coerce
       .number({

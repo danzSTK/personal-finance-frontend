@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
-import { formatCurrency } from '@/shared/utils/formatters'
+import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,6 +33,8 @@ import { AccountStatusPill } from '../molecules/AccountStatusPill'
 interface AccountCardProps {
   account: Account
   isMutating: boolean
+  projectedBalanceLabel: string
+  colorOptions?: Parameters<typeof getAccountColorOption>[1]
   onEdit: () => void
   onArchive: () => void
   onUnarchive: () => void
@@ -42,13 +44,15 @@ interface AccountCardProps {
 export function AccountCard({
   account,
   isMutating,
+  projectedBalanceLabel,
+  colorOptions,
   onEdit,
   onArchive,
   onUnarchive,
   onSetDefault,
 }: AccountCardProps) {
   const Icon = getAccountIcon(account)
-  const colorOption = getAccountColorOption(account.color)
+  const colorOption = getAccountColorOption(account.color, colorOptions)
   const canArchive = canArchiveAccount(account)
   const canDefault = canSetDefaultAccount(account)
 
@@ -60,18 +64,15 @@ export function AccountCard({
   return (
     <article
       className={cn(
-        'group relative flex min-h-56 min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-app-border bg-app-panel p-4 transition hover:-translate-y-0.5 hover:bg-app-elevated',
+        'group relative flex min-h-56 min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-border bg-secondary p-4 transition hover:-translate-y-0.5 hover:bg-accent',
         account.isArchived && 'opacity-75'
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-start gap-3">
           <span
-            className={cn(
-              'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl',
-              colorOption.surfaceClassName,
-              colorOption.textClassName
-            )}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-foreground"
+            style={{ backgroundColor: colorOption.hex }}
             aria-hidden
           >
             <Icon className="h-5 w-5" />
@@ -79,7 +80,7 @@ export function AccountCard({
 
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h3 className="truncate text-base font-semibold text-app-text">
+              <h3 className="truncate text-base font-semibold text-foreground">
                 {account.name}
               </h3>
               {account.isDefault ? (
@@ -97,7 +98,7 @@ export function AccountCard({
                 />
               ) : null}
             </div>
-            <p className="mt-1 text-sm text-app-muted">
+            <p className="mt-1 text-sm text-muted-foreground">
               {getAccountTypeLabel(account.type)}
             </p>
           </div>
@@ -117,24 +118,34 @@ export function AccountCard({
       </div>
 
       <div className="space-y-4">
-        <div>
-          <p className="text-xs font-medium uppercase text-app-muted">
-            Saldo atual
-          </p>
-          <p className="numeric mt-1 text-2xl font-semibold tracking-tight text-app-text">
-            {formatCurrency(account.initialBalance)}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-app-muted">
-            Valor cadastrado para começar o controle desta conta.
-          </p>
+        <div className="grid gap-3">
+          <div>
+            <p className="text-xs font-medium uppercase text-muted-foreground">
+              Saldo atual
+            </p>
+            <p className="numeric mt-1 text-2xl font-semibold tracking-tight text-foreground">
+              {formatCurrencyFromCents(account.balance.currentCents)}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-border bg-card px-3 py-2">
+            <p className="text-xs font-medium text-muted-foreground">
+              {projectedBalanceLabel}
+            </p>
+            <p className="numeric mt-1 text-sm font-semibold text-state-info">
+              {typeof account.balance.projectedCents === 'number'
+                ? formatCurrencyFromCents(account.balance.projectedCents)
+                : 'Não calculado'}
+            </p>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 text-xs text-app-muted">
-          <span className="inline-flex items-center gap-2 rounded-lg bg-app-surface px-3 py-2">
+        <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-2 rounded-lg bg-card px-3 py-2">
             {account.includeInTotal ? (
               <CheckCircle2 className="h-3.5 w-3.5 text-state-income" />
             ) : (
-              <EyeOff className="h-3.5 w-3.5 text-app-muted" />
+              <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
             )}
             {account.includeInTotal ? 'Entra no total' : 'Fora do total'}
           </span>
@@ -174,7 +185,7 @@ function AccountActionsMenu({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-9 w-9 shrink-0 rounded-lg text-app-muted hover:bg-app-surface hover:text-app-text"
+          className="h-9 w-9 shrink-0 rounded-lg text-muted-foreground hover:bg-card hover:text-foreground"
           aria-label={`Abrir ações de ${accountName}`}
         >
           <EllipsisVertical className="h-4 w-4" />
@@ -182,15 +193,15 @@ function AccountActionsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-60 border-app-border bg-app-surface text-app-text"
+        className="w-60 border-border bg-card text-foreground"
       >
-        <DropdownMenuLabel className="text-xs text-app-muted">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           Ações da conta
         </DropdownMenuLabel>
 
         {!isArchived ? (
           <DropdownMenuItem
-            className="focus:bg-app-elevated focus:text-app-text"
+            className="focus:bg-accent focus:text-foreground"
             onSelect={onEdit}
           >
             <Edit3 className="h-4 w-4" />
@@ -200,7 +211,7 @@ function AccountActionsMenu({
 
         {canDefault ? (
           <DropdownMenuItem
-            className="focus:bg-app-elevated focus:text-app-text"
+            className="focus:bg-accent focus:text-foreground"
             disabled={isMutating}
             onSelect={onSetDefault}
           >
@@ -209,24 +220,24 @@ function AccountActionsMenu({
           </DropdownMenuItem>
         ) : null}
 
-        <DropdownMenuSeparator className="bg-app-border" />
+        <DropdownMenuSeparator className="bg-border" />
 
         <DropdownMenuItem disabled>
           <ReceiptText className="h-4 w-4" />
           Ver transações
-          <span className="ml-auto text-xs text-app-muted">Planejado</span>
+          <span className="ml-auto text-xs text-muted-foreground">Planejado</span>
         </DropdownMenuItem>
         <DropdownMenuItem disabled>
           <SlidersHorizontal className="h-4 w-4" />
           Reajuste de saldo
-          <span className="ml-auto text-xs text-app-muted">Planejado</span>
+          <span className="ml-auto text-xs text-muted-foreground">Planejado</span>
         </DropdownMenuItem>
 
-        <DropdownMenuSeparator className="bg-app-border" />
+        <DropdownMenuSeparator className="bg-border" />
 
         {isArchived ? (
           <DropdownMenuItem
-            className="focus:bg-app-elevated focus:text-app-text"
+            className="focus:bg-accent focus:text-foreground"
             disabled={isMutating}
             onSelect={onUnarchive}
           >

@@ -8,14 +8,15 @@ import type { Account, ListAccountsParams } from '../types/account.types'
 
 export const useAccounts = ({
   includeArchived = false,
+  projectedUntil,
 }: ListAccountsParams = {}) =>
   useQuery({
-    queryKey: ACCOUNT_QUERY_KEYS.list(includeArchived),
+    queryKey: ACCOUNT_QUERY_KEYS.list({ includeArchived, projectedUntil }),
     queryFn: async () => {
       const { data } = await api.get<Account[]>(
         ACCOUNT_API_ENDPOINTS.accounts,
         {
-          params: { includeArchived },
+          params: { includeArchived, projectedUntil },
         }
       )
 
