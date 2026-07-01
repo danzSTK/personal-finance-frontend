@@ -23,7 +23,7 @@ export function CategoryCreateButton({
     <Button
       type="button"
       className={cn(
-        'group h-11 w-11 justify-center gap-0 overflow-hidden rounded-xl px-0 text-app-bg transition-[width,background-color] duration-300 ease-out hover:w-52 focus-visible:w-52',
+        'group h-11 w-11 justify-center gap-0 overflow-hidden rounded-xl px-0 text-primary-foreground transition-[width,background-color] duration-300 ease-out hover:w-52 focus-visible:w-52',
         type === 'EXPENSE'
           ? 'bg-state-expense hover:bg-state-expense/90'
           : 'bg-state-income hover:bg-state-income/90',

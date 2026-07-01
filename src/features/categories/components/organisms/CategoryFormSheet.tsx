@@ -55,7 +55,7 @@ interface CategoryFormSheetProps {
 }
 
 const inputClassName =
-  'h-11 rounded-xl border-app-border bg-app-panel text-app-text placeholder:text-app-muted focus-visible:ring-brand focus-visible:ring-offset-app-panel'
+  'h-11 rounded-xl border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-offset-secondary'
 
 const VISIBLE_METADATA_OPTIONS = 5
 
@@ -186,12 +186,12 @@ export function CategoryFormSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto border-app-border bg-app-surface text-app-text sm:max-w-xl">
+      <SheetContent className="w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl">
         <SheetHeader className="pr-8 text-left">
-          <SheetTitle className="text-app-text">
+          <SheetTitle className="text-foreground">
             {isEditing ? 'Editar categoria' : 'Nova categoria'}
           </SheetTitle>
-          <SheetDescription className="text-app-muted">
+          <SheetDescription className="text-muted-foreground">
             {isEditing
               ? 'Atualize nome, visual e participação nos relatórios.'
               : 'Organize lançamentos com uma categoria clara e fácil de encontrar.'}
@@ -215,7 +215,7 @@ export function CategoryFormSheet({
             error={form.formState.errors.description?.message}
           >
             <Textarea
-              className="min-h-24 rounded-xl border-app-border bg-app-panel text-app-text placeholder:text-app-muted focus-visible:ring-brand focus-visible:ring-offset-app-panel"
+              className="min-h-24 rounded-xl border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-offset-secondary"
               placeholder="Opcional. Use para explicar quando usar esta categoria."
               {...form.register('description')}
             />
@@ -231,10 +231,10 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex h-12 items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel',
+                      'flex h-12 items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
-                        ? 'border-brand bg-brand/15'
-                        : 'border-app-border bg-app-panel hover:border-brand/60 hover:bg-app-elevated'
+                        ? 'border-primary bg-primary/15'
+                        : 'border-border bg-secondary hover:border-primary/60 hover:bg-accent'
                     )}
                     onClick={() => setColor(option.value)}
                     aria-label={`Cor ${option.label}`}
@@ -247,7 +247,7 @@ export function CategoryFormSheet({
                       aria-hidden
                     >
                       {isSelected ? (
-                        <Check className="h-3.5 w-3.5 text-app-text" />
+                        <Check className="h-3.5 w-3.5 text-foreground" />
                       ) : null}
                     </span>
                   </button>
@@ -262,9 +262,9 @@ export function CategoryFormSheet({
                       variant="outline"
                       size="icon"
                       className={cn(
-                        'h-12 w-full rounded-2xl border-app-border bg-app-panel text-app-muted hover:border-brand/60 hover:bg-app-elevated hover:text-app-text',
+                        'h-12 w-full rounded-2xl border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
                         isSelectedColorInOverflow &&
-                          'border-brand bg-brand/15 text-app-text'
+                          'border-primary bg-primary/15 text-foreground'
                       )}
                       aria-label="Mais cores"
                       title="Mais cores"
@@ -274,12 +274,12 @@ export function CategoryFormSheet({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-64 rounded-2xl border-app-border bg-app-surface p-2 text-app-text"
+                    className="w-64 rounded-2xl border-border bg-card p-2 text-foreground"
                   >
-                    <DropdownMenuLabel className="text-xs text-app-muted">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
                       Outras cores
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-app-border" />
+                    <DropdownMenuSeparator className="bg-border" />
                     <div className="grid grid-cols-2 gap-1">
                       {overflowColorOptions.map((option) => {
                         const isSelected = selectedColor === option.value
@@ -287,7 +287,7 @@ export function CategoryFormSheet({
                         return (
                           <DropdownMenuItem
                             key={option.value}
-                            className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+                            className="rounded-xl focus:bg-accent focus:text-foreground"
                             onSelect={() => setColor(option.value)}
                             title={option.label}
                           >
@@ -323,10 +323,10 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex min-h-11 items-center gap-2 rounded-2xl border px-3 py-2 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel',
+                      'flex min-h-11 items-center gap-2 rounded-2xl border px-3 py-2 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
-                        ? 'border-brand bg-brand/15 text-app-text'
-                        : 'border-app-border bg-app-panel text-app-muted hover:border-brand/60 hover:bg-app-elevated hover:text-app-text'
+                        ? 'border-primary bg-primary/15 text-foreground'
+                        : 'border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground'
                     )}
                     onClick={() => setIcon(option.value)}
                     aria-pressed={isSelected}
@@ -345,9 +345,9 @@ export function CategoryFormSheet({
                       type="button"
                       variant="outline"
                       className={cn(
-                        'flex min-h-11 w-full justify-center rounded-2xl border-app-border bg-app-panel px-3 py-2 text-app-muted hover:border-brand/60 hover:bg-app-elevated hover:text-app-text',
+                        'flex min-h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 py-2 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
                         isSelectedIconInOverflow &&
-                          'border-brand bg-brand/15 text-app-text'
+                          'border-primary bg-primary/15 text-foreground'
                       )}
                       aria-label="Mais ícones"
                       title="Mais ícones"
@@ -357,12 +357,12 @@ export function CategoryFormSheet({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
                     align="end"
-                    className="w-72 rounded-2xl border-app-border bg-app-surface p-2 text-app-text"
+                    className="w-72 rounded-2xl border-border bg-card p-2 text-foreground"
                   >
-                    <DropdownMenuLabel className="text-xs text-app-muted">
+                    <DropdownMenuLabel className="text-xs text-muted-foreground">
                       Outros ícones
                     </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-app-border" />
+                    <DropdownMenuSeparator className="bg-border" />
                     <div className="grid max-h-72 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
                       {overflowIconOptions.map((option) => {
                         const Icon = option.icon
@@ -371,7 +371,7 @@ export function CategoryFormSheet({
                         return (
                           <DropdownMenuItem
                             key={option.value}
-                            className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+                            className="rounded-xl focus:bg-accent focus:text-foreground"
                             onSelect={() => setIcon(option.value)}
                             title={option.label}
                           >
@@ -404,22 +404,22 @@ export function CategoryFormSheet({
             />
           </CategoryFormField>
 
-          <label className="group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-app-border bg-app-panel p-4 transition hover:border-state-info/50 hover:bg-app-elevated has-[:checked]:border-state-info has-[:checked]:bg-state-info/10">
+          <label className="group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-border bg-secondary p-4 transition hover:border-state-info/50 hover:bg-accent has-[:checked]:border-state-info has-[:checked]:bg-state-info/10">
             <input
               type="checkbox"
               className="peer sr-only"
               {...form.register('includeInReports')}
             />
             <span className="min-w-0">
-              <span className="block text-sm font-medium text-app-text">
+              <span className="block text-sm font-medium text-foreground">
                 Incluir nos relatórios
               </span>
-              <span className="block text-xs leading-5 text-app-muted">
+              <span className="block text-xs leading-5 text-muted-foreground">
                 Use esta categoria em análises e resumos financeiros.
               </span>
             </span>
             <span
-              className="relative inline-flex h-7 w-12 shrink-0 rounded-full border border-app-border bg-app-surface transition after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-app-muted after:transition peer-checked:border-state-info peer-checked:bg-state-info peer-checked:after:translate-x-5 peer-checked:after:bg-app-text"
+              className="relative inline-flex h-7 w-12 shrink-0 rounded-full border border-border bg-card transition after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-muted-foreground after:transition peer-checked:border-state-info peer-checked:bg-state-info peer-checked:after:translate-x-5 peer-checked:after:bg-foreground"
               aria-hidden
             />
           </label>
@@ -432,14 +432,14 @@ export function CategoryFormSheet({
             <Button
               type="button"
               variant="outline"
-              className="h-10 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+              className="h-10 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
               onClick={() => onOpenChange(false)}
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              className="h-10 rounded-xl bg-brand px-4 text-brand-foreground hover:bg-brand-intense"
+              className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
               disabled={isPending}
             >
               {isPending ? 'Salvando...' : 'Salvar categoria'}

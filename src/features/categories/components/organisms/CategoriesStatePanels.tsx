@@ -65,7 +65,7 @@ export function CategoriesErrorState({
   onRetry,
 }: CategoriesErrorStateProps) {
   return (
-    <div className="min-h-72 rounded-2xl border border-app-border bg-app-surface p-6">
+    <div className="min-h-72 rounded-2xl border border-border bg-card p-6">
       <ApiErrorAlert
         error={resolveApiError(error, 'categories.list')}
         onRetry={onRetry}
@@ -83,12 +83,12 @@ interface StatePanelProps {
 
 function StatePanel({ icon, title, description, action }: StatePanelProps) {
   return (
-    <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-app-border bg-app-surface p-6 text-center">
-      <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-app-panel text-app-muted">
+    <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-6 text-center">
+      <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-secondary text-muted-foreground">
         {icon}
       </span>
-      <h3 className="mt-4 text-base font-semibold text-app-text">{title}</h3>
-      <p className="mt-2 max-w-md text-sm leading-6 text-app-muted">
+      <h3 className="mt-4 text-base font-semibold text-foreground">{title}</h3>
+      <p className="mt-2 max-w-md text-sm leading-6 text-muted-foreground">
         {description}
       </p>
       {action}

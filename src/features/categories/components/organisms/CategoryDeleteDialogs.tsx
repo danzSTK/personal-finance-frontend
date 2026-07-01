@@ -135,10 +135,10 @@ export function CategoryDeleteDialogs({
           }
         }}
       >
-        <AlertDialogContent className="border-app-border bg-app-surface text-app-text">
+        <AlertDialogContent className="border-border bg-card text-foreground">
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir categoria?</AlertDialogTitle>
-            <AlertDialogDescription className="text-app-muted">
+            <AlertDialogDescription className="text-muted-foreground">
               {category
                 ? `${category.displayName} será removida se não houver lançamentos vinculados.`
                 : 'A categoria será removida se não houver lançamentos vinculados.'}
@@ -146,7 +146,7 @@ export function CategoryDeleteDialogs({
           </AlertDialogHeader>
           {deleteError ? <ApiErrorAlert error={deleteError} /> : null}
           <AlertDialogFooter>
-            <AlertDialogCancel className="border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text">
+            <AlertDialogCancel className="border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground">
               Cancelar
             </AlertDialogCancel>
             <Button
@@ -169,10 +169,10 @@ export function CategoryDeleteDialogs({
           }
         }}
       >
-        <DialogContent className="border-app-border bg-app-surface text-app-text sm:max-w-xl">
+        <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>Mover lançamentos antes de excluir</DialogTitle>
-            <DialogDescription className="text-app-muted">
+            <DialogDescription className="text-muted-foreground">
               Escolha uma categoria ativa de {getCategoryTypeLabel(targetType)}
               para receber os lançamentos de {category?.displayName}.
             </DialogDescription>
@@ -181,13 +181,13 @@ export function CategoryDeleteDialogs({
           <div className="space-y-3">
             {mergeError ? <ApiErrorAlert error={mergeError} /> : null}
             {isLoadingTargets ? (
-              <div className="rounded-2xl border border-app-border bg-app-panel p-4 text-sm text-app-muted">
+              <div className="rounded-2xl border border-border bg-secondary p-4 text-sm text-muted-foreground">
                 Carregando categorias disponíveis...
               </div>
             ) : null}
 
             {!isLoadingTargets && targetCategories.length === 0 ? (
-              <div className="rounded-2xl border border-app-border bg-app-panel p-4 text-sm leading-6 text-app-muted">
+              <div className="rounded-2xl border border-border bg-secondary p-4 text-sm leading-6 text-muted-foreground">
                 Nenhuma categoria ativa do mesmo tipo está disponível. Crie ou
                 restaure uma categoria antes de excluir esta.
               </div>
@@ -204,23 +204,23 @@ export function CategoryDeleteDialogs({
                   key={target.id}
                   type="button"
                   className={cn(
-                    'flex w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-surface',
+                    'flex w-full items-center justify-between gap-3 rounded-2xl border p-4 text-left transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
                     isSelected
-                      ? 'border-brand bg-brand/15 text-app-text'
-                      : 'border-app-border bg-app-panel text-app-muted hover:border-brand/60 hover:bg-app-elevated hover:text-app-text'
+                      ? 'border-primary bg-primary/15 text-foreground'
+                      : 'border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground'
                   )}
                   onClick={() => setTargetCategoryId(target.id)}
                   aria-pressed={isSelected}
                 >
                   <span className="flex min-w-0 items-center gap-3">
-                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-app-surface">
+                    <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-card">
                       <Icon className="h-4 w-4" />
                     </span>
                     <span className="min-w-0">
                       <span className="block truncate text-sm font-medium">
                         {target.displayName}
                       </span>
-                      <span className="block truncate text-xs text-app-muted">
+                      <span className="block truncate text-xs text-muted-foreground">
                         {target.description || 'Sem descrição'}
                       </span>
                     </span>
@@ -235,7 +235,7 @@ export function CategoryDeleteDialogs({
             <Button
               type="button"
               variant="outline"
-              className="rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+              className="rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
               onClick={close}
             >
               Cancelar

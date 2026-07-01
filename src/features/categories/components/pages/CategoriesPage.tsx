@@ -150,11 +150,11 @@ export function CategoriesPage() {
           <div className="min-w-0">
             <h1
               id="categories-title"
-              className="text-2xl font-semibold tracking-tight text-app-text"
+              className="text-2xl font-semibold tracking-tight text-foreground"
             >
               Categorias
             </h1>
-            <p className="mt-1 max-w-2xl text-sm leading-6 text-app-muted">
+            <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
               Organize lançamentos por tipo e mantenha relatórios fáceis de
               entender.
             </p>
@@ -182,7 +182,7 @@ export function CategoriesPage() {
                   variant="outline"
                   size="icon"
                   className={cn(
-                    'h-11 w-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text',
+                    'h-11 w-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground',
                     archiveView === 'archived' &&
                       'border-state-warning bg-state-warning/10 text-state-warning hover:text-state-warning'
                   )}
@@ -194,15 +194,15 @@ export function CategoriesPage() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-64 rounded-2xl border-app-border bg-app-surface p-2 text-app-text"
+                className="w-64 rounded-2xl border-border bg-card p-2 text-foreground"
               >
-                <DropdownMenuLabel className="text-xs text-app-muted">
+                <DropdownMenuLabel className="text-xs text-muted-foreground">
                   Visualização
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-app-border" />
+                <DropdownMenuSeparator className="bg-border" />
                 <DropdownMenuCheckboxItem
                   checked={archiveView === 'archived'}
-                  className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+                  className="rounded-xl focus:bg-accent focus:text-foreground"
                   onCheckedChange={(checked) =>
                     handleArchiveViewChange(
                       checked === true ? 'archived' : 'active'
@@ -220,9 +220,9 @@ export function CategoriesPage() {
         </section>
 
         <section className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-2xl border border-app-border bg-app-surface p-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
             <div
-              className="grid grid-cols-2 gap-2 rounded-xl bg-app-panel p-1"
+              className="grid grid-cols-2 gap-2 rounded-xl bg-secondary p-1"
               role="tablist"
               aria-label="Tipo de categoria"
             >
@@ -231,12 +231,12 @@ export function CategoriesPage() {
                   key={tab.value}
                   type="button"
                   className={cn(
-                    'rounded-lg px-4 py-2 text-sm font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel',
+                    'rounded-lg px-4 py-2 text-sm font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                     activeType === tab.value
                       ? tab.value === 'EXPENSE'
                         ? 'bg-state-expense/15 text-state-expense'
                         : 'bg-state-income/15 text-state-income'
-                      : 'text-app-muted hover:bg-app-elevated hover:text-app-text'
+                      : 'text-muted-foreground hover:bg-accent hover:text-foreground'
                   )}
                   role="tab"
                   aria-selected={activeType === tab.value}
@@ -248,7 +248,7 @@ export function CategoriesPage() {
               ))}
             </div>
 
-            <div className="flex items-center gap-2 text-sm text-app-muted">
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
               {isFetching && !isLoading ? (
                 <span>Atualizando categorias...</span>
               ) : (
@@ -360,7 +360,7 @@ function CategorySearch({
         variant="outline"
         size="icon"
         className={cn(
-          'h-11 w-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text',
+          'h-11 w-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground',
           hasActiveSearch &&
             'border-state-info bg-state-info/10 text-state-info hover:text-state-info'
         )}
@@ -379,17 +379,17 @@ function CategorySearch({
 
   return (
     <div
-      className="flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-app-border bg-app-panel px-3 opacity-100 transition-[width,opacity] duration-300 ease-out animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72"
+      className="flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border bg-secondary px-3 opacity-100 transition-[width,opacity] duration-300 ease-out animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           onBlur()
         }
       }}
     >
-      <Search className="h-4 w-4 shrink-0 text-app-muted" />
+      <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
       <Input
         ref={inputRef}
-        className="h-9 border-0 bg-transparent px-0 text-app-text shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="h-9 border-0 bg-transparent px-0 text-foreground shadow-none focus-visible:ring-0 focus-visible:ring-offset-0"
         placeholder="Buscar categoria"
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -398,7 +398,7 @@ function CategorySearch({
         type="button"
         variant="ghost"
         size="icon"
-        className="h-8 w-8 rounded-lg text-app-muted hover:bg-app-elevated hover:text-app-text"
+        className="h-8 w-8 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground"
         onClick={onClear}
         aria-label="Limpar pesquisa"
         title="Limpar pesquisa"
@@ -429,22 +429,22 @@ function CategoriesPagination({
   onPageChange,
 }: CategoriesPaginationProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-app-border bg-app-surface p-3 md:flex-row md:items-center md:justify-between">
-      <div className="flex items-center gap-2 text-sm text-app-muted">
+    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Linhas por página</span>
         <Select
           value={String(limit)}
           onValueChange={(value) => onLimitChange(Number(value))}
         >
-          <SelectTrigger className="h-9 w-24 rounded-xl border-app-border bg-app-panel text-app-text focus:ring-brand">
+          <SelectTrigger className="h-9 w-24 rounded-xl border-border bg-secondary text-foreground focus:ring-ring">
             <SelectValue />
           </SelectTrigger>
-          <SelectContent className="border-app-border bg-app-surface text-app-text">
+          <SelectContent className="border-border bg-card text-foreground">
             {CATEGORY_PAGE_SIZE_OPTIONS.map((option) => (
               <SelectItem
                 key={option}
                 value={String(option)}
-                className="focus:bg-app-elevated focus:text-app-text"
+                className="focus:bg-accent focus:text-foreground"
               >
                 {option}
               </SelectItem>
@@ -454,7 +454,7 @@ function CategoriesPagination({
       </div>
 
       <div className="flex flex-wrap items-center gap-2">
-        <span className="mr-1 text-sm text-app-muted">
+        <span className="mr-1 text-sm text-muted-foreground">
           Página {page} de {totalPages}
         </span>
         <PageButton
@@ -503,7 +503,7 @@ function PageButton({ label, disabled, onClick, children }: PageButtonProps) {
       type="button"
       variant="outline"
       size="icon"
-      className="h-9 w-9 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+      className="h-9 w-9 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
       disabled={disabled}
       onClick={onClick}
       aria-label={label}

@@ -56,35 +56,51 @@ export function CategoriesTable({
   onDelete,
 }: CategoriesTableProps) {
   return (
-    <div className="max-w-full overflow-hidden rounded-2xl border border-app-border bg-app-surface">
-      <Table className="min-w-[760px]">
-        <TableHeader>
-          <TableRow className="border-app-border hover:bg-transparent">
-            <TableHead className="text-app-muted">Categoria</TableHead>
-            <TableHead className="text-app-muted">Tipo</TableHead>
-            <TableHead className="text-app-muted">Relatórios</TableHead>
-            <TableHead className="text-app-muted">Ordem</TableHead>
-            <TableHead className="text-app-muted">Status</TableHead>
-            <TableHead className="w-12 text-app-muted">
-              <span className="sr-only">Ações</span>
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {categories.map((category) => (
-            <CategoryRow
-              key={category.id}
-              category={category}
-              isMutating={isMutating}
-              onArchive={onArchive}
-              onDelete={onDelete}
-              onEdit={onEdit}
-              onUnarchive={onUnarchive}
-            />
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <>
+      <div className="hidden max-w-full overflow-hidden rounded-2xl border border-border bg-card md:block">
+        <Table className="min-w-[760px]">
+          <TableHeader>
+            <TableRow className="border-border hover:bg-transparent">
+              <TableHead className="text-muted-foreground">Categoria</TableHead>
+              <TableHead className="text-muted-foreground">Tipo</TableHead>
+              <TableHead className="text-muted-foreground">Relatórios</TableHead>
+              <TableHead className="text-muted-foreground">Ordem</TableHead>
+              <TableHead className="text-muted-foreground">Status</TableHead>
+              <TableHead className="w-12 text-muted-foreground">
+                <span className="sr-only">Ações</span>
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {categories.map((category) => (
+              <CategoryRow
+                key={category.id}
+                category={category}
+                isMutating={isMutating}
+                onArchive={onArchive}
+                onDelete={onDelete}
+                onEdit={onEdit}
+                onUnarchive={onUnarchive}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      <div className="grid gap-3 md:hidden">
+        {categories.map((category) => (
+          <CategoryMobileItem
+            key={category.id}
+            category={category}
+            isMutating={isMutating}
+            onArchive={onArchive}
+            onDelete={onDelete}
+            onEdit={onEdit}
+            onUnarchive={onUnarchive}
+          />
+        ))}
+      </div>
+    </>
   )
 }
 
@@ -95,6 +111,97 @@ interface CategoryRowProps {
   onArchive: (category: Category) => void
   onUnarchive: (category: Category) => void
   onDelete: (category: Category) => void
+}
+
+function CategoryMobileItem({
+  category,
+  isMutating,
+  onEdit,
+  onArchive,
+  onUnarchive,
+  onDelete,
+}: CategoryRowProps) {
+  const fallbackType = category.type === 'INCOME' ? 'INCOME' : 'EXPENSE'
+  const Icon = getCategoryIconOption(getCategoryIconKey(category)).icon
+  const colorOption = getCategoryColorOption(
+    getCategoryColorToken(category),
+    fallbackType
+  )
+  const swatchStyle: CSSProperties = {
+    backgroundColor: colorOption.hex,
+  }
+
+  return (
+    <article
+      className={cn(
+        'rounded-2xl border border-border bg-card p-4',
+        category.isArchived && 'opacity-75'
+      )}
+    >
+      <div className="flex min-w-0 items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          <span
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-foreground"
+            style={swatchStyle}
+            aria-hidden
+          >
+            <Icon className="h-4 w-4" />
+          </span>
+          <div className="min-w-0">
+            <h3 className="truncate text-sm font-semibold text-foreground">
+              {category.displayName}
+            </h3>
+            <p className="mt-0.5 line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {category.description?.trim() || 'Sem descrição'}
+            </p>
+          </div>
+        </div>
+
+        <CategoryActionsMenu
+          category={category}
+          isMutating={isMutating}
+          onArchive={() => onArchive(category)}
+          onDelete={() => onDelete(category)}
+          onEdit={() => onEdit(category)}
+          onUnarchive={() => onUnarchive(category)}
+        />
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-2 text-xs">
+        <span
+          className={cn(
+            'inline-flex rounded-full px-2.5 py-1 font-medium',
+            categoryTypeTone(category.type)
+          )}
+        >
+          {getCategoryTypeLabel(category.type)}
+        </span>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-secondary px-2.5 py-1 text-muted-foreground">
+          {category.includeInReports ? (
+            <CheckCircle2 className="h-3.5 w-3.5 text-state-info" />
+          ) : (
+            <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+          )}
+          {category.includeInReports
+            ? 'Entra nos relatórios'
+            : 'Fora dos relatórios'}
+        </span>
+        <span
+          className={cn(
+            'inline-flex rounded-full px-2.5 py-1 font-medium',
+            category.isArchived
+              ? 'bg-state-warning/10 text-state-warning'
+              : 'bg-state-income/10 text-state-income'
+          )}
+        >
+          {category.isArchived ? 'Arquivada' : 'Ativa'}
+        </span>
+        <span className="numeric inline-flex rounded-full bg-secondary px-2.5 py-1 text-muted-foreground">
+          Ordem {category.sortOrder}
+        </span>
+      </div>
+    </article>
+  )
 }
 
 function CategoryRow({
@@ -118,24 +225,24 @@ function CategoryRow({
   return (
     <TableRow
       className={cn(
-        'border-app-border hover:bg-app-panel',
+        'border-border hover:bg-secondary',
         category.isArchived && 'opacity-75'
       )}
     >
       <TableCell className="min-w-72">
         <div className="flex min-w-0 items-center gap-3">
           <span
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-app-text"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-foreground"
             style={swatchStyle}
             aria-hidden
           >
             <Icon className="h-4 w-4" />
           </span>
           <span className="min-w-0">
-            <span className="block truncate font-medium text-app-text">
+            <span className="block truncate font-medium text-foreground">
               {category.displayName}
             </span>
-            <span className="block max-w-md truncate text-xs text-app-muted">
+            <span className="block max-w-md truncate text-xs text-muted-foreground">
               {category.description?.trim() || 'Sem descrição'}
             </span>
           </span>
@@ -152,18 +259,18 @@ function CategoryRow({
         </span>
       </TableCell>
       <TableCell>
-        <span className="inline-flex items-center gap-2 rounded-lg bg-app-panel px-3 py-2 text-xs text-app-muted">
+        <span className="inline-flex items-center gap-2 rounded-lg bg-secondary px-3 py-2 text-xs text-muted-foreground">
           {category.includeInReports ? (
             <CheckCircle2 className="h-3.5 w-3.5 text-state-info" />
           ) : (
-            <EyeOff className="h-3.5 w-3.5 text-app-muted" />
+            <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
           )}
           {category.includeInReports
             ? 'Entra nos relatórios'
             : 'Fora dos relatórios'}
         </span>
       </TableCell>
-      <TableCell className="numeric text-app-muted">
+      <TableCell className="numeric text-muted-foreground">
         {category.sortOrder}
       </TableCell>
       <TableCell>
@@ -222,7 +329,7 @@ function CategoryActionsMenu({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-9 w-9 rounded-lg text-app-muted hover:bg-app-panel hover:text-app-text"
+          className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
           aria-label={`Abrir ações de ${category.displayName}`}
           title={`Ações de ${category.displayName}`}
         >
@@ -231,16 +338,16 @@ function CategoryActionsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-60 rounded-2xl border-app-border bg-app-surface p-2 text-app-text"
+        className="w-60 rounded-2xl border-border bg-card p-2 text-foreground"
       >
-        <DropdownMenuLabel className="text-xs text-app-muted">
+        <DropdownMenuLabel className="text-xs text-muted-foreground">
           Ações da categoria
         </DropdownMenuLabel>
-        <DropdownMenuSeparator className="bg-app-border" />
+        <DropdownMenuSeparator className="bg-border" />
 
         {!category.isArchived ? (
           <DropdownMenuItem
-            className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+            className="rounded-xl focus:bg-accent focus:text-foreground"
             disabled={editArchiveDisabled}
             onSelect={onEdit}
           >
@@ -251,7 +358,7 @@ function CategoryActionsMenu({
 
         {category.isArchived ? (
           <DropdownMenuItem
-            className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+            className="rounded-xl focus:bg-accent focus:text-foreground"
             disabled={restoreDisabled}
             onSelect={onUnarchive}
           >
@@ -260,7 +367,7 @@ function CategoryActionsMenu({
           </DropdownMenuItem>
         ) : (
           <DropdownMenuItem
-            className="rounded-xl focus:bg-app-elevated focus:text-app-text"
+            className="rounded-xl focus:bg-accent focus:text-foreground"
             disabled={editArchiveDisabled}
             onSelect={onArchive}
           >
@@ -269,7 +376,7 @@ function CategoryActionsMenu({
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuSeparator className="bg-app-border" />
+        <DropdownMenuSeparator className="bg-border" />
         <DropdownMenuItem
           className="rounded-xl text-destructive focus:bg-destructive/10 focus:text-destructive"
           disabled={deleteDisabled}
