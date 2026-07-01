@@ -1,6 +1,7 @@
 export const API_ERROR_CODES = {
   validation: 'VALIDATION_ERROR',
   unauthorized: 'UNAUTHORIZED',
+  tooManyRequests: 'TOO_MANY_REQUESTS',
   internalServer: 'INTERNAL_SERVER_ERROR',
 
   authProviderAlreadyLinked: 'AUTH_PROVIDER_ALREADY_LINKED',
@@ -9,6 +10,13 @@ export const API_ERROR_CODES = {
   invalidRefreshToken: 'INVALID_REFRESH_TOKEN',
   potentialSessionHijacking: 'POTENTIAL_SESSION_HIJACKING',
   sessionNotFound: 'SESSION_NOT_FOUND',
+  emailVerificationCooldownActive: 'EMAIL_VERIFICATION_COOLDOWN_ACTIVE',
+  emailVerificationDailyLimitExceeded:
+    'EMAIL_VERIFICATION_DAILY_LIMIT_EXCEEDED',
+  emailVerificationRequired: 'EMAIL_VERIFICATION_REQUIRED',
+  emailVerificationTokenExpired: 'EMAIL_VERIFICATION_TOKEN_EXPIRED',
+  emailVerificationTokenInvalid: 'EMAIL_VERIFICATION_TOKEN_INVALID',
+  emailVerificationUserBlocked: 'EMAIL_VERIFICATION_USER_BLOCKED',
 
   invalidUsernameFormat: 'INVALID_USERNAME_FORMAT',
   avatarFileTooLarge: 'AVATAR_FILE_TOO_LARGE',
@@ -44,6 +52,16 @@ export const API_ERROR_CODES = {
   categoryUpdateEmpty: 'CATEGORY_UPDATE_EMPTY',
   invalidCategory: 'INVALID_CATEGORY',
   technicalCategoryCannotBeCreated: 'TECHNICAL_CATEGORY_CANNOT_BE_CREATED',
+
+  invalidTransaction: 'INVALID_TRANSACTION',
+  transactionAccountUnavailable: 'TRANSACTION_ACCOUNT_UNAVAILABLE',
+  transactionAlreadyEffective: 'TRANSACTION_ALREADY_EFFECTIVE',
+  transactionCannotDeleteTransfer: 'TRANSACTION_CANNOT_DELETE_TRANSFER',
+  transactionCategoryIncompatible: 'TRANSACTION_CATEGORY_INCOMPATIBLE',
+  transactionCategoryUnavailable: 'TRANSACTION_CATEGORY_UNAVAILABLE',
+  transactionInvalidStateTransition: 'TRANSACTION_INVALID_STATE_TRANSITION',
+  transactionNotFound: 'TRANSACTION_NOT_FOUND',
+  transactionUpdateEmpty: 'TRANSACTION_UPDATE_EMPTY',
 } as const
 
 export type ApiErrorCode =

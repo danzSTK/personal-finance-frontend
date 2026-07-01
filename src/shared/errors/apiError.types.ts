@@ -24,6 +24,8 @@ export type ApiErrorRecovery =
 export type ApiErrorContext =
   | 'auth.sign-in'
   | 'auth.sign-up'
+  | 'auth.email-verification.confirm'
+  | 'auth.email-verification.resend'
   | 'auth.link-email'
   | 'auth.link-google'
   | 'auth.sessions.list'
@@ -31,6 +33,8 @@ export type ApiErrorContext =
   | 'user.avatar.remove'
   | 'user.avatar.update'
   | 'user.profile.update'
+  | 'user.username.availability'
+  | 'user.username.update'
   | 'accounts.list'
   | 'accounts.create'
   | 'accounts.update'
@@ -45,6 +49,12 @@ export type ApiErrorContext =
   | 'categories.unarchive'
   | 'categories.delete'
   | 'categories.merge-delete'
+  | 'transactions.list'
+  | 'transactions.detail'
+  | 'transactions.create'
+  | 'transactions.update'
+  | 'transactions.confirm'
+  | 'transactions.delete'
   | 'generic'
 
 export interface ApiErrorPresentation {

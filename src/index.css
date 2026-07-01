@@ -105,96 +105,42 @@
   font-variant-numeric: tabular-nums;
 }
 
-:root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
-  --card: hsl(0 0% 100%);
-  --card-foreground: hsl(222.2 84% 4.9%);
-  --popover: hsl(0 0% 100%);
-  --popover-foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(222.2 47.4% 11.2%);
-  --primary-foreground: hsl(210 40% 98%);
-  --secondary: hsl(210 40% 96.1%);
-  --secondary-foreground: hsl(222.2 47.4% 11.2%);
-  --muted: hsl(210 40% 96.1%);
-  --muted-foreground: hsl(215.4 16.3% 46.9%);
-  --accent: hsl(210 40% 96.1%);
-  --accent-foreground: hsl(222.2 47.4% 11.2%);
-  --destructive: hsl(0 84.2% 60.2%);
-  --destructive-foreground: hsl(210 40% 98%);
-  --border: hsl(214.3 31.8% 91.4%);
-  --input: hsl(214.3 31.8% 91.4%);
-  --ring: hsl(222.2 84% 4.9%);
-  --radius: 0.5rem;
-
-  /* Danfy Dark design tokens */
-  --app-bg: hsl(240 10% 4%);
-  --app-surface: hsl(240 9% 7%);
-  --app-panel: hsl(240 7% 10%);
-  --app-elevated: hsl(240 6% 13%);
-  --app-text: hsl(0 0% 96%);
-  --app-muted: hsl(240 5% 65%);
-  --app-border: hsl(240 5% 18%);
-
-  --brand: hsl(258 90% 76%);
-  --brand-intense: hsl(262 83% 58%);
-  --brand-soft: hsl(252 95% 85%);
-  --brand-foreground: hsl(0 0% 6%);
-
-  --state-income: hsl(158 64% 52%);
-  --state-warning: hsl(38 92% 50%);
-  --state-expense: hsl(0 84% 60%);
-  --state-info: hsl(221 83% 61%);
-
-  --acct-lav: hsl(258 90% 76%);
-  --acct-cyan: hsl(190 84% 58%);
-  --acct-mint: hsl(164 62% 56%);
-  --acct-gold: hsl(44 90% 58%);
-  --acct-rose: hsl(344 82% 68%);
-  --sidebar-background: hsl(0 0% 98%);
-  --sidebar-foreground: hsl(240 5.3% 26.1%);
-  --sidebar-primary: hsl(240 5.9% 10%);
-  --sidebar-primary-foreground: hsl(0 0% 98%);
-  --sidebar-accent: hsl(240 4.8% 95.9%);
-  --sidebar-accent-foreground: hsl(240 5.9% 10%);
-  --sidebar-border: hsl(220 13% 91%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
-}
-
+:root,
 .dark {
   --background: hsl(240 10% 4%);
-  --foreground: hsl(0 0% 98%);
+  --foreground: hsl(0 0% 96%);
   --card: hsl(240 9% 7%);
-  --card-foreground: hsl(0 0% 98%);
+  --card-foreground: hsl(0 0% 96%);
   --popover: hsl(240 9% 7%);
-  --popover-foreground: hsl(0 0% 98%);
+  --popover-foreground: hsl(0 0% 96%);
   --primary: hsl(258 90% 76%);
   --primary-foreground: hsl(0 0% 6%);
-  --secondary: hsl(240 4% 46%);
-  --secondary-foreground: hsl(0 0% 98%);
+  --secondary: hsl(240 7% 10%);
+  --secondary-foreground: hsl(0 0% 96%);
   --muted: hsl(240 6% 13%);
   --muted-foreground: hsl(240 5% 65%);
   --accent: hsl(240 6% 13%);
-  --accent-foreground: hsl(0 0% 98%);
+  --accent-foreground: hsl(0 0% 96%);
   --destructive: hsl(0 84% 60%);
   --destructive-foreground: hsl(0 0% 98%);
   --border: hsl(240 5% 18%);
   --input: hsl(240 5% 18%);
   --ring: hsl(258 90% 76%);
+  --radius: 0.5rem;
 
   /* Danfy Dark design tokens */
-  --app-bg: hsl(240 10% 4%);
-  --app-surface: hsl(240 9% 7%);
-  --app-panel: hsl(240 7% 10%);
-  --app-elevated: hsl(240 6% 13%);
-  --app-text: hsl(0 0% 96%);
-  --app-muted: hsl(240 5% 65%);
-  --app-border: hsl(240 5% 18%);
+  --app-bg: var(--background);
+  --app-surface: var(--card);
+  --app-panel: var(--secondary);
+  --app-elevated: var(--accent);
+  --app-text: var(--foreground);
+  --app-muted: var(--muted-foreground);
+  --app-border: var(--border);
 
-  --brand: hsl(258 90% 76%);
+  --brand: var(--primary);
   --brand-intense: hsl(262 83% 58%);
   --brand-soft: hsl(252 95% 85%);
-  --brand-foreground: hsl(0 0% 6%);
+  --brand-foreground: var(--primary-foreground);
 
   --state-income: hsl(158 64% 52%);
   --state-warning: hsl(38 92% 50%);
@@ -206,14 +152,14 @@
   --acct-mint: hsl(164 62% 56%);
   --acct-gold: hsl(44 90% 58%);
   --acct-rose: hsl(344 82% 68%);
-  --sidebar-background: hsl(240 5.9% 10%);
-  --sidebar-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-primary: hsl(224.3 76.3% 48%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(240 3.7% 15.9%);
-  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
-  --sidebar-border: hsl(240 3.7% 15.9%);
-  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+  --sidebar-background: var(--background);
+  --sidebar-foreground: var(--foreground);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent: var(--accent);
+  --sidebar-accent-foreground: var(--accent-foreground);
+  --sidebar-border: var(--border);
+  --sidebar-ring: var(--ring);
 }
 
 @layer base {
@@ -225,7 +171,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-app-bg font-sans text-app-text;
+    @apply bg-background font-sans text-foreground;
     font-feature-settings:
       'liga' 1,
       'calt' 1;

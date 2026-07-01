@@ -7,7 +7,7 @@ interface BadgeProps {
 }
 
 const variantClasses = {
-  default: 'bg-app-elevated text-app-text',
+  default: 'bg-accent text-foreground',
   income: 'bg-state-income/20 text-state-income',
   warning: 'bg-state-warning/20 text-state-warning',
   expense: 'bg-state-expense/20 text-state-expense',

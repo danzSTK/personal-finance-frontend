@@ -18,6 +18,11 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
   },
   [API_ERROR_CODES.internalServer]: serviceUnavailable(),
   [API_ERROR_CODES.unauthorized]: sessionEnded(),
+  [API_ERROR_CODES.tooManyRequests]: {
+    title: 'Muitas tentativas em pouco tempo',
+    description: 'Aguarde o bloqueio terminar antes de tentar novamente.',
+    recovery: 'retry',
+  },
   [API_ERROR_CODES.invalidAccessToken]: sessionEnded(),
   [API_ERROR_CODES.invalidRefreshToken]: sessionEnded(),
   [API_ERROR_CODES.potentialSessionHijacking]: sessionEnded(),
@@ -35,6 +40,42 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     title: 'Sessão não encontrada',
     description: 'Ela pode já ter sido encerrada. Atualize a lista de sessões.',
     recovery: 'retry',
+  },
+  [API_ERROR_CODES.emailVerificationRequired]: {
+    title: 'Confirme seu email para continuar',
+    description:
+      'Sua sessão está ativa, mas os recursos financeiros ficam bloqueados até a confirmação.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.emailVerificationTokenInvalid]: {
+    title: 'Este link não pode ser usado',
+    description:
+      'O link pode estar incompleto, já ter sido usado ou não pertencer a uma verificação válida.',
+    recovery: 'sign-in',
+  },
+  [API_ERROR_CODES.emailVerificationTokenExpired]: {
+    title: 'Este link expirou',
+    description:
+      'Por segurança, links de verificação duram 15 minutos. Entre na sua conta e solicite um novo envio.',
+    recovery: 'sign-in',
+  },
+  [API_ERROR_CODES.emailVerificationCooldownActive]: {
+    title: 'Aguarde para reenviar',
+    description:
+      'Um novo email já foi solicitado recentemente. Por segurança, aguarde antes de tentar de novo.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.emailVerificationDailyLimitExceeded]: {
+    title: 'Limite de envios atingido',
+    description:
+      'Você já solicitou o número máximo de emails de verificação nas últimas 24 horas. Tente novamente mais tarde.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.emailVerificationUserBlocked]: {
+    title: 'Esta conta não pode ser verificada agora',
+    description:
+      'O acesso desta conta está bloqueado. Entre em contato com o suporte para recuperar o acesso.',
+    recovery: 'none',
   },
   [API_ERROR_CODES.invalidUsernameFormat]: {
     title: 'Nome de usuário inválido',
@@ -176,6 +217,53 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     description: 'Escolha uma categoria de receita, despesa ou investimento.',
     recovery: 'correct-fields',
   },
+  [API_ERROR_CODES.invalidTransaction]: {
+    title: 'Revise os dados da transação',
+    description:
+      'Alguma informação não combina com as regras financeiras. Corrija os campos e tente novamente.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.transactionAccountUnavailable]: {
+    title: 'Conta indisponível',
+    description: 'Escolha uma conta ativa para continuar.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.transactionAlreadyEffective]: {
+    title: 'Transação já efetivada',
+    description: 'Atualize a lista para ver o estado mais recente.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.transactionCannotDeleteTransfer]: {
+    title: 'Transferência não pode ser excluída',
+    description:
+      'Nesta versão, corrija com uma transferência no sentido contrário.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.transactionCategoryIncompatible]: {
+    title: 'Categoria incompatível',
+    description: 'Use uma categoria do mesmo tipo da transação.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.transactionCategoryUnavailable]: {
+    title: 'Categoria indisponível',
+    description: 'Escolha uma categoria ativa para este tipo de transação.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.transactionInvalidStateTransition]: {
+    title: 'Esta mudança não está disponível',
+    description: 'Atualize os dados e tente novamente.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.transactionNotFound]: {
+    title: 'Transação não encontrada',
+    description: 'Ela pode ter sido excluída ou não estar mais disponível.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.transactionUpdateEmpty]: {
+    title: 'Nenhuma alteração para salvar',
+    description: 'Altere pelo menos um campo antes de salvar.',
+    recovery: 'correct-fields',
+  },
 }
 
 const contextFallbacks: Record<ApiErrorContext, Copy> = {
@@ -188,6 +276,18 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     title: 'Não foi possível criar sua conta',
     description: 'Revise os dados informados e tente novamente.',
     recovery: 'correct-fields',
+  },
+  'auth.email-verification.confirm': {
+    title: 'Não foi possível confirmar seu email',
+    description:
+      'Confira se o link está completo e tente novamente. Se ele expirou, solicite um novo envio.',
+    recovery: 'retry',
+  },
+  'auth.email-verification.resend': {
+    title: 'Não foi possível reenviar o email',
+    description:
+      'Sua sessão continua ativa. Aguarde um momento e tente novamente.',
+    recovery: 'retry',
   },
   'auth.link-email': {
     title: 'Não foi possível vincular email e senha',
@@ -218,6 +318,17 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
       'Seus dados continuam nesta tela. Revise os campos e tente novamente.',
     recovery: 'correct-fields',
   },
+  'user.username.availability': {
+    title: 'Não foi possível verificar o usuário',
+    description: 'Aguarde um momento e tente verificar novamente.',
+    recovery: 'retry',
+  },
+  'user.username.update': {
+    title: 'Não foi possível alterar o usuário',
+    description:
+      'O nome informado foi preservado. Revise o campo e tente novamente.',
+    recovery: 'correct-fields',
+  },
   'accounts.list': loadFailure('suas contas'),
   'accounts.create': saveFailure('criar a conta'),
   'accounts.update': saveFailure('salvar as alterações da conta'),
@@ -234,6 +345,12 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
   'categories.merge-delete': actionFailure(
     'mover os lançamentos e excluir a categoria'
   ),
+  'transactions.list': loadFailure('as transações'),
+  'transactions.detail': loadFailure('os detalhes da transação'),
+  'transactions.create': saveFailure('criar a transação'),
+  'transactions.update': saveFailure('salvar as alterações da transação'),
+  'transactions.confirm': actionFailure('efetivar esta transação'),
+  'transactions.delete': actionFailure('excluir esta transação'),
   generic: serviceUnavailable(),
 }
 

@@ -29,15 +29,15 @@ export function ApiErrorAlert({
           <TriangleAlert className="h-4 w-4" />
         </span>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold text-app-text">{error.title}</p>
-          <p className="mt-1 text-sm leading-6 text-app-muted">
+          <p className="text-sm font-semibold text-foreground">{error.title}</p>
+          <p className="mt-1 text-sm leading-6 text-muted-foreground">
             {error.description}
           </p>
           {showRetry ? (
             <Button
               type="button"
               variant="outline"
-              className="mt-3 h-9 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+              className="mt-3 h-9 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
               onClick={onRetry}
             >
               Tentar novamente
