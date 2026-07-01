@@ -55,6 +55,14 @@ Lower levels must not import higher levels.
 - Use React Hook Form + Zod for forms. Infer form types from schemas when possible.
 - Validate early, disable invalid submissions, and show field-level errors in clear human language.
 
+## Date And Time Contract
+
+- Treat backend `DateOnly` fields as civil-date strings in `YYYY-MM-DD` format. Do not convert them to `Date`, ISO datetime, UTC, or local timezone before sending them back to the API.
+- Examples of `DateOnly`: `transactions.date`, `dateFrom`, `dateTo`, and `projectedUntil`.
+- Treat backend instant fields as ISO 8601 UTC timestamps. They may be converted for local display only.
+- Examples of instants: `createdAt`, `updatedAt`, `effectiveAt`, `deletedAt`, and `archivedAt`.
+- When building month filters, derive request values as literal strings such as `2026-06-30`; avoid `new Date(...).toISOString()` for date-only API params.
+
 ## API Error Handling
 
 - Follow `.agents/skills/danfy-api-error-handling/SKILL.md` whenever adding or changing an API query, mutation, form submission, retry, or error state.
