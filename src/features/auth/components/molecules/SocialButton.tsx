@@ -40,7 +40,7 @@ export const SocialButton = ({ provider, onClick, disabled, className }: SocialB
       onClick={handleClick}
       disabled={disabled}
       className={cn(
-        'h-11 w-full rounded-lg border-app-border bg-app-bg text-app-text transition-colors hover:bg-app-elevated hover:text-app-text focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel',
+        'h-11 w-full rounded-lg border-border bg-background text-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
         className
       )}
       aria-label={config.label}

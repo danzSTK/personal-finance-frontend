@@ -1,7 +1,8 @@
 import { ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ShieldCheck, WalletCards } from 'lucide-react'
-import { APP_BRAND, APP_COPY } from '@/shared/config/brand'
+import { APP_COPY } from '@/shared/config/brand'
+import { BrandLogo } from '@/shared/components/atoms/BrandLogo'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/lib/card'
 import { Button } from '../atoms'
@@ -39,19 +40,17 @@ export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
   const copy = authModeContent[mode]
 
   return (
-    <div className="dark min-h-screen bg-linear-to-br from-app-bg via-app-surface to-app-panel text-app-text">
+    <div className="dark min-h-screen bg-linear-to-br from-background via-card to-secondary text-foreground">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center p-4 sm:p-6 lg:p-8">
-        <Card className="w-full overflow-hidden rounded-2xl border border-app-border bg-app-surface shadow-2xl shadow-app-bg/60">
+        <Card className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-background/60">
           <div className="grid lg:grid-cols-[1fr_minmax(0,30rem)]">
-            <section className="hidden bg-app-panel/60 p-8 lg:flex lg:flex-col lg:justify-between xl:p-10">
+            <section className="hidden bg-secondary/60 p-8 lg:flex lg:flex-col lg:justify-between xl:p-10">
               <div className="space-y-5">
-                <span className="inline-flex w-fit items-center rounded-full border border-app-border bg-app-panel px-3 py-1 text-xs font-medium uppercase tracking-[0.12em] text-app-muted">
-                  {APP_BRAND.name}
-                </span>
-                <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-app-text">
+                <BrandLogo className="w-32" />
+                <h1 className="max-w-xl text-4xl font-semibold leading-tight tracking-tight text-foreground">
                   {APP_COPY.auth.headline}
                 </h1>
-                <p className="max-w-lg text-sm leading-relaxed text-app-muted">
+                <p className="max-w-lg text-sm leading-relaxed text-muted-foreground">
                   {APP_COPY.auth.supporting}
                 </p>
               </div>
@@ -72,9 +71,7 @@ export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
 
             <div className="p-5 sm:p-8 lg:p-10">
               <CardHeader className="p-0">
-                <p className="text-xs font-medium uppercase tracking-[0.12em] text-app-muted lg:hidden">
-                  {APP_BRAND.name}
-                </p>
+                <BrandLogo className="w-28 lg:hidden" />
               </CardHeader>
 
               <CardContent className="p-0 pt-4 sm:pt-6">
@@ -84,24 +81,24 @@ export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
                 >
                   <div className="space-y-5 animate-in slide-in-from-bottom-1 duration-500 ease-out">
                     <div className="space-y-2">
-                      <CardTitle className="text-2xl font-semibold tracking-tight text-app-text sm:text-3xl">
+                      <CardTitle className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
                         {copy.title}
                       </CardTitle>
-                      <CardDescription className="text-sm text-app-muted">
+                      <CardDescription className="text-sm text-muted-foreground">
                         {copy.description}
                       </CardDescription>
                     </div>
                     {mode === 'sign-in' ? <SignInCardFlow /> : <SignUpCardFlow />}
 
-                    <p className="text-center text-xs text-app-muted">
+                    <p className="text-center text-xs text-muted-foreground">
                       Ao continuar, você aceita os termos e políticas da plataforma.
                     </p>
-                    <div className="flex items-center justify-center gap-2 border-t border-app-border pt-4 text-sm text-app-muted">
+                    <div className="flex items-center justify-center gap-2 border-t border-border pt-4 text-sm text-muted-foreground">
                       <span>{copy.switchPrompt}</span>
                       <Button
                         type="button"
                         variant="link"
-                        className="h-auto p-0 text-brand hover:text-brand-soft"
+                        className="h-auto p-0 text-primary hover:text-primary"
                         onClick={() => navigate(copy.switchRoute)}
                       >
                         {copy.switchAction}
@@ -142,11 +139,11 @@ interface FeaturePillProps {
 }
 
 const FeaturePill = ({ icon, title, description }: FeaturePillProps) => (
-  <div className="rounded-xl border border-app-border bg-app-bg p-4">
-    <div className="mb-2 flex items-center gap-2 text-brand">
+  <div className="rounded-xl border border-border bg-background p-4">
+    <div className="mb-2 flex items-center gap-2 text-primary">
       {icon}
-      <p className="text-sm font-semibold text-app-text">{title}</p>
+      <p className="text-sm font-semibold text-foreground">{title}</p>
     </div>
-    <p className="text-sm text-app-muted">{description}</p>
+    <p className="text-sm text-muted-foreground">{description}</p>
   </div>
 )

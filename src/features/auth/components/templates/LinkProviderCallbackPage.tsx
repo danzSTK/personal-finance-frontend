@@ -65,8 +65,8 @@ export function LinkProviderCallbackPage() {
   }, [navigate, searchParams])
 
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-app-bg">
-      <p className="text-sm text-app-muted">Processando vínculo do provider...</p>
+    <div className="dark flex min-h-screen items-center justify-center bg-background">
+      <p className="text-sm text-muted-foreground">Processando vínculo do provider...</p>
       <Toaster />
     </div>
   )

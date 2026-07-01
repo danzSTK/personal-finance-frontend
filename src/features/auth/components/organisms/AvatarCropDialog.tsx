@@ -73,17 +73,17 @@ export const AvatarCropDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="border-app-border bg-app-surface text-app-text sm:max-w-2xl">
+      <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>Ajustar foto de perfil</DialogTitle>
-          <DialogDescription className="text-app-muted">
+          <DialogDescription className="text-muted-foreground">
             Posicione seu rosto no centro. A prévia será enviada em formato
             quadrado.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="relative h-80 overflow-hidden rounded-2xl border border-app-border bg-app-panel">
+          <div className="relative h-80 overflow-hidden rounded-2xl border border-border bg-secondary">
             {imageSrc ? (
               <Cropper
                 image={imageSrc}
@@ -97,22 +97,22 @@ export const AvatarCropDialog = ({
                 onZoomChange={setZoom}
               />
             ) : (
-              <div className="flex h-full items-center justify-center text-sm text-app-muted">
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 Escolha uma imagem para ajustar.
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-app-border bg-app-panel p-4">
+          <div className="rounded-2xl border border-border bg-secondary p-4">
             <div className="flex items-center justify-between gap-3">
               <label
                 htmlFor="avatar-zoom"
-                className="inline-flex items-center gap-2 text-sm font-medium text-app-text"
+                className="inline-flex items-center gap-2 text-sm font-medium text-foreground"
               >
-                <ZoomIn className="h-4 w-4 text-app-muted" />
+                <ZoomIn className="h-4 w-4 text-muted-foreground" />
                 Zoom
               </label>
-              <span className="numeric text-sm text-app-muted">
+              <span className="numeric text-sm text-muted-foreground">
                 {zoomLabel}
               </span>
             </div>
@@ -142,7 +142,7 @@ export const AvatarCropDialog = ({
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+            className="rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
             onClick={onCancel}
             disabled={isSubmitting}
           >
@@ -150,7 +150,7 @@ export const AvatarCropDialog = ({
           </Button>
           <Button
             type="button"
-            className="rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
+            className="rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
             onClick={handleConfirm}
             disabled={isSubmitting || !imageSrc}
           >

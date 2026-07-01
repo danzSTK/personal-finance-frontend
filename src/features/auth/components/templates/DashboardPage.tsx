@@ -70,9 +70,9 @@ const metricToneClasses: Record<
   { icon: string; value: string; badge: string }
 > = {
   brand: {
-    icon: 'bg-brand/15 text-brand-soft',
-    value: 'text-app-text',
-    badge: 'bg-brand/15 text-brand-soft',
+    icon: 'bg-primary/15 text-primary',
+    value: 'text-foreground',
+    badge: 'bg-primary/15 text-primary',
   },
   income: {
     icon: 'bg-state-income/15 text-state-income',
@@ -98,17 +98,17 @@ export function DashboardPage() {
       title="Painel financeiro"
       subtitle={`Visão essencial do ${APP_BRAND.name}`}
     >
-      <section className="rounded-2xl border border-app-border bg-app-surface p-5 shadow-lg shadow-app-bg/20 sm:p-6">
+      <section className="rounded-2xl border border-border bg-card p-5 shadow-lg shadow-background/20 sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="max-w-2xl space-y-2">
-            <span className="inline-flex items-center rounded-full border border-brand/30 bg-brand/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-brand-soft">
+            <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-medium uppercase tracking-wide text-primary">
               Danfy Dark
             </span>
             <div>
-              <h2 className="text-2xl font-semibold tracking-tight text-app-text">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
                 Seu dinheiro, em uma visão limpa
               </h2>
-              <p className="mt-2 text-sm leading-6 text-app-muted">
+              <p className="mt-2 text-sm leading-6 text-muted-foreground">
                 Comece pelos sinais principais: saldo, entradas, saídas,
                 orçamento, categorias e próximos vencimentos.
               </p>
@@ -117,7 +117,7 @@ export function DashboardPage() {
           <Button
             type="button"
             disabled
-            className="h-10 shrink-0 rounded-xl bg-brand px-4 text-brand-foreground hover:bg-brand-intense disabled:cursor-not-allowed disabled:opacity-60"
+            className="h-10 shrink-0 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60"
           >
             <Plus className="mr-2 h-4 w-4" />
             Nova transação
@@ -220,10 +220,10 @@ const MetricCard = ({ metric }: MetricCardProps) => {
   const tone = metricToneClasses[metric.tone]
 
   return (
-    <Card className="min-w-0 border-app-border bg-app-surface">
+    <Card className="min-w-0 border-border bg-card">
       <CardHeader className="space-y-0 pb-3">
         <div className="flex items-start justify-between gap-3">
-          <CardTitle className="text-sm font-medium text-app-muted">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             {metric.title}
           </CardTitle>
           <span
@@ -255,7 +255,7 @@ const MetricCard = ({ metric }: MetricCardProps) => {
           >
             {metric.label}
           </span>
-          <p className="text-xs leading-5 text-app-muted">{metric.helper}</p>
+          <p className="text-xs leading-5 text-muted-foreground">{metric.helper}</p>
         </div>
       </CardContent>
     </Card>
@@ -275,14 +275,14 @@ const FinancialPanel = ({
   description,
   children,
 }: FinancialPanelProps) => (
-  <section className="min-w-0 rounded-2xl border border-app-border bg-app-surface p-5 shadow-lg shadow-app-bg/20">
+  <section className="min-w-0 rounded-2xl border border-border bg-card p-5 shadow-lg shadow-background/20">
     <div className="flex items-start gap-3">
-      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-app-elevated text-brand-soft">
+      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
         {icon}
       </span>
       <div className="min-w-0">
-        <h3 className="text-base font-semibold text-app-text">{title}</h3>
-        <p className="mt-1 text-sm text-app-muted">{description}</p>
+        <h3 className="text-base font-semibold text-foreground">{title}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{description}</p>
       </div>
     </div>
     <div className="mt-5">{children}</div>
@@ -290,22 +290,22 @@ const FinancialPanel = ({
 )
 
 const EmptyChartState = () => (
-  <div className="relative min-h-72 overflow-hidden rounded-xl border border-dashed border-app-border bg-app-panel">
+  <div className="relative min-h-72 overflow-hidden rounded-xl border border-dashed border-border bg-secondary">
     <div className="absolute inset-5 grid grid-rows-4" aria-hidden>
-      <span className="border-t border-app-border/70" />
-      <span className="border-t border-app-border/70" />
-      <span className="border-t border-app-border/70" />
-      <span className="border-t border-app-border/70" />
+      <span className="border-t border-border/70" />
+      <span className="border-t border-border/70" />
+      <span className="border-t border-border/70" />
+      <span className="border-t border-border/70" />
     </div>
     <div className="absolute inset-0 flex items-center justify-center p-6">
       <div className="max-w-sm text-center">
-        <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-brand/15 text-brand-soft">
+        <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
           <BarChart3 className="h-6 w-6" />
         </span>
-        <p className="mt-4 text-sm font-semibold text-app-text">
+        <p className="mt-4 text-sm font-semibold text-foreground">
           Fluxo aguardando dados
         </p>
-        <p className="mt-2 text-sm leading-6 text-app-muted">
+        <p className="mt-2 text-sm leading-6 text-muted-foreground">
           O gráfico será preenchido quando houver movimentações reais de
           entrada e saída.
         </p>
@@ -321,13 +321,13 @@ interface EmptyStateProps {
 }
 
 const EmptyState = ({ icon, title, description }: EmptyStateProps) => (
-  <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-app-border bg-app-panel p-6 text-center">
+  <div className="flex min-h-56 items-center justify-center rounded-xl border border-dashed border-border bg-secondary p-6 text-center">
     <div className="max-w-sm">
-      <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-xl bg-app-elevated text-brand-soft">
+      <span className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-xl bg-accent text-primary">
         {icon}
       </span>
-      <p className="mt-4 text-sm font-semibold text-app-text">{title}</p>
-      <p className="mt-2 text-sm leading-6 text-app-muted">{description}</p>
+      <p className="mt-4 text-sm font-semibold text-foreground">{title}</p>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
     </div>
   </div>
 )

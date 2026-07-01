@@ -13,6 +13,9 @@ export const AUTH_ROUTES = {
   dashboard: '/dashboard',
   accounts: '/accounts',
   categories: '/categories',
+  transactions: '/transactions',
+  emailVerification: '/verification-email',
+  emailVerificationPending: '/email-verification-pending',
   settings: SETTINGS_BASE_ROUTE,
   settingsAccount: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.account}`,
   settingsSecurity: `${SETTINGS_BASE_ROUTE}/${SETTINGS_SECTION_PATHS.security}`,
@@ -29,8 +32,13 @@ export const AUTH_API_ENDPOINTS = {
   me: '/users/me',
   refresh: '/auth/refresh',
   logout: '/auth/logout',
+  emailVerificationConfirm: '/auth/email-verification/confirm',
+  emailVerificationResend: '/auth/email-verification/resend',
   sessions: '/auth/sessions',
   userAvatar: '/users/me/avatar',
+  username: '/users/me/username',
+  usernameAvailability: (username: string) =>
+    `/users/usernames/${encodeURIComponent(username)}/availability`,
   linkEmail: '/auth/providers/link/email',
   loginGoogle: '/auth/google',
   linkGoogle: '/auth/providers/link/google',
@@ -39,11 +47,21 @@ export const AUTH_API_ENDPOINTS = {
 export const AUTH_QUERY_KEYS = {
   user: ['user'] as const,
   sessions: ['sessions'] as const,
+  usernameAvailability: (username: string) =>
+    ['user', 'username-availability', username] as const,
 }
+
+export const AUTH_USER_STATUS = {
+  active: 'ACTIVE',
+  pendingEmailVerification: 'PENDING_EMAIL_VERIFICATION',
+  blocked: 'BLOCKED',
+  pendingProfile: 'PENDING_PROFILE',
+} as const
 
 export const AUTH_WINDOW_MESSAGES = {
   googleLinkSuccess: 'auth:google-link-success',
   googleLinkError: 'auth:google-link-error',
+  emailVerificationRequired: 'auth:email-verification-required',
 } as const
 
 export const AUTH_UI_STORAGE_KEYS = {

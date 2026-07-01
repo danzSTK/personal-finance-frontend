@@ -1,6 +1,11 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios'
+import { API_ERROR_CODES } from '@/shared/errors'
 import { useAuthStore } from '../stores/auth.store'
-import { AUTH_API_ENDPOINTS, DEFAULT_API_BASE_URL } from '../constants/auth.constants'
+import {
+  AUTH_API_ENDPOINTS,
+  AUTH_WINDOW_MESSAGES,
+  DEFAULT_API_BASE_URL,
+} from '../constants/auth.constants'
 
 const apiBaseUrl =
   import.meta.env.VITE_API_URL ||
@@ -35,12 +40,35 @@ const processQueue = (error: Error | null) => {
   failedQueue = []
 }
 
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
+
+const isEmailVerificationRequiredError = (error: AxiosError): boolean =>
+  error.response?.status === 403 &&
+  isRecord(error.response.data) &&
+  error.response.data.code === API_ERROR_CODES.emailVerificationRequired
+
+const dispatchEmailVerificationRequired = () => {
+  if (typeof window === 'undefined') {
+    return
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(AUTH_WINDOW_MESSAGES.emailVerificationRequired)
+  )
+}
+
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
     const originalRequest = error.config as
       | (InternalAxiosRequestConfig & { _retry?: boolean })
       | undefined
+
+    if (isEmailVerificationRequiredError(error)) {
+      dispatchEmailVerificationRequired()
+      return Promise.reject(error)
+    }
 
     if (!originalRequest || error.response?.status !== 401 || originalRequest._retry) {
       return Promise.reject(error)

@@ -2,10 +2,14 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import api from './auth.api'
 import type {
   LinkEmailDto,
+  EmailVerificationConfirmDto,
+  EmailVerificationConfirmResponse,
+  EmailVerificationResendResponse,
   MessageResponse,
   SignInDto,
   SignUpDto,
   UpdateProfileDto,
+  UpdateUsernameDto,
   UpdateUserAvatarResponse,
   User,
 } from '../types'
@@ -66,6 +70,42 @@ export const useLogout = () => {
   })
 }
 
+export const useConfirmEmailVerification = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async (dto: EmailVerificationConfirmDto) => {
+      const { data } = await api.post<EmailVerificationConfirmResponse>(
+        AUTH_API_ENDPOINTS.emailVerificationConfirm,
+        dto
+      )
+
+      return data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+    },
+  })
+}
+
+export const useResendEmailVerification = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: async () => {
+      const { data } = await api.post<EmailVerificationResendResponse>(
+        AUTH_API_ENDPOINTS.emailVerificationResend,
+        {}
+      )
+
+      return data
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+    },
+  })
+}
+
 export const useRevokeSession = () => {
   const queryClient = useQueryClient()
 
@@ -106,6 +146,22 @@ export const useUpdateProfile = () => {
   return useMutation({
     mutationFn: async (dto: UpdateProfileDto) => {
       const { data } = await api.patch<User>(AUTH_API_ENDPOINTS.me, dto)
+      return data
+    },
+    onSuccess: (user) => {
+      queryClient.setQueryData(AUTH_QUERY_KEYS.user, user)
+      setAuth(user)
+    },
+  })
+}
+
+export const useUpdateUsername = () => {
+  const queryClient = useQueryClient()
+  const setAuth = useAuthStore((state) => state.setAuth)
+
+  return useMutation({
+    mutationFn: async (dto: UpdateUsernameDto) => {
+      const { data } = await api.put<User>(AUTH_API_ENDPOINTS.username, dto)
       return data
     },
     onSuccess: (user) => {

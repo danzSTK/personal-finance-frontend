@@ -87,7 +87,7 @@ if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
     if (event.key === 'auth_logout') {
       useAuthStore.getState().clearAuth();
-      window.location.href = AUTH_ROUTES.login;
+      window.location.href = AUTH_ROUTES.signInAlias;
     }
   });
 }

@@ -153,10 +153,10 @@ export const AvatarCameraDialog = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && closeCamera()}>
-      <DialogContent className="bottom-3 left-3 right-3 top-auto flex max-h-[calc(100dvh_-_24px)] w-auto max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-2xl border-app-border bg-app-surface p-0 text-app-text data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:slide-in-from-bottom-2 sm:bottom-auto sm:left-[50%] sm:right-auto sm:top-[50%] sm:max-h-[min(90dvh,760px)] sm:max-w-xl sm:translate-x-[-50%] sm:translate-y-[-50%]">
+      <DialogContent className="bottom-3 left-3 right-3 top-auto flex max-h-[calc(100dvh_-_24px)] w-auto max-w-none translate-x-0 translate-y-0 flex-col overflow-hidden rounded-2xl border-border bg-card p-0 text-foreground data-[state=closed]:slide-out-to-bottom-2 data-[state=open]:slide-in-from-bottom-2 sm:bottom-auto sm:left-[50%] sm:right-auto sm:top-[50%] sm:max-h-[min(90dvh,760px)] sm:max-w-xl sm:translate-x-[-50%] sm:translate-y-[-50%]">
         <DialogHeader className="shrink-0 px-5 pb-3 pl-5 pr-12 pt-5 text-left">
           <DialogTitle>Tirar foto agora</DialogTitle>
-          <DialogDescription className="text-app-muted">
+          <DialogDescription className="text-muted-foreground">
             Use a câmera frontal quando disponível. Depois você poderá ajustar o
             corte antes de salvar.
           </DialogDescription>
@@ -166,8 +166,8 @@ export const AvatarCameraDialog = ({
           <div
             className={
               isCameraActive
-                ? 'relative h-[min(62vw,46dvh)] min-h-64 overflow-hidden rounded-2xl border border-app-border bg-app-panel sm:aspect-square sm:h-auto sm:max-h-[48dvh]'
-                : 'relative h-40 overflow-hidden rounded-2xl border border-app-border bg-app-panel sm:h-48'
+                ? 'relative h-[min(62vw,46dvh)] min-h-64 overflow-hidden rounded-2xl border border-border bg-secondary sm:aspect-square sm:h-auto sm:max-h-[48dvh]'
+                : 'relative h-40 overflow-hidden rounded-2xl border border-border bg-secondary sm:h-48'
             }
           >
             {isCameraActive ? (
@@ -180,14 +180,14 @@ export const AvatarCameraDialog = ({
               />
             ) : (
               <div className="flex h-full items-center gap-3 p-4 text-left">
-                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand/15 text-brand-soft">
+                <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-primary/15 text-primary">
                   <Video className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-app-text">
+                  <p className="text-sm font-medium text-foreground">
                     Câmera do dispositivo
                   </p>
-                  <p className="mt-1 text-sm leading-5 text-app-muted">
+                  <p className="mt-1 text-sm leading-5 text-muted-foreground">
                     Se a câmera não abrir, envie uma imagem da galeria.
                   </p>
                 </div>
@@ -196,17 +196,17 @@ export const AvatarCameraDialog = ({
           </div>
 
           {message ? (
-            <div className="rounded-xl border border-app-border bg-app-panel p-3 text-sm leading-5 text-app-muted">
+            <div className="rounded-xl border border-border bg-secondary p-3 text-sm leading-5 text-muted-foreground">
               {message}
             </div>
           ) : null}
         </div>
 
-        <DialogFooter className="grid shrink-0 grid-cols-1 gap-2 border-t border-app-border bg-app-surface px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 sm:flex sm:flex-row sm:justify-end">
+        <DialogFooter className="grid shrink-0 grid-cols-1 gap-2 border-t border-border bg-card px-5 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 sm:flex sm:flex-row sm:justify-end">
           <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+            className="h-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
             onClick={closeCamera}
           >
             <X className="h-4 w-4" />
@@ -215,7 +215,7 @@ export const AvatarCameraDialog = ({
           <Button
             type="button"
             variant="outline"
-            className="h-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+            className="h-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
             onClick={handleChooseFile}
           >
             <ImagePlus className="h-4 w-4" />
@@ -224,7 +224,7 @@ export const AvatarCameraDialog = ({
           {cameraState === 'error' ? (
             <Button
               type="button"
-              className="h-11 rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
+              className="h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={startCamera}
             >
               <RefreshCw className="h-4 w-4" />
@@ -233,7 +233,7 @@ export const AvatarCameraDialog = ({
           ) : (
             <Button
               type="button"
-              className="h-11 rounded-xl bg-brand text-brand-foreground hover:bg-brand-intense"
+              className="h-11 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90"
               onClick={handleCapture}
               disabled={cameraState !== 'ready'}
             >

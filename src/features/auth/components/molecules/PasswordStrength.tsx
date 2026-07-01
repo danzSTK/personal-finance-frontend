@@ -64,10 +64,10 @@ export const PasswordStrength = ({ password, className }: PasswordStrengthProps)
     <div className={cn('space-y-2', className)}>
       <div className="space-y-1">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-app-muted">Força da senha</span>
+          <span className="text-muted-foreground">Força da senha</span>
           <span className={cn('font-medium', tone.text)}>{label}</span>
         </div>
-        <div className="h-2 w-full overflow-hidden rounded-full bg-app-border/40">
+        <div className="h-2 w-full overflow-hidden rounded-full bg-border/40">
           <div
             className={cn('h-full transition-all duration-300', tone.bar)}
             style={{ width: `${strength}%` }}
@@ -83,7 +83,7 @@ export const PasswordStrength = ({ password, className }: PasswordStrengthProps)
               key={check.id}
               className={cn('flex items-center gap-2 text-sm', {
                 'text-state-income': passed,
-                'text-app-muted': !passed,
+                'text-muted-foreground': !passed,
               })}
             >
               {passed ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}

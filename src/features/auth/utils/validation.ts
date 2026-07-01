@@ -41,6 +41,8 @@ export const linkEmailSchema = z.object({
 
 const PROFILE_NAME_MIN_LENGTH = 2;
 const PROFILE_NAME_MAX_LENGTH = 255;
+const USERNAME_MIN_LENGTH = 3;
+const USERNAME_MAX_LENGTH = 50;
 
 const optionalProfileName = (label: string) =>
   z
@@ -60,7 +62,26 @@ export const updateProfileSchema = z.object({
   lastName: optionalProfileName('Sobrenome'),
 });
 
+export const updateUsernameSchema = z.object({
+  username: z
+    .string()
+    .trim()
+    .min(
+      USERNAME_MIN_LENGTH,
+      `Usuário deve ter pelo menos ${USERNAME_MIN_LENGTH} caracteres`
+    )
+    .max(
+      USERNAME_MAX_LENGTH,
+      `Usuário deve ter no máximo ${USERNAME_MAX_LENGTH} caracteres`
+    )
+    .regex(
+      /^[A-Za-z0-9_-]+$/,
+      'Use apenas letras, números, _ ou -'
+    ),
+});
+
 export type SignUpFormData = z.infer<typeof signUpSchema>;
 export type SignInFormData = z.infer<typeof signInSchema>;
 export type LinkEmailFormData = z.infer<typeof linkEmailSchema>;
 export type UpdateProfileFormData = z.infer<typeof updateProfileSchema>;
+export type UpdateUsernameFormData = z.infer<typeof updateUsernameSchema>;

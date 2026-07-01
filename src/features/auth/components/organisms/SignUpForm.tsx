@@ -11,10 +11,10 @@ import { Button } from '../atoms'
 import { PasswordStrength } from '../molecules/PasswordStrength'
 import { useSignUp } from '../../api/mutations'
 import { signUpSchema, SignUpFormData } from '../../utils/validation'
-import { AUTH_ROUTES } from '../../constants/auth.constants'
+import { resolvePostAuthRoute } from '../../utils/emailVerification'
 
 const inputClassName =
-  'h-11 rounded-lg border-app-border bg-app-bg text-app-text placeholder:text-app-muted focus-visible:border-brand focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel'
+  'h-11 rounded-lg border-border bg-background text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary'
 
 export const SignUpForm = () => {
   const navigate = useNavigate()
@@ -64,8 +64,8 @@ export const SignUpForm = () => {
         lastName: data.lastName || undefined,
       },
       {
-        onSuccess: () => {
-          navigate(AUTH_ROUTES.dashboard)
+        onSuccess: (user) => {
+          navigate(resolvePostAuthRoute(user), { replace: true })
         },
       }
     )
@@ -77,7 +77,7 @@ export const SignUpForm = () => {
         label="Usuário"
         {...register('userName')}
         error={errors.userName?.message}
-        prefixIcon={<User className="h-4 w-4 text-app-muted" />}
+        prefixIcon={<User className="h-4 w-4 text-muted-foreground" />}
         disabled={isPending}
         required
         autoComplete="username"
@@ -89,7 +89,7 @@ export const SignUpForm = () => {
         type="email"
         {...register('email')}
         error={errors.email?.message}
-        prefixIcon={<Mail className="h-4 w-4 text-app-muted" />}
+        prefixIcon={<Mail className="h-4 w-4 text-muted-foreground" />}
         disabled={isPending}
         required
         autoComplete="email"
@@ -123,7 +123,7 @@ export const SignUpForm = () => {
             onChange: (e) => setPassword(e.target.value),
           })}
           error={errors.password?.message}
-          prefixIcon={<Lock className="h-4 w-4 text-app-muted" />}
+          prefixIcon={<Lock className="h-4 w-4 text-muted-foreground" />}
           disabled={isPending}
           required
           autoComplete="new-password"
@@ -137,7 +137,7 @@ export const SignUpForm = () => {
       <Button
         type="submit"
         disabled={!canSubmit}
-        className="h-11 w-full rounded-lg bg-brand text-brand-foreground transition-colors hover:bg-brand-intense focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-panel"
+        className="h-11 w-full rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary"
       >
         {isPending ? (
           <>

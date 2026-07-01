@@ -12,6 +12,7 @@ import {
   AUTH_QUERY_KEYS,
   AUTH_ROUTES,
 } from '../../constants/auth.constants'
+import { resolvePostAuthRoute } from '../../utils/emailVerification'
 
 export function AuthCallbackPage() {
   const navigate = useNavigate()
@@ -32,7 +33,7 @@ export function AuthCallbackPage() {
         description: 'Não foi possível concluir o acesso. Tente novamente.',
       })
 
-      navigate(AUTH_ROUTES.login, { replace: true })
+      navigate(AUTH_ROUTES.signInAlias, { replace: true })
       return
     }
 
@@ -43,11 +44,11 @@ export function AuthCallbackPage() {
         setAuth(user)
         await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
 
-        navigate(AUTH_ROUTES.dashboard, { replace: true })
+        navigate(resolvePostAuthRoute(user), { replace: true })
       } catch (requestError) {
         showApiErrorToast(requestError, 'auth.sign-in')
 
-        navigate(AUTH_ROUTES.login, { replace: true })
+        navigate(AUTH_ROUTES.signInAlias, { replace: true })
       }
     }
 
@@ -55,8 +56,8 @@ export function AuthCallbackPage() {
   }, [navigate, queryClient, searchParams, setAuth])
 
   return (
-    <div className="dark flex min-h-screen items-center justify-center bg-app-bg">
-      <p className="text-sm text-app-muted">Finalizando login com Google...</p>
+    <div className="dark flex min-h-screen items-center justify-center bg-background">
+      <p className="text-sm text-muted-foreground">Finalizando login com Google...</p>
       <Toaster />
     </div>
   )

@@ -18,7 +18,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
       <div className="space-y-2">
         <Label
           htmlFor={inputId}
-          className="text-xs font-medium uppercase tracking-[0.08em] text-app-muted"
+          className="text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground"
         >
           {label}
           {required ? <span className="ml-1 text-destructive">*</span> : null}
@@ -26,7 +26,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
 
         <div className="relative">
           {prefixIcon ? (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-app-muted">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               {prefixIcon}
             </div>
           ) : null}
@@ -50,7 +50,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
         {error ? <ErrorMessage id={`${inputId}-error`}>{error}</ErrorMessage> : null}
 
         {helperText && !error ? (
-          <p id={`${inputId}-helper`} className="text-xs text-app-muted">
+          <p id={`${inputId}-helper`} className="text-xs text-muted-foreground">
             {helperText}
           </p>
         ) : null}

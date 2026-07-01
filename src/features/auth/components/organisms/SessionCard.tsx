@@ -42,39 +42,39 @@ export const SessionCard = ({
       className={cn(
         'relative p-4 rounded-lg border transition-all',
         session.isCurrent
-          ? 'border-brand bg-brand/10'
-          : 'border-app-border bg-app-surface hover:bg-app-panel'
+          ? 'border-primary bg-primary/10'
+          : 'border-border bg-card hover:bg-secondary'
       )}
     >
       {session.isCurrent && (
         <div className="absolute top-2 right-2">
-          <span className="inline-flex items-center rounded-full bg-brand/15 px-2.5 py-0.5 text-xs font-medium text-brand-soft">
+          <span className="inline-flex items-center rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium text-primary">
             Atual
           </span>
         </div>
       )}
 
       <div className="flex items-start gap-4">
-        <div className="shrink-0 text-app-muted">
+        <div className="shrink-0 text-muted-foreground">
           {getDeviceIcon(session.device)}
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-app-text">{session.device}</h3>
+          <h3 className="font-semibold text-foreground">{session.device}</h3>
           <div className="mt-1 space-y-1">
-            <p className="text-sm text-app-muted">
+            <p className="text-sm text-muted-foreground">
               {session.browser} • {session.os}
             </p>
             {session.location && (
-              <p className="flex items-center gap-1 text-sm text-app-muted">
+              <p className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-3 w-3" />
                 {session.location}
               </p>
             )}
-            <p className="text-sm text-app-muted">
+            <p className="text-sm text-muted-foreground">
               IP: {session.ip.replace(/\.\d+\.\d+$/, '.***')}
             </p>
-            <p className="text-xs text-app-muted">
+            <p className="text-xs text-muted-foreground">
               {session.isCurrent ? 'Ativo agora' : `Login ${loginTimeDistance}`}
             </p>
           </div>

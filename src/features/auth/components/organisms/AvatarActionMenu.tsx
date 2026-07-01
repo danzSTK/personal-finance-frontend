@@ -74,13 +74,13 @@ export const AvatarActionMenu = ({
         </PopoverTrigger>
         <PopoverContent
           align="start"
-          className="w-72 rounded-2xl border-app-border bg-app-surface p-2 text-app-text shadow-lg shadow-app-bg/30"
+          className="w-72 rounded-2xl border-border bg-card p-2 text-foreground shadow-lg shadow-background/30"
         >
           <div className="px-2 py-2">
-            <p className="text-sm font-semibold text-app-text">
+            <p className="text-sm font-semibold text-foreground">
               Foto de perfil
             </p>
-            <p className="mt-1 text-xs text-app-muted">
+            <p className="mt-1 text-xs text-muted-foreground">
               Atualize a imagem exibida no seu perfil.
             </p>
           </div>
@@ -107,10 +107,10 @@ export const AvatarActionMenu = ({
           isDisabled={isDisabled}
         />
       </DrawerTrigger>
-      <DrawerContent className="border-app-border bg-app-surface text-app-text">
+      <DrawerContent className="border-border bg-card text-foreground">
         <DrawerHeader className="text-left">
           <DrawerTitle>Foto de perfil</DrawerTitle>
-          <DrawerDescription className="text-app-muted">
+          <DrawerDescription className="text-muted-foreground">
             Escolha como deseja atualizar sua foto.
           </DrawerDescription>
         </DrawerHeader>
@@ -128,7 +128,7 @@ export const AvatarActionMenu = ({
             <Button
               type="button"
               variant="outline"
-              className="h-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+              className="h-11 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
             >
               Cancelar
             </Button>
@@ -182,7 +182,7 @@ const AvatarEditTrigger = forwardRef<HTMLButtonElement, AvatarEditTriggerProps>(
     type="button"
     {...buttonProps}
     className={cn(
-      'group flex flex-col items-center gap-2 rounded-2xl p-1 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-app-surface disabled:cursor-not-allowed disabled:opacity-60',
+      'group flex flex-col items-center gap-2 rounded-2xl p-1 transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:cursor-not-allowed disabled:opacity-60',
       className
     )}
     disabled={isDisabled}
@@ -190,7 +190,7 @@ const AvatarEditTrigger = forwardRef<HTMLButtonElement, AvatarEditTriggerProps>(
     title="Editar foto de perfil"
   >
     <span className="relative">
-      <Avatar className="h-20 w-20 border border-app-border md:h-16 md:w-16">
+      <Avatar className="h-20 w-20 border border-border md:h-16 md:w-16">
         {avatarUrl ? (
           <AvatarImage
             src={avatarUrl}
@@ -198,15 +198,15 @@ const AvatarEditTrigger = forwardRef<HTMLButtonElement, AvatarEditTriggerProps>(
             className="object-cover"
           />
         ) : null}
-        <AvatarFallback className="bg-brand/20 text-xl font-semibold text-brand-soft md:text-lg">
+        <AvatarFallback className="bg-primary/20 text-xl font-semibold text-primary md:text-lg">
           {initials}
         </AvatarFallback>
       </Avatar>
-      <span className="absolute -bottom-1 -right-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-app-border bg-brand text-brand-foreground shadow-md shadow-app-bg/30 transition group-hover:bg-brand-intense">
+      <span className="absolute -bottom-1 -right-1 inline-flex h-8 w-8 items-center justify-center rounded-full border border-border bg-primary text-primary-foreground shadow-md shadow-background/30 transition group-hover:bg-primary/90">
         <Pencil className="h-3.5 w-3.5" />
       </span>
     </span>
-    <span className="text-xs font-medium text-brand-soft">Editar</span>
+    <span className="text-xs font-medium text-primary">Editar</span>
   </button>
   )
 )
@@ -273,7 +273,7 @@ const AvatarActionButton = ({
     type="button"
     variant="ghost"
     className={cn(
-      'h-12 w-full justify-start gap-3 rounded-xl bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text',
+      'h-12 w-full justify-start gap-3 rounded-xl bg-secondary text-foreground hover:bg-accent hover:text-foreground',
       isDestructive &&
         'text-destructive hover:bg-destructive/10 hover:text-destructive'
     )}

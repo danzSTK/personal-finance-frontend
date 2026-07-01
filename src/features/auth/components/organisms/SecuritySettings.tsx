@@ -147,10 +147,10 @@ export const SecuritySettings = () => {
 
   return (
     <>
-      <Card className="min-w-0 overflow-hidden border-app-border bg-app-surface">
+      <Card className="min-w-0 overflow-hidden border-border bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-app-text">
-            <ShieldCheck className="h-4 w-4 text-brand-soft" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary" />
             Métodos de login
           </CardTitle>
         </CardHeader>
@@ -169,7 +169,7 @@ export const SecuritySettings = () => {
                 <Button
                   type="button"
                   onClick={handleLinkGoogle}
-                  className="h-10 rounded-xl bg-brand px-4 text-brand-foreground hover:bg-brand-intense"
+                  className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
                 >
                   <Link2 className="mr-2 h-4 w-4" />
                   Vincular Google
@@ -186,7 +186,7 @@ export const SecuritySettings = () => {
                 : 'Adicione email e senha para ter um método alternativo de acesso.'
             }
             isLinked={Boolean(emailProvider)}
-            icon={<Mail className="h-5 w-5 text-brand" />}
+            icon={<Mail className="h-5 w-5 text-primary" />}
             isPrimary
             action={
               emailProvider ? null : (
@@ -224,7 +224,7 @@ export const SecuritySettings = () => {
                       linkEmailForm.email.trim() === '' ||
                       linkEmailForm.password.trim() === ''
                     }
-                    className="h-10 rounded-xl bg-brand px-4 text-brand-foreground hover:bg-brand-intense"
+                    className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
                   >
                     <Mail className="mr-2 h-4 w-4" />
                     {linkEmailMutation.isPending
@@ -240,15 +240,15 @@ export const SecuritySettings = () => {
           />
 
           {isLoadingUser ? (
-            <p className="text-sm text-app-muted">Sincronizando métodos...</p>
+            <p className="text-sm text-muted-foreground">Sincronizando métodos...</p>
           ) : null}
         </CardContent>
       </Card>
 
-      <Card className="min-w-0 border-app-border bg-app-surface">
+      <Card className="min-w-0 border-border bg-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base text-app-text">
-            <ShieldCheck className="h-4 w-4 text-brand-soft" />
+          <CardTitle className="flex items-center gap-2 text-base text-foreground">
+            <ShieldCheck className="h-4 w-4 text-primary" />
             Sessões ativas
           </CardTitle>
         </CardHeader>
@@ -260,17 +260,17 @@ export const SecuritySettings = () => {
             />
           ) : null}
           {isLoadingSessions ? (
-            <p className="text-sm text-app-muted">Carregando sessões...</p>
+            <p className="text-sm text-muted-foreground">Carregando sessões...</p>
           ) : null}
 
           {!isLoadingSessions && orderedSessions.length === 0 ? (
-            <p className="rounded-xl border border-app-border bg-app-panel px-3 py-4 text-sm text-app-muted">
+            <p className="rounded-xl border border-border bg-secondary px-3 py-4 text-sm text-muted-foreground">
               Nenhuma sessão foi encontrada além da atual.
             </p>
           ) : null}
 
           {orderedSessions.length > 0 ? (
-            <div className="space-y-2 rounded-xl border border-app-border bg-app-bg p-2">
+            <div className="space-y-2 rounded-xl border border-border bg-background p-2">
               {orderedSessions.map((session) => (
                 <SessionCard
                   key={session.jti}
@@ -306,31 +306,31 @@ const ProviderStatusRow = ({
 }: ProviderStatusRowProps) => (
   <div
     className={cn(
-      'relative rounded-xl border border-app-border bg-app-panel p-4',
-      isPrimary && 'border-brand/40'
+      'relative rounded-xl border border-border bg-secondary p-4',
+      isPrimary && 'border-primary/40'
     )}
   >
     {isPrimary ? (
       <span
-        className="absolute bottom-3 left-0 top-3 w-0.5 rounded-r bg-brand"
+        className="absolute bottom-3 left-0 top-3 w-0.5 rounded-r bg-primary"
         aria-hidden
       />
     ) : null}
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="flex items-center gap-2">
         {icon ? (
-          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-app-border bg-app-bg">
+          <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background">
             {icon}
           </span>
         ) : null}
-        <p className="text-sm font-semibold text-app-text">{title}</p>
+        <p className="text-sm font-semibold text-foreground">{title}</p>
       </div>
       <span
         className={cn(
           'inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium',
           isLinked
-            ? 'bg-brand/15 text-brand-soft'
-            : 'bg-app-elevated text-app-muted'
+            ? 'bg-primary/15 text-primary'
+            : 'bg-accent text-muted-foreground'
         )}
       >
         {isLinked ? (
@@ -343,7 +343,7 @@ const ProviderStatusRow = ({
         )}
       </span>
     </div>
-    <p className="mt-1 text-sm text-app-muted">{description}</p>
+    <p className="mt-1 text-sm text-muted-foreground">{description}</p>
     {action ? <div className="mt-3">{action}</div> : null}
   </div>
 )
