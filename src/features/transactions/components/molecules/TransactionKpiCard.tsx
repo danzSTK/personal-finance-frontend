@@ -7,6 +7,7 @@ interface TransactionKpiCardProps {
   icon: ReactNode
   tone?: 'brand' | 'income' | 'expense' | 'warning' | 'info' | 'neutral'
   className?: string
+  isNumeric?: boolean
 }
 
 export function TransactionKpiCard({
@@ -15,6 +16,7 @@ export function TransactionKpiCard({
   icon,
   tone = 'neutral',
   className,
+  isNumeric = true,
 }: TransactionKpiCardProps) {
   return (
     <article
@@ -28,7 +30,12 @@ export function TransactionKpiCard({
           <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">
             {label}
           </p>
-          <p className="numeric mt-2 truncate text-xl font-semibold text-foreground sm:text-2xl">
+          <p
+            className={cn(
+              'mt-2 truncate text-xl font-semibold text-foreground sm:text-2xl',
+              isNumeric && 'numeric'
+            )}
+          >
             {value}
           </p>
         </div>
@@ -46,7 +53,10 @@ export function TransactionKpiCard({
   )
 }
 
-const toneClassName: Record<NonNullable<TransactionKpiCardProps['tone']>, string> = {
+const toneClassName: Record<
+  NonNullable<TransactionKpiCardProps['tone']>,
+  string
+> = {
   brand: 'bg-primary/15 text-primary',
   income: 'bg-state-income/10 text-state-income',
   expense: 'bg-state-expense/10 text-state-expense',

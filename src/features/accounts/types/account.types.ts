@@ -8,6 +8,13 @@ export interface AccountBalance {
   projectedUntil?: string
 }
 
+export interface AccountSummary {
+  object: 'account.summary'
+  currentCents: number
+  projectedCents?: number
+  projectedUntil?: string
+}
+
 export interface Account {
   id: string
   name: string
@@ -43,5 +50,11 @@ export interface UpdateAccountDto {
 
 export interface ListAccountsParams {
   includeArchived?: boolean
+  projectedUntil?: string
+}
+
+export interface GetAccountSummaryParams {
+  includeArchived?: boolean
+  includeExcludedFromTotal?: boolean
   projectedUntil?: string
 }

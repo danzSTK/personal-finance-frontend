@@ -8,7 +8,7 @@ interface AccountSummaryCardProps {
   icon: ReactNode
   label: string
   value: string
-  helper: string
+  helper?: string
   tone: AccountSummaryTone
   isNumeric?: boolean
 }
@@ -65,7 +65,11 @@ export function AccountSummaryCard({
         >
           {icon}
         </span>
-        <p className="mt-3 text-xs leading-5 text-muted-foreground">{helper}</p>
+        {helper ? (
+          <p className="mt-3 text-xs leading-5 text-muted-foreground">
+            {helper}
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )

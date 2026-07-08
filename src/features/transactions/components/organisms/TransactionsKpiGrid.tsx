@@ -15,11 +15,15 @@ import { TransactionKpiCard } from '../molecules/TransactionKpiCard'
 interface TransactionsKpiGridProps {
   response: TransactionListResponse | undefined
   view: TransactionView
+  currentBalanceCents?: number
+  isCurrentBalanceLoading?: boolean
 }
 
 export function TransactionsKpiGrid({
   response,
   view,
+  currentBalanceCents,
+  isCurrentBalanceLoading = false,
 }: TransactionsKpiGridProps) {
   if (!response) {
     return null
@@ -27,16 +31,21 @@ export function TransactionsKpiGrid({
 
   if (response.summary.object === 'transaction_summary.overview') {
     const summary = response.summary
+    const hasCurrentBalance = typeof currentBalanceCents === 'number'
 
     return (
       <>
         <MobileKpiTrack>
           <TransactionKpiCard
             label="Saldo atual"
-            value={formatCurrencyFromCents(summary.currentBalanceCents)}
+            value={formatCurrentBalance(
+              currentBalanceCents,
+              isCurrentBalanceLoading
+            )}
             icon={<WalletCards className="h-4 w-4" />}
             tone="info"
             className="w-52 shrink-0"
+            isNumeric={hasCurrentBalance}
           />
           <TransactionKpiCard
             label="Receitas"
@@ -64,9 +73,13 @@ export function TransactionsKpiGrid({
         <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
           <TransactionKpiCard
             label="Saldo atual"
-            value={formatCurrencyFromCents(summary.currentBalanceCents)}
+            value={formatCurrentBalance(
+              currentBalanceCents,
+              isCurrentBalanceLoading
+            )}
             icon={<WalletCards className="h-4 w-4" />}
             tone="info"
+            isNumeric={hasCurrentBalance}
           />
           <TransactionKpiCard
             label="Receitas"
@@ -136,6 +149,17 @@ export function TransactionsKpiGrid({
       </div>
     </>
   )
+}
+
+const formatCurrentBalance = (
+  currentBalanceCents: number | undefined,
+  isLoading: boolean
+): string => {
+  if (typeof currentBalanceCents === 'number') {
+    return formatCurrencyFromCents(currentBalanceCents)
+  }
+
+  return isLoading ? 'Carregando' : 'Não carregado'
 }
 
 function MobileKpiTrack({ children }: { children: ReactNode }) {

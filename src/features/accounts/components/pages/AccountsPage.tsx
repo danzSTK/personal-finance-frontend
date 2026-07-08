@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CircleDollarSign, Clock3, EllipsisVertical } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  CircleDollarSign,
+  Clock3,
+  EllipsisVertical,
+} from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
 import { useCategoryMetadata } from '@/features/categories/api/queries'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
@@ -24,7 +30,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/components/ui/dropdown-menu'
-import { useAccounts } from '../../api/queries'
+import { useAccountSummary, useAccounts } from '../../api/queries'
 import {
   useArchiveAccount,
   useSetDefaultAccount,
@@ -33,7 +39,6 @@ import {
 import { mergeAccountColorMetadata } from '../../constants/account.constants'
 import type { Account } from '../../types/account.types'
 import type { AccountSheetState } from '../../types/account-ui.types'
-import { buildAccountSummary } from '../../utils/account.utils'
 import {
   compareYearMonth,
   formatAccountMonthYearLabel,
@@ -91,6 +96,13 @@ export function AccountsPage() {
     includeArchived,
     projectedUntil,
   })
+  const {
+    data: accountSummary,
+    isLoading: isAccountSummaryLoading,
+    isError: isAccountSummaryError,
+    error: accountSummaryError,
+    refetch: refetchAccountSummary,
+  } = useAccountSummary({ projectedUntil })
   const archiveMutation = useArchiveAccount()
   const unarchiveMutation = useUnarchiveAccount()
   const setDefaultMutation = useSetDefaultAccount()
@@ -102,7 +114,8 @@ export function AccountsPage() {
         : accounts.filter((account) => !account.isArchived),
     [accounts, includeArchived]
   )
-  const summary = useMemo(() => buildAccountSummary(accounts), [accounts])
+  const hasProjectedBalance =
+    typeof accountSummary?.projectedCents === 'number'
   const hasAccounts = accounts.length > 0
   const hasVisibleAccounts = visibleAccounts.length > 0
   const isWaitingForDefaultProvisioning =
@@ -155,6 +168,8 @@ export function AccountsPage() {
   }
 
   const openCreateSheet = () => setSheetState({ mode: 'create' })
+  const changePeriodByMonths = (delta: number) =>
+    setSelectedPeriod((period) => shiftAccountPeriod(period, delta))
 
   return (
     <AuthAppShell
@@ -163,48 +178,8 @@ export function AccountsPage() {
       subtitle="Contas bancárias e saldos"
     >
       <div className="space-y-5">
-        <section className="space-y-3" aria-label="Resumo de saldos">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-foreground">
-                Visão de saldos
-              </p>
-              <p className="text-xs leading-5 text-muted-foreground">
-                O saldo atual não muda pelo filtro. O período calcula a leitura
-                prevista ou final.
-              </p>
-            </div>
-            <AccountsPeriodPicker
-              value={selectedPeriod}
-              onChange={setSelectedPeriod}
-            />
-          </div>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <AccountSummaryCard
-              icon={<CircleDollarSign className="h-4 w-4" />}
-              label="Saldo atual"
-              value={formatCurrencyFromCents(summary.totalCurrentCents)}
-              helper="Soma do saldo atual das contas incluídas no total."
-              tone="brand"
-            />
-            <AccountSummaryCard
-              icon={<Clock3 className="h-4 w-4" />}
-              label={projectedSummaryLabel}
-              value={
-                summary.hasProjectedBalance
-                  ? formatCurrencyFromCents(summary.totalProjectedCents)
-                  : 'Não calculado'
-              }
-              helper={`Calculado até ${projectedUntil}.`}
-              tone="info"
-              isNumeric={summary.hasProjectedBalance}
-            />
-          </div>
-        </section>
-
         <section className="space-y-4" aria-labelledby="accounts-title">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start justify-between gap-3 sm:items-center">
             <div className="min-w-0">
               <h1
                 id="accounts-title"
@@ -212,13 +187,9 @@ export function AccountsPage() {
               >
                 Contas
               </h1>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-muted-foreground">
-                Gerencie contas bancárias e use o menu de cada card para ações
-                rápidas.
-              </p>
             </div>
 
-            <div className="flex items-center gap-2 self-start">
+            <div className="flex shrink-0 items-center gap-2">
               <AddAccountButton onClick={openCreateSheet} />
 
               <DropdownMenu>
@@ -259,6 +230,79 @@ export function AccountsPage() {
               </DropdownMenu>
             </div>
           </div>
+        </section>
+
+        <section className="space-y-3" aria-label="Resumo de saldos">
+          <div className="flex justify-center sm:justify-end">
+            <div className="flex items-center justify-center gap-4 sm:justify-end">
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+                onClick={() => changePeriodByMonths(-1)}
+                aria-label="Mês anterior"
+                title="Mês anterior"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+              <AccountsPeriodPicker
+                value={selectedPeriod}
+                onChange={setSelectedPeriod}
+                triggerClassName="min-w-36"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-10 w-10 rounded-full text-muted-foreground hover:bg-secondary hover:text-foreground"
+                onClick={() => changePeriodByMonths(1)}
+                aria-label="Próximo mês"
+                title="Próximo mês"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-2">
+            <AccountSummaryCard
+              icon={<CircleDollarSign className="h-4 w-4" />}
+              label="Saldo atual"
+              value={
+                accountSummary
+                  ? formatCurrencyFromCents(accountSummary.currentCents)
+                  : isAccountSummaryLoading
+                    ? 'Carregando'
+                    : 'Não carregado'
+              }
+              tone="brand"
+              isNumeric={Boolean(accountSummary)}
+            />
+            <AccountSummaryCard
+              icon={<Clock3 className="h-4 w-4" />}
+              label={projectedSummaryLabel}
+              value={
+                hasProjectedBalance
+                  ? formatCurrencyFromCents(accountSummary.projectedCents)
+                  : isAccountSummaryLoading
+                    ? 'Carregando'
+                    : 'Não calculado'
+              }
+              tone="info"
+              isNumeric={hasProjectedBalance}
+            />
+          </div>
+
+          {isAccountSummaryError ? (
+            <ApiErrorAlert
+              error={resolveApiError(accountSummaryError, 'accounts.summary')}
+              onRetry={() => void refetchAccountSummary()}
+            />
+          ) : null}
+        </section>
+
+        <section className="space-y-4" aria-label="Lista de contas">
 
           {isFetching && !isLoading ? (
             <span className="block text-xs font-medium text-muted-foreground">
@@ -354,4 +398,16 @@ export function AccountsPage() {
       </AlertDialog>
     </AuthAppShell>
   )
+}
+
+const shiftAccountPeriod = (
+  period: { year: number; month: number },
+  delta: number
+) => {
+  const monthIndex = period.year * 12 + (period.month - 1) + delta
+
+  return {
+    year: Math.floor(monthIndex / 12),
+    month: (monthIndex % 12) + 1,
+  }
 }

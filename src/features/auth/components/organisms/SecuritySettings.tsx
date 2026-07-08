@@ -147,14 +147,14 @@ export const SecuritySettings = () => {
 
   return (
     <>
-      <Card className="min-w-0 overflow-hidden border-border bg-card">
-        <CardHeader>
+      <Card className="min-w-0 overflow-hidden border-0 bg-transparent shadow-none sm:border sm:border-border sm:bg-card sm:shadow-xs">
+        <CardHeader className="px-0 pt-0 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
             Métodos de login
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-0 pb-0 sm:p-6 sm:pt-0">
           <ProviderStatusRow
             title="Google"
             description={
@@ -245,14 +245,14 @@ export const SecuritySettings = () => {
         </CardContent>
       </Card>
 
-      <Card className="min-w-0 border-border bg-card">
-        <CardHeader>
+      <Card className="min-w-0 border-0 bg-transparent shadow-none sm:border sm:border-border sm:bg-card sm:shadow-xs">
+        <CardHeader className="px-0 pt-0 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
             Sessões ativas
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-3 px-0 pb-0 sm:p-6 sm:pt-0">
           {sessionsErrorPresentation ? (
             <ApiErrorAlert
               error={sessionsErrorPresentation}
@@ -270,7 +270,7 @@ export const SecuritySettings = () => {
           ) : null}
 
           {orderedSessions.length > 0 ? (
-            <div className="space-y-2 rounded-xl border border-border bg-background p-2">
+            <div className="max-h-[min(56vh,28rem)] space-y-2 overflow-y-auto rounded-xl border border-border bg-background p-2 pr-1 lg:max-h-none lg:overflow-visible lg:pr-2">
               {orderedSessions.map((session) => (
                 <SessionCard
                   key={session.jti}

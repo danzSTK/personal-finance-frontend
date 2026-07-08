@@ -20,12 +20,18 @@ export const ACCOUNT_ROUTES = {
 
 export const ACCOUNT_API_ENDPOINTS = {
   accounts: '/accounts',
+  summary: '/accounts/summary',
 } as const
 
 export const ACCOUNT_QUERY_KEYS = {
   accounts: ['accounts'] as const,
   list: (params: { includeArchived: boolean; projectedUntil?: string }) =>
     [...ACCOUNT_QUERY_KEYS.accounts, params] as const,
+  summary: (params: {
+    includeArchived: boolean
+    includeExcludedFromTotal: boolean
+    projectedUntil?: string
+  }) => [...ACCOUNT_QUERY_KEYS.accounts, 'summary', params] as const,
 } as const
 
 export const ACCOUNT_TYPE_LABELS: Record<AccountType, string> = {

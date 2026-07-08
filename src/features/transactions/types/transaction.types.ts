@@ -45,7 +45,6 @@ export interface TransactionTypeSummary {
 
 export interface TransactionOverviewSummary {
   object: 'transaction_summary.overview'
-  currentBalanceCents: number
   income: TransactionTypeSummary
   expense: TransactionTypeSummary
   balance: {
@@ -74,8 +73,8 @@ export interface ListTransactionsParams {
   page: number
   limit: number
   sort: TransactionSort
-  dateFrom: string
-  dateTo: string
+  dateFrom?: string
+  dateTo?: string
   type?: TransactionType
   status?: TransactionStatus
   accountId?: string

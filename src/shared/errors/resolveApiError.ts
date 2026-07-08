@@ -330,6 +330,7 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     recovery: 'correct-fields',
   },
   'accounts.list': loadFailure('suas contas'),
+  'accounts.summary': loadFailure('o resumo de saldos'),
   'accounts.create': saveFailure('criar a conta'),
   'accounts.update': saveFailure('salvar as alterações da conta'),
   'accounts.archive': actionFailure('arquivar esta conta'),

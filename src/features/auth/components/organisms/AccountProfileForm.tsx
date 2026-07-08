@@ -10,7 +10,7 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { AtSign, CheckCircle2, Loader2, Mail, Pencil, XCircle } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/lib/card'
+import { Card, CardContent } from '@/shared/lib/card'
 import { Button } from '@/shared/lib/button'
 import {
   AlertDialog,
@@ -469,11 +469,8 @@ export const AccountProfileForm = () => {
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base text-foreground">Perfil</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <Card className="border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-xs">
+        <CardContent className="px-0 pb-0 sm:p-6">
           {isLoading && !user ? (
             <ProfileSkeleton />
           ) : (

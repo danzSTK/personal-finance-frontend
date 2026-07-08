@@ -17,11 +17,13 @@ import {
 interface AccountsPeriodPickerProps {
   value: AccountYearMonth
   onChange: (value: AccountYearMonth) => void
+  triggerClassName?: string
 }
 
 export function AccountsPeriodPicker({
   value,
   onChange,
+  triggerClassName,
 }: AccountsPeriodPickerProps) {
   const [open, setOpen] = useState(false)
   const [displayYear, setDisplayYear] = useState(value.year)
@@ -48,7 +50,10 @@ export function AccountsPeriodPicker({
         <Button
           type="button"
           variant="outline"
-          className="h-11 min-w-36 justify-between gap-3 rounded-full border-border bg-secondary px-4 text-foreground hover:bg-accent hover:text-foreground"
+          className={cn(
+            'h-11 min-w-36 justify-between gap-3 rounded-full border-border bg-secondary px-4 text-foreground hover:bg-accent hover:text-foreground',
+            triggerClassName
+          )}
           aria-label={`Selecionar período, atual ${formatAccountMonthLabel(value)} de ${value.year}`}
           title="Selecionar período"
         >

@@ -47,6 +47,8 @@ const compactParams = (params: ListTransactionsParams) => {
   if (!compacted.status) delete compacted.status
   if (!compacted.accountId) delete compacted.accountId
   if (!compacted.categoryId) delete compacted.categoryId
+  if (!compacted.dateFrom) delete compacted.dateFrom
+  if (!compacted.dateTo) delete compacted.dateTo
 
   return compacted
 }

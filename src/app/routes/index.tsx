@@ -21,6 +21,7 @@ import { isPendingEmailVerification } from '@/features/auth/utils/emailVerificat
 import { LoginPage } from '@/features/auth/components/templates/LoginPage'
 import { DashboardPage } from '@/features/auth/components/templates/DashboardPage'
 import { SettingsLayout } from '@/features/auth/components/templates/SettingsLayout'
+import { SettingsOverviewPage } from '@/features/auth/components/pages/SettingsOverviewPage'
 import { SettingsAccountPage } from '@/features/auth/components/pages/SettingsAccountPage'
 import { SettingsSecurityPage } from '@/features/auth/components/pages/SettingsSecurityPage'
 import { SettingsNotificationsPage } from '@/features/auth/components/pages/SettingsNotificationsPage'
@@ -307,10 +308,7 @@ export function AppRoutes() {
           </PrivateRoute>
         }
       >
-        <Route
-          index
-          element={<Navigate to={AUTH_ROUTES.settingsAccount} replace />}
-        />
+        <Route index element={<SettingsOverviewPage />} />
         <Route
           path={SETTINGS_SECTION_PATHS.account}
           element={<SettingsAccountPage />}

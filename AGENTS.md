@@ -52,6 +52,7 @@ Lower levels must not import higher levels.
 - Use mutations for POST/PUT/PATCH/DELETE and invalidate the smallest practical query key after success.
 - Use Zustand only for focused client state such as theme, sidebar visibility, wizard state, or session-adjacent UI state.
 - Keep Zustand stores small and scoped. Avoid one giant app store.
+- Persist user-facing filters, search terms, sort order, pagination, selected periods, and other shareable view parameters in the URL query string instead of component memory. This preserves refresh/back behavior and enables deep links from dashboards or related workflows.
 - Use React Hook Form + Zod for forms. Infer form types from schemas when possible.
 - Validate early, disable invalid submissions, and show field-level errors in clear human language.
 

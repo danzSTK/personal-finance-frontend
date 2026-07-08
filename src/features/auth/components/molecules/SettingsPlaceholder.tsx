@@ -11,11 +11,11 @@ export const SettingsPlaceholder = ({
   description,
   items,
 }: SettingsPlaceholderProps) => (
-  <Card className="border-border bg-card">
-    <CardHeader>
+  <Card className="border-0 bg-transparent shadow-none sm:border sm:border-border sm:bg-card sm:shadow-xs">
+    <CardHeader className="px-0 pt-0 sm:p-6">
       <CardTitle className="text-base text-foreground">{title}</CardTitle>
     </CardHeader>
-    <CardContent className="space-y-3">
+    <CardContent className="space-y-3 px-0 pb-0 sm:p-6 sm:pt-0">
       <p className="text-sm text-muted-foreground">{description}</p>
       <div className="space-y-2">
         {items.map((item) => (

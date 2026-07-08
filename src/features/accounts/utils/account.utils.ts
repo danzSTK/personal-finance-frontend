@@ -43,32 +43,3 @@ export const canArchiveAccount = (account: Account): boolean =>
 
 export const canSetDefaultAccount = (account: Account): boolean =>
   !account.isArchived && !account.isDefault
-
-export const buildAccountSummary = (accounts: Account[]) => {
-  const activeAccounts = accounts.filter((account) => !account.isArchived)
-  const archivedAccounts = accounts.filter((account) => account.isArchived)
-  const includedAccounts = activeAccounts.filter(
-    (account) => account.includeInTotal
-  )
-  const totalCurrentCents = includedAccounts.reduce(
-    (sum, account) => sum + account.balance.currentCents,
-    0
-  )
-  const projectedBalances = includedAccounts
-    .map((account) => account.balance.projectedCents)
-    .filter((value): value is number => typeof value === 'number')
-  const totalProjectedCents = projectedBalances.reduce(
-    (sum, value) => sum + value,
-    0
-  )
-
-  return {
-    activeCount: activeAccounts.length,
-    archivedCount: archivedAccounts.length,
-    includedCount: includedAccounts.length,
-    totalCurrentCents,
-    totalProjectedCents,
-    hasProjectedBalance: projectedBalances.length === includedAccounts.length,
-    defaultAccount: activeAccounts.find((account) => account.isDefault) ?? null,
-  }
-}

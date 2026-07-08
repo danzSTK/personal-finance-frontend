@@ -3,13 +3,15 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleEllipsis,
+  Home,
   LayoutDashboard,
   LogOut,
+  Plus,
   ReceiptText,
   Settings,
   Tags,
   WalletCards,
-  X,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { APP_BRAND } from '@/shared/config/brand'
@@ -21,6 +23,13 @@ import {
   AvatarFallback,
   AvatarImage,
 } from '@/shared/components/ui/avatar'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/shared/components/ui/sheet'
 import { cn } from '@/shared/lib/utils'
 import { useLogout } from '../../api/mutations'
 import { useUser } from '../../api/queries'
@@ -107,11 +116,20 @@ export const AuthAppShell = ({
   const userFromStore = useAuthStore((state) => state.user)
   const currentUser = userFromApi ?? userFromStore
 
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [isMobileMoreMenuOpen, setIsMobileMoreMenuOpen] = useState(false)
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false)
   const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(
     getStoredSidebarCollapsedState
   )
+
+  useEffect(() => {
+    if (activeSection !== 'settings') {
+      return
+    }
+
+    setIsProfileMenuOpen(false)
+    setIsDesktopSidebarCollapsed(true)
+  }, [activeSection])
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -133,7 +151,7 @@ export const AuthAppShell = ({
   const initials = getUserInitials(fullName)
 
   const goTo = (route: string) => {
-    setIsMobileSidebarOpen(false)
+    setIsMobileMoreMenuOpen(false)
     setIsProfileMenuOpen(false)
     navigate(route)
   }
@@ -178,20 +196,11 @@ export const AuthAppShell = ({
           </aside>
         </div>
 
-        <MobileSidebar
-          isOpen={isMobileSidebarOpen}
+        <MobileBottomNavigation
           activeSection={activeSection}
-          fullName={fullName}
-          email={email}
-          initials={initials}
-          avatarUrl={currentUser?.avatarUrl ?? null}
           isLoadingUser={isLoadingUser}
-          isProfileMenuOpen={isProfileMenuOpen}
-          onClose={() => {
-            setIsMobileSidebarOpen(false)
-            setIsProfileMenuOpen(false)
-          }}
-          onToggleProfileMenu={() => setIsProfileMenuOpen((state) => !state)}
+          isMoreOpen={isMobileMoreMenuOpen}
+          onMoreOpenChange={setIsMobileMoreMenuOpen}
           onNavigate={goTo}
           onLogout={handleLogout}
         />
@@ -202,23 +211,15 @@ export const AuthAppShell = ({
             isDesktopSidebarCollapsed ? 'lg:ml-22' : 'lg:ml-72'
           )}
         >
-          <Button
-            type="button"
-            variant="ghost"
-            className="fixed left-4 top-4 z-30 h-11 w-11 rounded-xl border border-border bg-card/95 text-foreground shadow-lg shadow-background/30 backdrop-blur-sm hover:bg-accent lg:hidden"
-            onClick={() => setIsMobileSidebarOpen(true)}
-            aria-label="Abrir menu lateral"
-          >
-            <MenuBarsIcon />
-          </Button>
-
           <main
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 pt-16 sm:p-6 sm:pt-16 lg:p-8"
+            className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8"
             aria-label={`${title}: ${subtitle}`}
           >
             {settingsSidebar ? (
               <div className="grid min-w-0 gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-                <div className="min-w-0">{settingsSidebar}</div>
+                <div className="hidden min-w-0 lg:block">
+                  {settingsSidebar}
+                </div>
                 <section className="min-w-0 space-y-4">{children}</section>
               </div>
             ) : (
@@ -501,66 +502,192 @@ const BrandButton = ({ isCollapsed, onNavigate }: BrandButtonProps) => (
   </button>
 )
 
-interface MobileSidebarProps extends Omit<
-  SidebarContentProps,
-  'isCollapsed' | 'showCollapseControl'
-> {
-  isOpen: boolean
-  onClose: () => void
+interface MobileBottomNavigationProps {
+  activeSection: MainSection
+  isLoadingUser: boolean
+  isMoreOpen: boolean
+  onMoreOpenChange: (open: boolean) => void
+  onNavigate: (route: string) => void
+  onLogout: () => void
 }
 
-const MobileSidebar = ({
-  isOpen,
-  onClose,
-  ...sidebarProps
-}: MobileSidebarProps) => (
-  <>
-    <div
-      className={cn(
-        'fixed inset-0 z-40 bg-background/70 backdrop-blur-xs transition-opacity lg:hidden',
-        isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
-      )}
-      onClick={onClose}
-      aria-hidden
-    />
-    <aside
-      className={cn(
-        'fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-border bg-card transition-transform lg:hidden',
-        isOpen ? 'translate-x-0' : '-translate-x-full'
-      )}
-    >
-      <div className="flex items-center justify-between gap-2 border-b border-border p-3">
-        <BrandButton
-          onNavigate={sidebarProps.onNavigate}
-          isCollapsed={false}
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          className="h-9 w-9 rounded-lg border border-border bg-secondary text-foreground hover:bg-accent"
-          onClick={onClose}
-          aria-label="Fechar menu lateral"
+const MobileBottomNavigation = ({
+  activeSection,
+  isLoadingUser,
+  isMoreOpen,
+  onMoreOpenChange,
+  onNavigate,
+  onLogout,
+}: MobileBottomNavigationProps) => {
+  const isMoreActive = ['categories', 'settings'].includes(
+    activeSection
+  )
+
+  return (
+    <>
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 shadow-lg shadow-background/40 backdrop-blur-xl lg:hidden"
+        aria-label="Navegação principal"
+      >
+        <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
+          <MobileNavButton
+            label="Principal"
+            icon={<Home className="h-5 w-5" />}
+            isActive={activeSection === 'dashboard'}
+            onClick={() => onNavigate(AUTH_ROUTES.dashboard)}
+          />
+          <MobileNavButton
+            label="Transações"
+            icon={<ReceiptText className="h-5 w-5" />}
+            isActive={activeSection === 'transactions'}
+            onClick={() => onNavigate(AUTH_ROUTES.transactions)}
+          />
+
+          <button
+            type="button"
+            className="mx-auto -mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
+            aria-label="Adicionar"
+          >
+            <Plus className="h-9 w-9" />
+          </button>
+
+          <MobileNavButton
+            label="Contas"
+            icon={<WalletCards className="h-5 w-5" />}
+            isActive={activeSection === 'accounts'}
+            onClick={() => onNavigate(AUTH_ROUTES.accounts)}
+          />
+          <MobileNavButton
+            label="Mais"
+            icon={<CircleEllipsis className="h-5 w-5" />}
+            isActive={isMoreActive || isMoreOpen}
+            onClick={() => onMoreOpenChange(true)}
+          />
+        </div>
+      </nav>
+
+      <Sheet open={isMoreOpen} onOpenChange={onMoreOpenChange}>
+        <SheetContent
+          side="bottom"
+          className="max-h-[82vh] overflow-y-auto rounded-t-3xl border-border bg-card px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-5 lg:hidden"
         >
-          <X className="h-5 w-5" />
-        </Button>
-      </div>
-      <SidebarContent
-        {...sidebarProps}
-        isCollapsed={false}
-        showCollapseControl={false}
-        hideBrandButton
-      />
-    </aside>
-  </>
+          <SheetHeader className="pr-8 text-left">
+            <SheetTitle>Mais</SheetTitle>
+            <SheetDescription>
+              Acesse outras áreas e configurações da sua conta.
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-5">
+            <div className="overflow-hidden rounded-2xl border border-border bg-background">
+              <MobileMoreMenuItem
+                label="Categorias"
+                description="Receitas e despesas"
+                icon={<Tags className="h-4 w-4" />}
+                isActive={activeSection === 'categories'}
+                onClick={() => onNavigate(AUTH_ROUTES.categories)}
+              />
+              <MobileMoreMenuItem
+                label="Configurações"
+                description="Perfil, segurança e preferências"
+                icon={<Settings className="h-4 w-4" />}
+                isActive={activeSection === 'settings'}
+                onClick={() => onNavigate(AUTH_ROUTES.settings)}
+              />
+              <MobileMoreMenuItem
+                label="Sair"
+                description="Encerrar sessão neste dispositivo"
+                icon={<LogOut className="h-4 w-4" />}
+                onClick={() => {
+                  onMoreOpenChange(false)
+                  onLogout()
+                }}
+                disabled={isLoadingUser}
+                isDestructive
+              />
+            </div>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
+  )
+}
+
+interface MobileNavButtonProps {
+  label: string
+  icon: ReactNode
+  isActive?: boolean
+  onClick: () => void
+}
+
+const MobileNavButton = ({
+  label,
+  icon,
+  isActive = false,
+  onClick,
+}: MobileNavButtonProps) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className={cn(
+      'flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-xs font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+      isActive
+        ? 'bg-primary/15 text-primary'
+        : 'text-muted-foreground hover:bg-secondary hover:text-foreground'
+    )}
+    aria-current={isActive ? 'page' : undefined}
+  >
+    <span aria-hidden>{icon}</span>
+    <span className="w-full truncate text-center">{label}</span>
+  </button>
 )
 
-const MenuBarsIcon = () => (
-  <span
-    className="inline-flex h-4 w-4 flex-col justify-center gap-1"
-    aria-hidden
+interface MobileMoreMenuItemProps {
+  label: string
+  description: string
+  icon: ReactNode
+  isActive?: boolean
+  isDestructive?: boolean
+  disabled?: boolean
+  onClick: () => void
+}
+
+const MobileMoreMenuItem = ({
+  label,
+  description,
+  icon,
+  isActive = false,
+  isDestructive = false,
+  disabled = false,
+  onClick,
+}: MobileMoreMenuItemProps) => (
+  <button
+    type="button"
+    className={cn(
+      'flex w-full items-center gap-3 border-b border-border px-4 py-3 text-left transition last:border-b-0 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-60',
+      isActive && 'bg-primary/15',
+      isDestructive
+        ? 'text-destructive hover:bg-destructive/10'
+        : 'text-foreground hover:bg-secondary'
+    )}
+    disabled={disabled}
+    onClick={onClick}
   >
-    <span className="h-0.5 w-4 rounded-full bg-current" />
-    <span className="h-0.5 w-4 rounded-full bg-current" />
-    <span className="h-0.5 w-4 rounded-full bg-current" />
-  </span>
+    <span
+      className={cn(
+        'flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-secondary',
+        isActive && 'bg-primary/20 text-primary',
+        isDestructive && 'bg-destructive/10 text-destructive'
+      )}
+    >
+      {icon}
+    </span>
+    <span className="min-w-0 flex-1">
+      <span className="block truncate text-sm font-medium">{label}</span>
+      <span className="block truncate text-xs text-muted-foreground">
+        {description}
+      </span>
+    </span>
+    <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
+  </button>
 )

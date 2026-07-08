@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   ChevronFirst,
   ChevronLast,
@@ -9,10 +10,12 @@ import {
   ListFilter,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
-import { useAccounts } from '@/features/accounts/api/queries'
+import { useAccountSummary, useAccounts } from '@/features/accounts/api/queries'
 import { useCategories } from '@/features/categories/api/queries'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { ExpandableSearch } from '@/shared/components/molecules/ExpandableSearch'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
+import { resolveApiError } from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
 import {
@@ -54,6 +57,11 @@ import type {
   TransactionView,
 } from '../../types/transaction-ui.types'
 import { viewToTransactionType } from '../../utils/transaction.utils'
+import {
+  buildTransactionSearchParams,
+  parseTransactionUrlState,
+  type TransactionUrlPatch,
+} from '../../utils/transactionUrl.utils'
 import { TransactionConfirmSheet } from '../organisms/TransactionConfirmSheet'
 import { TransactionCreateButton } from '../molecules/TransactionCreateButton'
 import { TransactionDeleteDialog } from '../organisms/TransactionDeleteDialog'
@@ -61,23 +69,25 @@ import { TransactionDetailsSheet } from '../organisms/TransactionDetailsSheet'
 import { TransactionFiltersSheet } from '../organisms/TransactionFiltersSheet'
 import { TransactionFormSheet } from '../organisms/TransactionFormSheet'
 import { TransactionTypeSelect } from '../molecules/TransactionTypeSelect'
-import { TransactionsEmptyState, TransactionsErrorState } from '../organisms/TransactionsStatePanels'
+import {
+  TransactionsEmptyState,
+  TransactionsErrorState,
+} from '../organisms/TransactionsStatePanels'
 import { TransactionsKpiGrid } from '../organisms/TransactionsKpiGrid'
 import { TransactionsSkeleton } from '../organisms/TransactionsSkeleton'
 import { TransactionsTable } from '../organisms/TransactionsTable'
 
 export function TransactionsPage() {
-  const [view, setView] = useState<TransactionView>('ALL')
-  const [period, setPeriod] = useState(getCurrentYearMonth)
-  const [page, setPage] = useState(TRANSACTION_DEFAULT_PAGE)
-  const [limit, setLimit] = useState(TRANSACTION_DEFAULT_LIMIT)
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [searchDraft, setSearchDraft] = useState('')
-  const [search, setSearch] = useState('')
-  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
-  const [filters, setFilters] = useState<TransactionAdvancedFilters>(() =>
-    buildDefaultFilters(getCurrentYearMonth())
+  const [searchParams, setSearchParams] = useSearchParams()
+  const transactionUrlState = useMemo(
+    () => parseTransactionUrlState(searchParams),
+    [searchParams]
   )
+  const { view, period, page, limit, search, filters } = transactionUrlState
+  const currentPeriod = useMemo(() => getCurrentYearMonth(), [])
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
+  const [searchDraft, setSearchDraft] = useState(search)
+  const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [formSheetState, setFormSheetState] =
     useState<TransactionFormSheetState>(null)
   const [confirmSheetState, setConfirmSheetState] =
@@ -88,14 +98,34 @@ export function TransactionsPage() {
     useState<TransactionDeleteDialogState>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
 
+  const updateUrlState = useCallback(
+    (patch: TransactionUrlPatch, replace = false) => {
+      setSearchParams(
+        buildTransactionSearchParams(transactionUrlState, patch),
+        { replace }
+      )
+    },
+    [setSearchParams, transactionUrlState]
+  )
+
   useEffect(() => {
+    setSearchDraft(search)
+  }, [search])
+
+  useEffect(() => {
+    if (searchDraft === search) {
+      return
+    }
+
     const debounceId = window.setTimeout(() => {
-      setSearch(searchDraft)
-      setPage(TRANSACTION_DEFAULT_PAGE)
+      updateUrlState(
+        { search: searchDraft, page: TRANSACTION_DEFAULT_PAGE },
+        true
+      )
     }, TRANSACTION_SEARCH_DEBOUNCE_MS)
 
     return () => window.clearTimeout(debounceId)
-  }, [searchDraft])
+  }, [search, searchDraft, updateUrlState])
 
   useEffect(() => {
     if (isSearchOpen) {
@@ -131,6 +161,13 @@ export function TransactionsPage() {
     refetch,
   } = useTransactions(listParams)
   const { data: accounts = [] } = useAccounts()
+  const {
+    data: accountSummary,
+    isLoading: isAccountSummaryLoading,
+    isError: isAccountSummaryError,
+    error: accountSummaryError,
+    refetch: refetchAccountSummary,
+  } = useAccountSummary()
   const { data: expenseCategoriesResponse } = useCategories({
     page: 1,
     limit: 100,
@@ -173,25 +210,29 @@ export function TransactionsPage() {
     filters.status !== null ||
     filters.dateFrom !== defaultFilters.dateFrom ||
     filters.dateTo !== defaultFilters.dateTo
-  const hasFilters = hasAdvancedFilters || search.trim() !== ''
+  const hasFilters =
+    hasAdvancedFilters ||
+    search.trim() !== '' ||
+    view !== 'ALL' ||
+    limit !== TRANSACTION_DEFAULT_LIMIT ||
+    period.year !== currentPeriod.year ||
+    period.month !== currentPeriod.month
 
   const changePeriod = (nextPeriod: YearMonth) => {
-    setPeriod(nextPeriod)
-    setFilters((current) => ({
-      ...current,
+    updateUrlState({
+      period: nextPeriod,
       dateFrom: getMonthStartDateOnly(nextPeriod),
       dateTo: getMonthEndDateOnly(nextPeriod),
-    }))
-    setPage(TRANSACTION_DEFAULT_PAGE)
+      page: TRANSACTION_DEFAULT_PAGE,
+    })
   }
 
   const changeView = (nextView: TransactionView) => {
-    setView(nextView)
-    setFilters((current) => ({
-      ...current,
-      categoryId: nextView === 'TRANSFER' ? null : current.categoryId,
-    }))
-    setPage(TRANSACTION_DEFAULT_PAGE)
+    updateUrlState({
+      view: nextView,
+      categoryId: nextView === 'TRANSFER' ? null : filters.categoryId,
+      page: TRANSACTION_DEFAULT_PAGE,
+    })
   }
 
   const openCreateSheet = () => {
@@ -217,15 +258,31 @@ export function TransactionsPage() {
 
   const clearSearch = () => {
     setSearchDraft('')
-    setSearch('')
-    setPage(TRANSACTION_DEFAULT_PAGE)
+    updateUrlState({ search: '', page: TRANSACTION_DEFAULT_PAGE }, true)
     setIsSearchOpen(false)
   }
 
   const clearFilters = () => {
-    setFilters(defaultFilters)
-    clearSearch()
-    setPage(TRANSACTION_DEFAULT_PAGE)
+    const resetDateFrom = getMonthStartDateOnly(currentPeriod)
+    const resetDateTo = getMonthEndDateOnly(currentPeriod)
+
+    setSearchDraft('')
+    updateUrlState(
+      {
+        view: 'ALL',
+        period: currentPeriod,
+        limit: TRANSACTION_DEFAULT_LIMIT,
+        accountId: null,
+        categoryId: null,
+        status: null,
+        dateFrom: resetDateFrom,
+        dateTo: resetDateTo,
+        search: '',
+        page: TRANSACTION_DEFAULT_PAGE,
+      },
+      true
+    )
+    setIsSearchOpen(false)
   }
 
   return (
@@ -364,7 +421,19 @@ export function TransactionsPage() {
 
         {!isLoading && !isError ? (
           <section className="space-y-4" aria-label="Lista de transações">
-            <TransactionsKpiGrid response={transactionsResponse} view={view} />
+            <TransactionsKpiGrid
+              response={transactionsResponse}
+              view={view}
+              currentBalanceCents={accountSummary?.currentCents}
+              isCurrentBalanceLoading={isAccountSummaryLoading}
+            />
+
+            {view === 'ALL' && isAccountSummaryError ? (
+              <ApiErrorAlert
+                error={resolveApiError(accountSummaryError, 'accounts.summary')}
+                onRetry={() => void refetchAccountSummary()}
+              />
+            ) : null}
 
             <MobileTransactionsSearchHeader
               isSearchOpen={isSearchOpen}
@@ -398,10 +467,12 @@ export function TransactionsPage() {
                   hasNextPage={meta?.hasNextPage ?? page < totalPages}
                   hasPreviousPage={meta?.hasPreviousPage ?? page > 1}
                   onLimitChange={(nextLimit) => {
-                    setLimit(nextLimit)
-                    setPage(TRANSACTION_DEFAULT_PAGE)
+                    updateUrlState({
+                      limit: nextLimit,
+                      page: TRANSACTION_DEFAULT_PAGE,
+                    })
                   }}
-                  onPageChange={setPage}
+                  onPageChange={(nextPage) => updateUrlState({ page: nextPage })}
                 />
               </>
             ) : (
@@ -427,8 +498,14 @@ export function TransactionsPage() {
         accounts={accounts}
         categories={categories}
         onApply={(nextFilters) => {
-          setFilters(nextFilters)
-          setPage(TRANSACTION_DEFAULT_PAGE)
+          updateUrlState({
+            accountId: nextFilters.accountId,
+            categoryId: nextFilters.categoryId,
+            status: nextFilters.status,
+            dateFrom: nextFilters.dateFrom,
+            dateTo: nextFilters.dateTo,
+            page: TRANSACTION_DEFAULT_PAGE,
+          })
         }}
         onOpenChange={setIsFiltersOpen}
       />

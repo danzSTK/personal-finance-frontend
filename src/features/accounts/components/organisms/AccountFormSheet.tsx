@@ -63,6 +63,7 @@ const accountInputClassName =
   'h-11 rounded-xl border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-offset-secondary'
 
 const VISIBLE_METADATA_OPTIONS = 5
+const MOBILE_SHEET_QUERY = '(max-width: 639px)'
 
 export function AccountFormSheet({
   state,
@@ -101,6 +102,21 @@ export function AccountFormSheet({
   const resetCreateAccount = createAccountMutation.reset
   const resetUpdateAccount = updateAccountMutation.reset
   const [initialBalanceDisplay, setInitialBalanceDisplay] = useState('')
+  const [isMobileSheet, setIsMobileSheet] = useState(() =>
+    typeof window === 'undefined'
+      ? false
+      : window.matchMedia(MOBILE_SHEET_QUERY).matches
+  )
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(MOBILE_SHEET_QUERY)
+    const handleChange = () => setIsMobileSheet(mediaQuery.matches)
+
+    handleChange()
+    mediaQuery.addEventListener('change', handleChange)
+
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
 
   useEffect(() => {
     if (!state) {
@@ -221,7 +237,14 @@ export function AccountFormSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl">
+      <SheetContent
+        side={isMobileSheet ? 'bottom' : 'right'}
+        className={cn(
+          'w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl',
+          isMobileSheet &&
+            'max-h-[90vh] rounded-t-3xl pb-[max(env(safe-area-inset-bottom),1rem)]'
+        )}
+      >
         <SheetHeader className="pr-8 text-left">
           <SheetTitle className="text-foreground">
             {isEditing ? 'Editar conta' : 'Nova conta'}
