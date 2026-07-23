@@ -5,7 +5,7 @@ import { TRANSACTION_VIEW_CREATE_LABELS } from '../../constants/transaction.cons
 import type { TransactionView } from '../../types/transaction-ui.types'
 
 interface TransactionCreateButtonProps {
-  view: Extract<TransactionView, 'EXPENSE' | 'INCOME'>
+  view: Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER'>
   onClick: () => void
   className?: string
 }
@@ -24,7 +24,9 @@ export function TransactionCreateButton({
         'group h-11 w-11 justify-center gap-0 overflow-hidden rounded-xl px-0 text-primary-foreground transition-[width,background-color] duration-300 ease-out hover:w-44 focus-visible:w-44',
         view === 'EXPENSE'
           ? 'bg-state-expense hover:bg-state-expense/90'
-          : 'bg-state-income hover:bg-state-income/90',
+          : view === 'INCOME'
+            ? 'bg-state-income hover:bg-state-income/90'
+            : 'bg-state-info hover:bg-state-info/90',
         className
       )}
       onClick={onClick}

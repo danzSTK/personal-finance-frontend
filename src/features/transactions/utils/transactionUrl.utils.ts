@@ -1,4 +1,5 @@
 import {
+  TRANSACTION_CREATE_INTENT_QUERY_PARAM,
   TRANSACTION_DEFAULT_LIMIT,
   TRANSACTION_DEFAULT_PAGE,
   TRANSACTION_PAGE_SIZE_OPTIONS,
@@ -12,6 +13,11 @@ import {
   isValidDateOnly,
   type YearMonth,
 } from '@/shared/utils/dateOnly'
+
+export type TransactionCreateIntent = Extract<
+  TransactionView,
+  'INCOME' | 'EXPENSE' | 'TRANSFER'
+>
 
 export interface TransactionUrlState {
   view: TransactionView
@@ -49,6 +55,16 @@ const TRANSACTION_VIEW_VALUES: TransactionView[] = [
 ]
 
 const TRANSACTION_STATUS_VALUES: TransactionStatus[] = ['PENDING', 'EFFECTIVE']
+
+export const parseTransactionCreateIntent = (
+  searchParams: URLSearchParams
+): TransactionCreateIntent | null => {
+  const value = searchParams.get(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
+
+  return value === 'INCOME' || value === 'EXPENSE' || value === 'TRANSFER'
+    ? value
+    : null
+}
 
 export const parseTransactionUrlState = (
   searchParams: URLSearchParams

@@ -1,17 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
-import type { ChangeEvent } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Check, Ellipsis } from 'lucide-react'
 import { useCategoryMetadata } from '@/features/categories/api/queries'
+import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { Button } from '@/shared/lib/button'
 import { Input } from '@/shared/lib/input'
 import { cn } from '@/shared/lib/utils'
-import {
-  centsToCurrencyInput,
-  currencyInputToCents,
-  formatCurrencyFromCents,
-} from '@/shared/utils/formatters'
+import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 import {
@@ -101,7 +97,6 @@ export function AccountFormSheet({
   const resetAccountForm = form.reset
   const resetCreateAccount = createAccountMutation.reset
   const resetUpdateAccount = updateAccountMutation.reset
-  const [initialBalanceDisplay, setInitialBalanceDisplay] = useState('')
   const [isMobileSheet, setIsMobileSheet] = useState(() =>
     typeof window === 'undefined'
       ? false
@@ -127,11 +122,6 @@ export function AccountFormSheet({
     resetCreateAccount()
     resetUpdateAccount()
     resetAccountForm(defaults)
-    setInitialBalanceDisplay(
-      'initialBalanceCents' in defaults && defaults.initialBalanceCents
-        ? centsToCurrencyInput(defaults.initialBalanceCents)
-        : ''
-    )
   }, [resetAccountForm, resetCreateAccount, resetUpdateAccount, state])
 
   useEffect(() => {
@@ -202,26 +192,6 @@ export function AccountFormSheet({
 
     createAccountMutation.mutate(dto, { onSuccess: () => onOpenChange(false) })
   })
-
-  const handleInitialBalanceChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const digits = event.currentTarget.value.replace(/\D/g, '')
-
-    if (!digits) {
-      setInitialBalanceDisplay('')
-      form.setValue('initialBalanceCents', undefined, {
-        shouldDirty: true,
-        shouldValidate: true,
-      })
-      return
-    }
-
-    const value = currencyInputToCents(event.currentTarget.value) ?? 0
-    setInitialBalanceDisplay(formatCurrencyFromCents(value))
-    form.setValue('initialBalanceCents', value, {
-      shouldDirty: true,
-      shouldValidate: true,
-    })
-  }
 
   const setColor = (value: string) =>
     form.setValue('color', value, {
@@ -306,13 +276,24 @@ export function AccountFormSheet({
                   : undefined
               }
             >
-              <Input
+              <CurrencyInput
                 className={cn(accountInputClassName, 'numeric text-base')}
-                inputMode="decimal"
-                placeholder="R$ 0,00"
-                value={initialBalanceDisplay}
-                onChange={handleInitialBalanceChange}
+                valueCents={
+                  'initialBalanceCents' in form.getValues()
+                    ? form.watch('initialBalanceCents')
+                    : undefined
+                }
+                onValueCentsChange={(value) =>
+                  form.setValue('initialBalanceCents', value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
                 aria-label="Saldo inicial"
+                aria-invalid={Boolean(
+                  'initialBalanceCents' in form.formState.errors &&
+                    form.formState.errors.initialBalanceCents
+                )}
               />
               <p className="text-xs leading-5 text-muted-foreground">
                 Informe o valor que essa conta já tem hoje. Deixe em branco se

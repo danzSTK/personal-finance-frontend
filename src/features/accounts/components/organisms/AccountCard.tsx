@@ -91,63 +91,65 @@ export function AccountCard({
   }
 
   return (
-    <article
-      role="button"
-      tabIndex={0}
-      onClick={openDetails}
-      onKeyDown={handleCardKeyDown}
-      className={cn(
-        'group relative flex min-w-0 cursor-pointer flex-col gap-5 overflow-hidden rounded-2xl border border-border bg-secondary p-4 transition hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-        account.isDefault &&
-          'bg-gradient-to-t from-primary/25 via-secondary to-secondary',
-        account.isArchived && 'opacity-75'
-      )}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex min-w-0 items-start gap-3">
-          <span
-            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-foreground"
-            style={{ backgroundColor: colorOption.hex }}
-            aria-hidden
-          >
-            <Icon className="h-5 w-5" />
-          </span>
+    <>
+      <article
+        role="button"
+        tabIndex={0}
+        onClick={openDetails}
+        onKeyDown={handleCardKeyDown}
+        className={cn(
+          'group relative flex min-w-0 cursor-pointer flex-col gap-5 overflow-hidden rounded-2xl border border-border bg-secondary p-4 transition hover:-translate-y-0.5 hover:bg-accent focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          account.isDefault &&
+            'bg-gradient-to-t from-primary/25 via-secondary to-secondary',
+          account.isArchived && 'opacity-75'
+        )}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <span
+              className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-foreground"
+              style={{ backgroundColor: colorOption.hex }}
+              aria-hidden
+            >
+              <Icon className="h-5 w-5" />
+            </span>
 
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
-              <h3 className="truncate text-base font-semibold text-foreground">
-                {account.name}
-              </h3>
-              {account.isDefault ? (
-                <Star className="h-3.5 w-3.5 shrink-0 text-primary" />
-              ) : null}
-              {account.isArchived ? (
-                <Archive className="h-3.5 w-3.5 shrink-0 text-state-warning" />
-              ) : null}
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <h3 className="truncate text-base font-semibold text-foreground">
+                  {account.name}
+                </h3>
+                {account.isDefault ? (
+                  <Star className="h-3.5 w-3.5 shrink-0 text-primary" />
+                ) : null}
+                {account.isArchived ? (
+                  <Archive className="h-3.5 w-3.5 shrink-0 text-state-warning" />
+                ) : null}
+              </div>
+              <p className="mt-1 truncate text-sm text-muted-foreground">
+                {getAccountTypeLabel(account.type)}
+              </p>
             </div>
-            <p className="mt-1 truncate text-sm text-muted-foreground">
-              {getAccountTypeLabel(account.type)}
-            </p>
           </div>
+
+          <AccountActionsMenu
+            accountName={account.name}
+            canArchive={canArchive}
+            canDefault={canDefault}
+            isArchived={account.isArchived}
+            isMutating={isMutating}
+            onArchive={handleArchiveSelect}
+            onEdit={handleEditSelect}
+            onSetDefault={handleSetDefaultSelect}
+            onUnarchive={handleUnarchiveSelect}
+          />
         </div>
 
-        <AccountActionsMenu
-          accountName={account.name}
-          canArchive={canArchive}
-          canDefault={canDefault}
-          isArchived={account.isArchived}
-          isMutating={isMutating}
-          onArchive={handleArchiveSelect}
-          onEdit={handleEditSelect}
-          onSetDefault={handleSetDefaultSelect}
-          onUnarchive={handleUnarchiveSelect}
+        <AccountBalanceRows
+          account={account}
+          projectedBalanceLabel={projectedBalanceLabel}
         />
-      </div>
-
-      <AccountBalanceRows
-        account={account}
-        projectedBalanceLabel={projectedBalanceLabel}
-      />
+      </article>
 
       <Sheet
         open={isDetailsOpen && isMobile}
@@ -192,7 +194,7 @@ export function AccountCard({
           />
         </DialogContent>
       </Dialog>
-    </article>
+    </>
   )
 }
 

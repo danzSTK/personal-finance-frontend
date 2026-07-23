@@ -47,8 +47,14 @@ export const useCreateTransaction = () => {
     onSuccess: (transaction) => {
       invalidateTransactionData()
       toast({
-        title: 'Transação criada',
-        description: `${getTransactionTypeLabel(transaction.type)} registrada com sucesso.`,
+        title:
+          transaction.type === 'TRANSFER'
+            ? 'Transferência registrada'
+            : 'Transação criada',
+        description:
+          transaction.type === 'TRANSFER'
+            ? 'A movimentação entre suas contas foi salva.'
+            : `${getTransactionTypeLabel(transaction.type)} registrada com sucesso.`,
       })
     },
   })

@@ -26,6 +26,13 @@ export const AUTH_ROUTES = {
   signInAlias: '/sign-in',
 } as const
 
+export const AUTH_QUICK_ACTION_ROUTES = {
+  income: `${AUTH_ROUTES.transactions}?view=INCOME&create=INCOME`,
+  expense: `${AUTH_ROUTES.transactions}?view=EXPENSE&create=EXPENSE`,
+  transfer: `${AUTH_ROUTES.transactions}?view=TRANSFER&create=TRANSFER`,
+  category: `${AUTH_ROUTES.categories}?create=EXPENSE`,
+} as const
+
 export const AUTH_API_ENDPOINTS = {
   signUp: '/auth/sign-up',
   signIn: '/auth/sign-in',

@@ -282,7 +282,6 @@ function TransactionActionsMenu({
   onEdit,
 }: TransactionActionsMenuProps) {
   const canConfirm = transaction.status === 'PENDING'
-  const deleteDisabled = isMutating || transaction.type === 'TRANSFER'
 
   return (
     <DropdownMenu>
@@ -325,14 +324,20 @@ function TransactionActionsMenu({
           Editar
         </DropdownMenuItem>
         <DropdownMenuSeparator className="bg-border" />
-        <DropdownMenuItem
-          className="rounded-xl text-destructive focus:bg-destructive/10 focus:text-destructive"
-          disabled={deleteDisabled}
-          onSelect={onDelete}
-        >
-          <Trash2 className="h-4 w-4" />
-          Excluir
-        </DropdownMenuItem>
+        {transaction.type === 'TRANSFER' ? (
+          <DropdownMenuLabel className="whitespace-normal rounded-xl bg-state-info/10 text-xs font-normal leading-5 text-foreground">
+            Para corrigir, faça uma transferência no sentido contrário.
+          </DropdownMenuLabel>
+        ) : (
+          <DropdownMenuItem
+            className="rounded-xl text-destructive focus:bg-destructive/10 focus:text-destructive"
+            disabled={isMutating}
+            onSelect={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+            Excluir
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
