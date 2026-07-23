@@ -45,6 +45,11 @@ export const CATEGORY_ROUTES = {
   categories: '/categories',
 } as const
 
+export const CATEGORY_URL_PARAMS = {
+  type: 'type',
+  create: 'create',
+} as const
+
 export const CATEGORY_API_ENDPOINTS = {
   categories: '/categories',
   metadata: '/categories/metadata',

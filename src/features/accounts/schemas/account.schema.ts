@@ -16,11 +16,13 @@ export const createAccountSchema = z.object({
   type: z.literal('BANK'),
   initialBalanceCents: z.preprocess(
     emptyStringToUndefined,
-    z.coerce
+    z
       .number({
         invalid_type_error: 'Informe um valor válido.',
       })
+      .int('Informe um valor válido em centavos.')
       .min(0, 'O saldo inicial não pode ser negativo.')
+      .max(Number.MAX_SAFE_INTEGER, 'Informe um valor menor.')
       .optional()
   ),
   color: z.preprocess(

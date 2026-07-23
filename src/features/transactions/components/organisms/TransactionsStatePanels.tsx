@@ -90,7 +90,8 @@ export function TransactionsEmptyState({
             Limpar filtros
           </Button>
         ) : null}
-        {onCreate && (view === 'EXPENSE' || view === 'INCOME') ? (
+        {onCreate &&
+        (view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER') ? (
           <TransactionCreateButton view={view} onClick={onCreate} />
         ) : null}
       </div>

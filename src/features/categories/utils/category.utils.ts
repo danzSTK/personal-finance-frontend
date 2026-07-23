@@ -25,6 +25,11 @@ const LEGACY_CATEGORY_COLOR_ALIASES: Record<string, string> = {
 export const getCategoryTypeLabel = (type: CategoryType): string =>
   CATEGORY_TYPE_LABELS[type]
 
+export const parseCategoryManagementType = (
+  value: string | null
+): CategoryManagementType | null =>
+  value === 'INCOME' || value === 'EXPENSE' ? value : null
+
 export const isManagementType = (
   type: CategoryType
 ): type is ManageableCategoryType =>

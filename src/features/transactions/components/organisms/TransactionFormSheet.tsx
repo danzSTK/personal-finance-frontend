@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
+import { useForm, type UseFormReturn } from 'react-hook-form'
 import { CheckCircle2, CircleDashed, Clock3 } from 'lucide-react'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
@@ -15,7 +15,7 @@ import {
   getCategoryIconKey,
   getCategoryIconOption,
 } from '@/features/categories/utils/category.utils'
-import { MaskedInput } from '@/shared/components/atoms/MaskedInput'
+import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
@@ -122,14 +122,15 @@ export function TransactionFormSheet({
     applyApiFieldErrors<TransactionFormValues>({
       fieldErrors: errorPresentation.fieldErrors,
       fieldMap: {
-        amountCents: 'amount',
-        amount: 'amount',
+        amountCents: 'amountCents',
+        amount: 'amountCents',
         date: 'date',
         accountId: 'accountId',
         destinationAccountId: 'destinationAccountId',
         categoryId: 'categoryId',
         description: 'description',
         type: 'type',
+        status: 'status',
         direction: 'direction',
       },
       setError: form.setError,
@@ -147,6 +148,9 @@ export function TransactionFormSheet({
       category.type === selectedType
   )
   const activeAccounts = accounts.filter((account) => !account.isArchived)
+  const destinationAccounts = activeAccounts.filter(
+    (account) => account.id !== form.watch('accountId')
+  )
   const selectedAccount =
     activeAccounts.find((account) => account.id === form.watch('accountId')) ??
     null
@@ -165,14 +169,18 @@ export function TransactionFormSheet({
       ? 'Foi recebida'
       : selectedType === 'EXPENSE'
         ? 'Foi paga'
-        : 'Foi efetivada'
+        : selectedType === 'TRANSFER'
+          ? 'Foi transferida'
+          : 'Foi efetivada'
   const submitLabel = isEditing
     ? 'Salvar alterações'
     : selectedType === 'INCOME'
       ? 'Salvar receita'
       : selectedType === 'EXPENSE'
         ? 'Salvar despesa'
-        : 'Salvar transação'
+        : selectedType === 'TRANSFER'
+          ? 'Salvar transferência'
+          : 'Salvar transação'
   const submitClassName = cn(
     'h-10 rounded-xl px-4 text-primary-foreground',
     selectedType === 'INCOME' && 'bg-state-income hover:bg-state-income/90',
@@ -187,6 +195,20 @@ export function TransactionFormSheet({
       shouldDirty: true,
       shouldValidate: true,
     })
+  }
+
+  const setOriginAccount = (accountId: string) => {
+    form.setValue('accountId', accountId, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+
+    if (form.getValues('destinationAccountId') === accountId) {
+      form.setValue('destinationAccountId', null, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+    }
   }
 
   const handleSubmit = form.handleSubmit((values) => {
@@ -223,12 +245,18 @@ export function TransactionFormSheet({
       >
         <SheetHeader className="pr-8 text-left">
           <SheetTitle className="text-foreground">
-            {isEditing ? 'Editar transação' : `Nova ${getTransactionTypeLabel(initialType).toLowerCase()}`}
+            {isEditing
+              ? selectedType === 'TRANSFER'
+                ? 'Editar transferência'
+                : 'Editar transação'
+              : `Nova ${getTransactionTypeLabel(initialType).toLowerCase()}`}
           </SheetTitle>
           <SheetDescription className="text-muted-foreground">
-            {isEditing
-              ? 'Atualize os dados permitidos pelo lançamento.'
-              : 'Registre valor, data, categoria e conta do lançamento.'}
+            {selectedType === 'TRANSFER'
+              ? 'Mova dinheiro entre suas contas sem registrar receita ou despesa.'
+              : isEditing
+                ? 'Atualize os dados permitidos pelo lançamento.'
+                : 'Registre valor, data, categoria e conta do lançamento.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -269,34 +297,20 @@ export function TransactionFormSheet({
 
           <TransactionFormField
             label="Valor"
-            error={form.formState.errors.amount?.message}
+            error={form.formState.errors.amountCents?.message}
           >
-            <div className="flex h-11 items-center rounded-xl border border-border bg-secondary focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-secondary">
-              <span className="pl-3 text-sm font-semibold text-muted-foreground">
-                R$
-              </span>
-              <MaskedInput
-                mask={{
-                  mask: Number,
-                  scale: 2,
-                  thousandsSeparator: '.',
-                  radix: ',',
-                  padFractionalZeros: true,
-                  normalizeZeros: true,
-                  mapToRadix: ['.'],
-                }}
-                value={form.watch('amount')}
-                onAccept={(value) =>
-                  form.setValue('amount', value, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
-                className="numeric h-full min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 md:text-sm"
-                placeholder="0,00"
-                inputMode="decimal"
-              />
-            </div>
+            <CurrencyInput
+              valueCents={form.watch('amountCents')}
+              onValueCentsChange={(value) =>
+                form.setValue('amountCents', value, {
+                  shouldDirty: true,
+                  shouldValidate: true,
+                })
+              }
+              className={inputClassName}
+              aria-label="Valor"
+              aria-invalid={Boolean(form.formState.errors.amountCents)}
+            />
           </TransactionFormField>
 
           {!isEditing ? (
@@ -324,7 +338,9 @@ export function TransactionFormSheet({
                         'h-4 w-4',
                         selectedType === 'EXPENSE'
                           ? 'text-state-expense'
-                          : 'text-state-income'
+                          : selectedType === 'TRANSFER'
+                            ? 'text-state-info'
+                            : 'text-state-income'
                       )}
                     />
                   ) : (
@@ -338,7 +354,9 @@ export function TransactionFormSheet({
                     selectedStatus === 'EFFECTIVE'
                       ? selectedType === 'EXPENSE'
                         ? 'bg-state-expense'
-                        : 'bg-state-income'
+                        : selectedType === 'TRANSFER'
+                          ? 'bg-state-info'
+                          : 'bg-state-income'
                       : 'bg-accent'
                   )}
                 >
@@ -391,41 +409,26 @@ export function TransactionFormSheet({
             </div>
           </TransactionFormField>
 
-          <TransactionFormField
-            label="Descrição"
-            error={form.formState.errors.description?.message}
-          >
-            <Input
-              className={inputClassName}
-              placeholder="Ex.: Mercado, salário, pix"
-              {...form.register('description')}
-              value={form.watch('description') ?? ''}
-              onChange={(event) =>
-                form.setValue('description', event.target.value, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
-            />
-          </TransactionFormField>
+          {selectedType !== 'TRANSFER' ? (
+            <TransactionDescriptionField form={form} />
+          ) : null}
 
           <TransactionFormField
-            label="Conta"
+            label={selectedType === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             error={form.formState.errors.accountId?.message}
           >
             <Select
               value={form.watch('accountId')}
-              onValueChange={(value) =>
-                form.setValue('accountId', value, {
-                  shouldDirty: true,
-                  shouldValidate: true,
-                })
-              }
+              onValueChange={setOriginAccount}
             >
               <SelectTrigger className={inputClassName}>
                 <AccountSelectLabel
                   account={selectedAccount}
-                  fallback="Escolha uma conta"
+                  fallback={
+                    selectedType === 'TRANSFER'
+                      ? 'Escolha a origem'
+                      : 'Escolha uma conta'
+                  }
                 />
               </SelectTrigger>
               <SelectContent className="border-border bg-card text-foreground">
@@ -464,7 +467,7 @@ export function TransactionFormSheet({
                   />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-card text-foreground">
-                  {activeAccounts.map((account) => (
+                  {destinationAccounts.map((account) => (
                     <SelectItem
                       key={account.id}
                       value={account.id}
@@ -477,6 +480,24 @@ export function TransactionFormSheet({
                 </SelectContent>
               </Select>
             </TransactionFormField>
+          ) : null}
+
+          {selectedType === 'TRANSFER' ? (
+            <>
+              {activeAccounts.length < 2 ? (
+                <div
+                  className="rounded-2xl border border-state-info/35 bg-state-info/10 p-4 text-sm leading-6 text-foreground"
+                  role="status"
+                >
+                  Você precisa de pelo menos duas contas ativas para registrar
+                  uma transferência.
+                </div>
+              ) : null}
+              <TransactionDescriptionField
+                form={form}
+                placeholder="Ex.: Reserva mensal"
+              />
+            </>
           ) : null}
 
           {selectedType === 'INCOME' || selectedType === 'EXPENSE' ? (
@@ -535,7 +556,10 @@ export function TransactionFormSheet({
             <Button
               type="submit"
               className={submitClassName}
-              disabled={isPending}
+              disabled={
+                isPending ||
+                (selectedType === 'TRANSFER' && activeAccounts.length < 2)
+              }
             >
               {isPending ? 'Salvando...' : submitLabel}
             </Button>
@@ -543,6 +567,36 @@ export function TransactionFormSheet({
         </form>
       </SheetContent>
     </Sheet>
+  )
+}
+
+interface TransactionDescriptionFieldProps {
+  form: UseFormReturn<TransactionFormValues>
+  placeholder?: string
+}
+
+function TransactionDescriptionField({
+  form,
+  placeholder = 'Ex.: Mercado, salário, pix',
+}: TransactionDescriptionFieldProps) {
+  return (
+    <TransactionFormField
+      label="Descrição"
+      error={form.formState.errors.description?.message}
+    >
+      <Input
+        className={inputClassName}
+        placeholder={placeholder}
+        {...form.register('description')}
+        value={form.watch('description') ?? ''}
+        onChange={(event) =>
+          form.setValue('description', event.target.value, {
+            shouldDirty: true,
+            shouldValidate: true,
+          })
+        }
+      />
+    </TransactionFormField>
   )
 }
 

@@ -7,7 +7,6 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
-  Plus,
   ReceiptText,
   Settings,
   Tags,
@@ -17,6 +16,7 @@ import { useNavigate } from 'react-router-dom'
 import { APP_BRAND } from '@/shared/config/brand'
 import { BrandLogo } from '@/shared/components/atoms/BrandLogo'
 import { Toaster } from '@/shared/components/organisms/Toaster'
+import { MobileQuickActions } from '../organisms/MobileQuickActions'
 import { Button } from '@/shared/lib/button'
 import {
   Avatar,
@@ -34,6 +34,7 @@ import { cn } from '@/shared/lib/utils'
 import { useLogout } from '../../api/mutations'
 import { useUser } from '../../api/queries'
 import {
+  AUTH_QUICK_ACTION_ROUTES,
   AUTH_ROUTES,
   AUTH_UI_STORAGE_KEYS,
 } from '../../constants/auth.constants'
@@ -519,14 +520,31 @@ const MobileBottomNavigation = ({
   onNavigate,
   onLogout,
 }: MobileBottomNavigationProps) => {
+  const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
   const isMoreActive = ['categories', 'settings'].includes(
     activeSection
   )
 
+  const handleQuickActionsOpenChange = (open: boolean) => {
+    if (open) {
+      onMoreOpenChange(false)
+    }
+
+    setIsQuickActionsOpen(open)
+  }
+
+  const navigateFromQuickAction = (route: string) => {
+    setIsQuickActionsOpen(false)
+    onNavigate(route)
+  }
+
   return (
     <>
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 shadow-lg shadow-background/40 backdrop-blur-xl lg:hidden"
+        className={cn(
+          'fixed inset-x-0 bottom-0 border-t border-border bg-card/95 px-4 pb-[max(env(safe-area-inset-bottom),0.75rem)] pt-2 shadow-lg shadow-background/40 backdrop-blur-xl lg:hidden',
+          isQuickActionsOpen ? 'z-[60]' : 'z-40'
+        )}
         aria-label="Navegação principal"
       >
         <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
@@ -534,33 +552,46 @@ const MobileBottomNavigation = ({
             label="Principal"
             icon={<Home className="h-5 w-5" />}
             isActive={activeSection === 'dashboard'}
+            disabled={isQuickActionsOpen}
             onClick={() => onNavigate(AUTH_ROUTES.dashboard)}
           />
           <MobileNavButton
             label="Transações"
             icon={<ReceiptText className="h-5 w-5" />}
             isActive={activeSection === 'transactions'}
+            disabled={isQuickActionsOpen}
             onClick={() => onNavigate(AUTH_ROUTES.transactions)}
           />
 
-          <button
-            type="button"
-            className="mx-auto -mt-8 flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition hover:bg-primary/90 focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card"
-            aria-label="Adicionar"
-          >
-            <Plus className="h-9 w-9" />
-          </button>
+          <MobileQuickActions
+            open={isQuickActionsOpen}
+            onOpenChange={handleQuickActionsOpenChange}
+            onCreateIncome={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.income)
+            }
+            onCreateExpense={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.expense)
+            }
+            onCreateTransfer={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.transfer)
+            }
+            onCreateCategory={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.category)
+            }
+          />
 
           <MobileNavButton
             label="Contas"
             icon={<WalletCards className="h-5 w-5" />}
             isActive={activeSection === 'accounts'}
+            disabled={isQuickActionsOpen}
             onClick={() => onNavigate(AUTH_ROUTES.accounts)}
           />
           <MobileNavButton
             label="Mais"
             icon={<CircleEllipsis className="h-5 w-5" />}
             isActive={isMoreActive || isMoreOpen}
+            disabled={isQuickActionsOpen}
             onClick={() => onMoreOpenChange(true)}
           />
         </div>
@@ -617,6 +648,7 @@ interface MobileNavButtonProps {
   label: string
   icon: ReactNode
   isActive?: boolean
+  disabled?: boolean
   onClick: () => void
 }
 
@@ -624,13 +656,15 @@ const MobileNavButton = ({
   label,
   icon,
   isActive = false,
+  disabled = false,
   onClick,
 }: MobileNavButtonProps) => (
   <button
     type="button"
     onClick={onClick}
+    disabled={disabled}
     className={cn(
-      'flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-xs font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card',
+      'flex min-w-0 flex-col items-center gap-1 rounded-2xl px-1 py-2 text-xs font-medium transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-card disabled:pointer-events-none disabled:opacity-30',
       isActive
         ? 'bg-primary/15 text-primary'
         : 'text-muted-foreground hover:bg-secondary hover:text-foreground'

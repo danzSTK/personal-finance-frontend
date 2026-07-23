@@ -19,7 +19,7 @@ export type TransactionFormMode = 'create' | 'edit'
 export type TransactionFormSheetState =
   | {
       mode: 'create'
-      type: Extract<TransactionType, 'INCOME' | 'EXPENSE'>
+      type: Extract<TransactionType, 'INCOME' | 'EXPENSE' | 'TRANSFER'>
     }
   | {
       mode: 'edit'

@@ -547,34 +547,40 @@ O botao de acoes direto pode ficar fora do item mobile para reduzir ruido. As ac
   - `Confirmar recebimento` ou `Pagar despesa` se `PENDING`
   - acao destrutiva `Excluir` dentro da edicao ou como opcao secundaria conforme densidade
 
-## Criar Receita/Despesa
+## Criar Receita/Despesa/Transferência
 
 `TransactionFormSheet` em modo `create`.
 
-Disponivel somente quando view for `INCOME` ou `EXPENSE`.
+Disponível nas views `INCOME`, `EXPENSE` e `TRANSFER`. O atalho central mobile
+também pode abrir o mesmo sheet por um intent transitório na URL.
 
 Campos V0:
 
-- valor, `MaskedInput` currency, convertido com `currencyInputToCents`
+- valor, `CurrencyInput` compartilhado, controlado diretamente por centavos e
+  com digitação cent-first (`123 -> R$ 1,23`)
 - status: `Pendente` ou `Efetuada`
 - data:
   - presets `Hoje`, `Ontem`, `Outro`
   - `Outro` abre `DateOnlyPicker`
 - descricao
-- categoria, filtrada pelo tipo selecionado
-- conta
+- categoria, filtrada pelo tipo selecionado e exibida somente para
+  receita/despesa
+- conta; para transferência, rotular como conta de origem
+- conta de destino somente para transferência, diferente da origem
 - anexos: `Em breve`
 - toggle/area `Mais detalhes`: `Em breve`
 
 Payload:
 
 - `type`: vem da view ativa
-- `categoryId`: obrigatorio para receita/despesa
+- `categoryId`: obrigatório para receita/despesa e sempre omitido em transferência
+- `destinationAccountId`: obrigatório em transferência
 - `amountCents`: inteiro positivo
 - `date`: DateOnly
 - `accountId`
 - `status`
 - `description`
+- `direction` e `userId`: nunca enviados em transferência
 
 ## Confirmar Transacao
 
@@ -592,7 +598,8 @@ Campos editaveis na V0:
 
 - valor
 - data
-- conta
+- conta; para transferência, conta de origem
+- conta de destino, quando transferência
 
 Nao expor todos os campos do update aqui, mesmo que o backend aceite, para manter confirmacao limpa. Futuramente novos campos podem entrar no edit completo sem poluir confirmacao.
 

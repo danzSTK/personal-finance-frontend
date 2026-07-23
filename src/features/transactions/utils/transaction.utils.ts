@@ -1,10 +1,6 @@
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
 import {
-  centsToCurrencyInput,
-  currencyInputToCents,
-} from '@/shared/utils/formatters'
-import {
   compareDateOnly,
   formatDateOnlyForDisplay,
   getTodayDateOnly,
@@ -17,6 +13,7 @@ import {
 } from '../constants/transaction.constants'
 import type { TransactionFormValues } from '../schemas/transaction.schema'
 import type {
+  ConfirmTransactionDto,
   CreateTransactionDto,
   Transaction,
   TransactionStatus,
@@ -148,7 +145,7 @@ export const getTransactionFormDefaults = (
     return {
       type: transaction.type,
       status: transaction.status,
-      amount: centsToCurrencyInput(transaction.amountCents),
+      amountCents: transaction.amountCents,
       date: transaction.date,
       description: transaction.description,
       accountId: transaction.accountId,
@@ -164,7 +161,7 @@ export const getTransactionFormDefaults = (
   return {
     type,
     status: 'EFFECTIVE',
-    amount: '',
+    amountCents: undefined,
     date: getTodayDateOnly(),
     description: null,
     accountId: '',
@@ -177,12 +174,11 @@ export const getTransactionFormDefaults = (
 export const buildCreateTransactionDto = (
   values: TransactionFormValues
 ): CreateTransactionDto => {
-  const amountCents = currencyInputToCents(values.amount) ?? 0
   const dto: CreateTransactionDto = {
     accountId: values.accountId,
     type: values.type,
     status: values.status,
-    amountCents,
+    amountCents: values.amountCents ?? 0,
     date: values.date,
     description: normalizeOptionalText(values.description),
   }
@@ -202,11 +198,24 @@ export const buildCreateTransactionDto = (
   return dto
 }
 
+export const buildConfirmTransactionDto = (
+  values: Pick<
+    TransactionFormValues,
+    'accountId' | 'amountCents' | 'date' | 'destinationAccountId' | 'type'
+  >
+): ConfirmTransactionDto => ({
+  amountCents: values.amountCents ?? 0,
+  date: values.date,
+  accountId: values.accountId,
+  ...(values.type === 'TRANSFER' && values.destinationAccountId
+    ? { destinationAccountId: values.destinationAccountId }
+    : {}),
+})
+
 export const buildUpdateTransactionDto = (
   values: TransactionFormValues,
   original: Transaction
 ): UpdateTransactionDto => {
-  const amountCents = currencyInputToCents(values.amount) ?? 0
   const description = normalizeOptionalText(values.description)
   const originalDescription = normalizeOptionalText(original.description)
   const dto: UpdateTransactionDto = {}
@@ -219,8 +228,11 @@ export const buildUpdateTransactionDto = (
     dto.type = values.type
   }
 
-  if (amountCents !== original.amountCents) {
-    dto.amountCents = amountCents
+  if (
+    values.amountCents !== undefined &&
+    values.amountCents !== original.amountCents
+  ) {
+    dto.amountCents = values.amountCents
   }
 
   if (values.date !== original.date) {

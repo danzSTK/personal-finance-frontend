@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import {
   Archive,
   ChevronFirst,
@@ -37,6 +38,7 @@ import {
   CATEGORY_MANAGEMENT_TABS,
   CATEGORY_PAGE_SIZE_OPTIONS,
   CATEGORY_SEARCH_DEBOUNCE_MS,
+  CATEGORY_URL_PARAMS,
 } from '../../constants/category.constants'
 import type { CategoryManagementType } from '../../types/category.types'
 import type {
@@ -44,7 +46,10 @@ import type {
   CategoryDeleteState,
   CategorySheetState,
 } from '../../types/category-ui.types'
-import { getCategoryTypeLabel } from '../../utils/category.utils'
+import {
+  getCategoryTypeLabel,
+  parseCategoryManagementType,
+} from '../../utils/category.utils'
 import { CategoryCreateButton } from '../molecules/CategoryCreateButton'
 import { CategoryDeleteDialogs } from '../organisms/CategoryDeleteDialogs'
 import { CategoryFormSheet } from '../organisms/CategoryFormSheet'
@@ -56,8 +61,13 @@ import {
 import { CategoriesTable } from '../organisms/CategoriesTable'
 
 export function CategoriesPage() {
-  const [activeType, setActiveType] =
-    useState<CategoryManagementType>('EXPENSE')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const activeType =
+    parseCategoryManagementType(searchParams.get(CATEGORY_URL_PARAMS.type)) ??
+    'EXPENSE'
+  const createIntent = parseCategoryManagementType(
+    searchParams.get(CATEGORY_URL_PARAMS.create)
+  )
   const [archiveView, setArchiveView] = useState<CategoryArchiveView>('active')
   const [page, setPage] = useState(CATEGORY_DEFAULT_PAGE)
   const [limit, setLimit] = useState(CATEGORY_DEFAULT_LIMIT)
@@ -70,6 +80,25 @@ export function CategoriesPage() {
 
   const archiveCategoryMutation = useArchiveCategory()
   const unarchiveCategoryMutation = useUnarchiveCategory()
+
+  useEffect(() => {
+    if (!createIntent) {
+      return
+    }
+
+    setSheetState({ mode: 'create', type: createIntent })
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.delete(CATEGORY_URL_PARAMS.create)
+
+    if (createIntent === 'EXPENSE') {
+      nextSearchParams.delete(CATEGORY_URL_PARAMS.type)
+    } else {
+      nextSearchParams.set(CATEGORY_URL_PARAMS.type, createIntent)
+    }
+
+    setSearchParams(nextSearchParams, { replace: true })
+  }, [createIntent, searchParams, setSearchParams])
 
   useEffect(() => {
     const debounceId = window.setTimeout(() => {
@@ -117,7 +146,15 @@ export function CategoriesPage() {
     archiveCategoryMutation.isPending || unarchiveCategoryMutation.isPending
 
   const handleTypeChange = (type: CategoryManagementType) => {
-    setActiveType(type)
+    const nextSearchParams = new URLSearchParams(searchParams)
+
+    if (type === 'EXPENSE') {
+      nextSearchParams.delete(CATEGORY_URL_PARAMS.type)
+    } else {
+      nextSearchParams.set(CATEGORY_URL_PARAMS.type, type)
+    }
+
+    setSearchParams(nextSearchParams)
     setPage(CATEGORY_DEFAULT_PAGE)
   }
 

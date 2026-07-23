@@ -113,7 +113,13 @@ export function TransactionDetailsSheet({
                     categories={categories}
                   />
                 </DetailItem>
-                <DetailItem label="Conta">
+                <DetailItem
+                  label={
+                    transaction.type === 'TRANSFER'
+                      ? 'Conta de origem'
+                      : 'Conta'
+                  }
+                >
                   <TransactionAccountDetail
                     account={accounts.find(
                       (account) => account.id === transaction.accountId
@@ -148,16 +154,22 @@ export function TransactionDetailsSheet({
             </div>
 
             <SheetFooter className="mt-auto gap-2 border-t border-border bg-card p-4">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-10 rounded-xl border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
-                onClick={onDelete}
-                disabled={transaction.type === 'TRANSFER'}
-              >
-                <Trash2 className="h-4 w-4" />
-                Excluir
-              </Button>
+              {transaction.type === 'TRANSFER' ? (
+                <p className="w-full rounded-xl border border-state-info/35 bg-state-info/10 px-3 py-2 text-xs leading-5 text-foreground sm:mr-auto sm:max-w-64">
+                  Para corrigir, faça uma nova transferência no sentido
+                  contrário.
+                </p>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-xl border-destructive/60 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive"
+                  onClick={onDelete}
+                >
+                  <Trash2 className="h-4 w-4" />
+                  Excluir
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"

@@ -8,17 +8,13 @@ import {
   getAccountColorOption,
   getAccountIcon,
 } from '@/features/accounts/utils/account.utils'
-import { MaskedInput } from '@/shared/components/atoms/MaskedInput'
+import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
 import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
-import {
-  centsToCurrencyInput,
-  currencyInputToCents,
-} from '@/shared/utils/formatters'
 import {
   Select,
   SelectContent,
@@ -40,6 +36,7 @@ import {
 } from '../../schemas/transaction.schema'
 import type { TransactionConfirmSheetState } from '../../types/transaction-ui.types'
 import {
+  buildConfirmTransactionDto,
   getConfirmActionLabel,
   getTransactionTypeLabel,
 } from '../../utils/transaction.utils'
@@ -71,9 +68,11 @@ export function TransactionConfirmSheet({
   const form = useForm<TransactionConfirmValues>({
     resolver: zodResolver(transactionConfirmSchema),
     defaultValues: {
-      amount: transaction ? centsToCurrencyInput(transaction.amountCents) : '',
+      type: transaction?.type ?? 'EXPENSE',
+      amountCents: transaction?.amountCents,
       date: transaction?.date ?? '',
       accountId: transaction?.accountId ?? '',
+      destinationAccountId: transaction?.destinationAccountId ?? null,
     },
   })
   const resetForm = form.reset
@@ -84,9 +83,11 @@ export function TransactionConfirmSheet({
 
     resetMutation()
     resetForm({
-      amount: centsToCurrencyInput(transaction.amountCents),
+      type: transaction.type,
+      amountCents: transaction.amountCents,
       date: transaction.date,
       accountId: transaction.accountId,
+      destinationAccountId: transaction.destinationAccountId,
     })
   }, [resetForm, resetMutation, transaction])
 
@@ -96,10 +97,11 @@ export function TransactionConfirmSheet({
     applyApiFieldErrors<TransactionConfirmValues>({
       fieldErrors: errorPresentation.fieldErrors,
       fieldMap: {
-        amountCents: 'amount',
-        amount: 'amount',
+        amountCents: 'amountCents',
+        amount: 'amountCents',
         date: 'date',
         accountId: 'accountId',
+        destinationAccountId: 'destinationAccountId',
       },
       setError: form.setError,
       setFocus: form.setFocus,
@@ -109,22 +111,42 @@ export function TransactionConfirmSheet({
   const handleSubmit = form.handleSubmit((values) => {
     if (!transaction) return
 
+    const dto = buildConfirmTransactionDto(values)
+
     confirmMutation.mutate(
       {
         transactionId: transaction.id,
-        dto: {
-          amountCents: currencyInputToCents(values.amount) ?? 0,
-          date: values.date,
-          accountId: values.accountId,
-        },
+        dto,
       },
       { onSuccess: () => onOpenChange(false) }
     )
   })
   const activeAccounts = accounts.filter((account) => !account.isArchived)
+  const destinationAccounts = activeAccounts.filter(
+    (account) => account.id !== form.watch('accountId')
+  )
   const selectedAccount =
     activeAccounts.find((account) => account.id === form.watch('accountId')) ??
     null
+  const selectedDestinationAccount =
+    activeAccounts.find(
+      (account) => account.id === form.watch('destinationAccountId')
+    ) ?? null
+  const isTransfer = transaction?.type === 'TRANSFER'
+
+  const setOriginAccount = (accountId: string) => {
+    form.setValue('accountId', accountId, {
+      shouldDirty: true,
+      shouldValidate: true,
+    })
+
+    if (form.getValues('destinationAccountId') === accountId) {
+      form.setValue('destinationAccountId', null, {
+        shouldDirty: true,
+        shouldValidate: true,
+      })
+    }
+  }
   const submitClassName = cn(
     'h-10 rounded-xl px-4 text-primary-foreground',
     transaction?.type === 'INCOME' && 'bg-state-income hover:bg-state-income/90',
@@ -146,7 +168,9 @@ export function TransactionConfirmSheet({
             {transaction ? getConfirmActionLabel(transaction.type) : 'Confirmar'}
           </SheetTitle>
           <SheetDescription className="text-muted-foreground">
-            Ajuste valor, data e conta antes de efetivar o lançamento.
+            {isTransfer
+              ? 'Confira valor, data, origem e destino antes de efetivar a transferência.'
+              : 'Ajuste valor, data e conta antes de efetivar o lançamento.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -163,34 +187,20 @@ export function TransactionConfirmSheet({
 
             <ConfirmField
               label="Valor"
-              error={form.formState.errors.amount?.message}
+              error={form.formState.errors.amountCents?.message}
             >
-              <div className="flex h-11 items-center rounded-xl border border-border bg-secondary focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 focus-within:ring-offset-secondary">
-                <span className="pl-3 text-sm font-semibold text-muted-foreground">
-                  R$
-                </span>
-                <MaskedInput
-                  mask={{
-                    mask: Number,
-                    scale: 2,
-                    thousandsSeparator: '.',
-                    radix: ',',
-                    padFractionalZeros: true,
-                    normalizeZeros: true,
-                    mapToRadix: ['.'],
-                  }}
-                  value={form.watch('amount')}
-                  onAccept={(value) =>
-                    form.setValue('amount', value, {
-                      shouldDirty: true,
-                      shouldValidate: true,
-                    })
-                  }
-                  className="numeric h-full min-w-0 flex-1 border-0 bg-transparent px-2 text-base text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:ring-offset-0 md:text-sm"
-                  placeholder="0,00"
-                  inputMode="decimal"
-                />
-              </div>
+              <CurrencyInput
+                valueCents={form.watch('amountCents')}
+                onValueCentsChange={(value) =>
+                  form.setValue('amountCents', value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
+                className={inputClassName}
+                aria-label="Valor"
+                aria-invalid={Boolean(form.formState.errors.amountCents)}
+              />
             </ConfirmField>
 
             <ConfirmField
@@ -209,22 +219,17 @@ export function TransactionConfirmSheet({
             </ConfirmField>
 
             <ConfirmField
-              label="Conta"
+              label={isTransfer ? 'Conta de origem' : 'Conta'}
               error={form.formState.errors.accountId?.message}
             >
               <Select
                 value={form.watch('accountId')}
-                onValueChange={(value) =>
-                  form.setValue('accountId', value, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
+                onValueChange={setOriginAccount}
               >
                 <SelectTrigger className={inputClassName}>
                   <AccountSelectLabel
                     account={selectedAccount}
-                    fallback="Escolha uma conta"
+                    fallback={isTransfer ? 'Escolha a origem' : 'Escolha uma conta'}
                   />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-card text-foreground">
@@ -242,6 +247,52 @@ export function TransactionConfirmSheet({
               </Select>
             </ConfirmField>
 
+            {isTransfer ? (
+              <ConfirmField
+                label="Conta de destino"
+                error={form.formState.errors.destinationAccountId?.message}
+              >
+                <Select
+                  value={form.watch('destinationAccountId') ?? ''}
+                  onValueChange={(value) =>
+                    form.setValue('destinationAccountId', value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <SelectTrigger className={inputClassName}>
+                    <AccountSelectLabel
+                      account={selectedDestinationAccount}
+                      fallback="Escolha o destino"
+                    />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-card text-foreground">
+                    {destinationAccounts.map((account) => (
+                      <SelectItem
+                        key={account.id}
+                        value={account.id}
+                        hideIndicator
+                        className="focus:bg-accent focus:text-foreground"
+                      >
+                        <AccountSelectLabel account={account} />
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </ConfirmField>
+            ) : null}
+
+            {isTransfer && activeAccounts.length < 2 ? (
+              <div
+                className="rounded-2xl border border-state-info/35 bg-state-info/10 p-4 text-sm leading-6 text-foreground"
+                role="status"
+              >
+                Você precisa de pelo menos duas contas ativas para confirmar a
+                transferência.
+              </div>
+            ) : null}
+
             {errorPresentation ? (
               <ApiErrorAlert error={errorPresentation} />
             ) : null}
@@ -258,7 +309,10 @@ export function TransactionConfirmSheet({
               <Button
                 type="submit"
                 className={submitClassName}
-                disabled={confirmMutation.isPending}
+                disabled={
+                  confirmMutation.isPending ||
+                  (isTransfer && activeAccounts.length < 2)
+                }
               >
                 {confirmMutation.isPending ? 'Confirmando...' : 'Confirmar'}
               </Button>

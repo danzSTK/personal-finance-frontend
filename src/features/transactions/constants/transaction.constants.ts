@@ -14,6 +14,8 @@ export const TRANSACTION_ROUTES = {
   transactions: '/transactions',
 } as const
 
+export const TRANSACTION_CREATE_INTENT_QUERY_PARAM = 'create'
+
 export const TRANSACTION_API_ENDPOINTS = {
   transactions: '/transactions',
 } as const
@@ -79,11 +81,12 @@ export const TRANSACTION_TYPE_ICONS: Record<TransactionType, LucideIcon> = {
 }
 
 export const TRANSACTION_VIEW_CREATE_LABELS: Record<
-  Extract<TransactionView, 'EXPENSE' | 'INCOME'>,
+  Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER'>,
   string
 > = {
   EXPENSE: 'Nova despesa',
   INCOME: 'Nova receita',
+  TRANSFER: 'Nova transferência',
 }
 
 export const TRANSACTION_ACCOUNT_FALLBACK_ICON = WalletCards

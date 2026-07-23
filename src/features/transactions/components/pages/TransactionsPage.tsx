@@ -42,6 +42,7 @@ import {
 } from '@/shared/components/ui/select'
 import { useTransactions } from '../../api/queries'
 import {
+  TRANSACTION_CREATE_INTENT_QUERY_PARAM,
   TRANSACTION_DEFAULT_LIMIT,
   TRANSACTION_DEFAULT_PAGE,
   TRANSACTION_PAGE_SIZE_OPTIONS,
@@ -60,6 +61,7 @@ import { viewToTransactionType } from '../../utils/transaction.utils'
 import {
   buildTransactionSearchParams,
   parseTransactionUrlState,
+  parseTransactionCreateIntent,
   type TransactionUrlPatch,
 } from '../../utils/transactionUrl.utils'
 import { TransactionConfirmSheet } from '../organisms/TransactionConfirmSheet'
@@ -81,6 +83,10 @@ export function TransactionsPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const transactionUrlState = useMemo(
     () => parseTransactionUrlState(searchParams),
+    [searchParams]
+  )
+  const createIntent = useMemo(
+    () => parseTransactionCreateIntent(searchParams),
     [searchParams]
   )
   const { view, period, page, limit, search, filters } = transactionUrlState
@@ -107,6 +113,18 @@ export function TransactionsPage() {
     },
     [setSearchParams, transactionUrlState]
   )
+
+  useEffect(() => {
+    if (!createIntent) {
+      return
+    }
+
+    setFormSheetState({ mode: 'create', type: createIntent })
+
+    const nextSearchParams = new URLSearchParams(searchParams)
+    nextSearchParams.delete(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
+    setSearchParams(nextSearchParams, { replace: true })
+  }, [createIntent, searchParams, setSearchParams])
 
   useEffect(() => {
     setSearchDraft(search)
@@ -213,7 +231,6 @@ export function TransactionsPage() {
   const hasFilters =
     hasAdvancedFilters ||
     search.trim() !== '' ||
-    view !== 'ALL' ||
     limit !== TRANSACTION_DEFAULT_LIMIT ||
     period.year !== currentPeriod.year ||
     period.month !== currentPeriod.month
@@ -236,7 +253,7 @@ export function TransactionsPage() {
   }
 
   const openCreateSheet = () => {
-    if (view === 'EXPENSE' || view === 'INCOME') {
+    if (view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER') {
       setFormSheetState({ mode: 'create', type: view })
     }
   }
@@ -349,7 +366,7 @@ export function TransactionsPage() {
                 className="hidden md:flex"
               />
 
-              {view === 'EXPENSE' || view === 'INCOME' ? (
+              {view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER' ? (
                 <TransactionCreateButton view={view} onClick={openCreateSheet} />
               ) : null}
 
@@ -481,7 +498,7 @@ export function TransactionsPage() {
                 hasFilters={hasFilters}
                 onClearFilters={clearFilters}
                 onCreate={
-                  view === 'EXPENSE' || view === 'INCOME'
+                  view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER'
                     ? openCreateSheet
                     : undefined
                 }

@@ -25,6 +25,16 @@ This repository is a React + TypeScript personal finance frontend for account, a
 - Use `index.ts` only for public feature exports. Do not export private stores, internals, or one-off helpers unless they are a real public API.
 - Keep business logic out of presentation components when a hook, service, schema, or utility can own it more cleanly.
 
+## Spec-Driven Development
+
+- Follow `.agents/skills/spec-driven-development/SKILL.md` for every new feature, cross-module behavior, materially large change, or request explicitly framed by the user as a feature.
+- Before implementation, inspect every affected module and read the relevant domain, backend integration, error-contract, design-system, and database documentation.
+- Create the implementation contract under `docs/specs/<module>/<feature>/specs/` with `requirements.md`, `design.md`, `tasks.md`, and `decisions.md`.
+- Write requirements first, derive the technical design from the approved behavior, and only then generate small, ordered implementation tasks from the requirements and design.
+- Do not implement feature code until `requirements.md`, `design.md`, and `tasks.md` have been reviewed or explicitly approved by the user.
+- Keep the spec alive during implementation. Stop and update it before continuing whenever a business rule, API/schema contract, cross-module impact, or material design decision changes.
+- A narrowly scoped bug fix or mechanical refactor does not require a full feature spec unless the user requests one or the change reveals a broader product decision.
+
 ## Atomic Design
 
 Component hierarchy is mandatory for `src/features/*/components` and `src/shared/components`:
