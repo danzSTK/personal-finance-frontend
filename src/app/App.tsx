@@ -2,7 +2,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { QueryProvider } from './providers/QueryProvider'
 import { AppRoutes } from './routes'
 
-function App() {
+export function App() {
   return (
     <BrowserRouter>
       <QueryProvider>
@@ -11,5 +11,3 @@ function App() {
     </BrowserRouter>
   )
 }
-
-export default App

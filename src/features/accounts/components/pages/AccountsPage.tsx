@@ -9,6 +9,7 @@ import {
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
 import { useCategoryMetadata } from '@/features/categories/api/queries'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
@@ -47,7 +48,6 @@ import {
 } from '../../utils/accountPeriod.utils'
 import { AddAccountButton } from '../molecules/AddAccountButton'
 import { AccountSummaryCard } from '../molecules/AccountSummaryCard'
-import { AccountsPeriodPicker } from '../molecules/AccountsPeriodPicker'
 import { CreateAccountCard } from '../molecules/CreateAccountCard'
 import { AccountCard } from '../organisms/AccountCard'
 import { AccountFormSheet } from '../organisms/AccountFormSheet'
@@ -246,9 +246,10 @@ export function AccountsPage() {
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <AccountsPeriodPicker
+              <MonthYearPicker
                 value={selectedPeriod}
                 onChange={setSelectedPeriod}
+                showCalendarIcon={false}
                 triggerClassName="min-w-36"
               />
               <Button

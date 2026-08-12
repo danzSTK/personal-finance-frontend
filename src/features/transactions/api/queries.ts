@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '@/features/auth/api/auth.api'
+import { api } from '@/features/auth/api/auth.api'
 import {
   TRANSACTION_API_ENDPOINTS,
   TRANSACTION_QUERY_KEYS,

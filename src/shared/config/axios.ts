@@ -1,3 +1,3 @@
-import api from '@/features/auth/api/auth.api';
+import { api } from '@/features/auth/api/auth.api'
 
-export { api };
+export { api }
