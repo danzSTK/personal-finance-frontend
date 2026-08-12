@@ -420,7 +420,7 @@ Portanto:
 ## Observabilidade E Documentação
 
 - Não adicionar logs de valores financeiros.
-- Atualizar `docs/specs/transactions/transactions-screen-spec.md` somente se a implementação mudar o contrato mais amplo daquela tela.
+- Atualizar `docs/specs/transactions/screen/specs/` somente se a implementação mudar o contrato mais amplo daquela tela.
 - Manter `tasks.md` atualizado durante a implementação.
 - Registrar qualquer trade-off novo em `decisions.md` antes de desviar deste design.
 

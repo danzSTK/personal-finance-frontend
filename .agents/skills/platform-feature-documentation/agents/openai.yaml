@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentação de Features"
+  short_description: "Padroniza documentação viva por feature"
+  default_prompt: "Use $platform-feature-documentation para documentar esta feature conforme os padrões da plataforma."
