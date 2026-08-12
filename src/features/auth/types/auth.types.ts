@@ -53,6 +53,16 @@ export interface LinkEmailDto {
   password: string;
 }
 
+export interface ChangePasswordDto {
+  currentPassword: string
+  newPassword: string
+}
+
+export interface ChangePasswordResponse {
+  object: 'auth.password_change'
+  status: 'CHANGED'
+}
+
 export interface UpdateProfileDto {
   firstName?: string | null;
   lastName?: string | null;

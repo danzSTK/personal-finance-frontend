@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useMemo,
-  useState,
-  type FormEvent,
-  type ReactNode,
-} from 'react'
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { CheckCircle2, Link2, Mail, ShieldCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/lib/card'
@@ -14,11 +8,12 @@ import { formatDateTime } from '@/shared/utils/formatters'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { resolveApiError, showApiErrorToast } from '@/shared/errors'
 import { toast } from '@/shared/hooks/use-toast'
-import { FormField } from '../molecules'
 import { SessionCard } from './SessionCard'
+import { ChangePasswordDialog } from './ChangePasswordDialog'
+import { LinkEmailProviderForm } from './LinkEmailProviderForm'
 import { GoogleLogo } from '../atoms/GoogleLogo'
-import api from '../../api/auth.api'
-import { useLinkEmail, useRevokeSession } from '../../api/mutations'
+import { api } from '../../api/auth.api'
+import { useRevokeSession } from '../../api/mutations'
 import { useSessions, useUser } from '../../api/queries'
 import {
   AUTH_API_ENDPOINTS,
@@ -26,43 +21,40 @@ import {
   AUTH_WINDOW_MESSAGES,
   GOOGLE_LINK_ERROR_MESSAGES,
 } from '../../constants/auth.constants'
-import type { AuthProvider, LinkEmailDto } from '../../types'
+import type { AuthProvider } from '../../types'
 
 export const SecuritySettings = () => {
   const queryClient = useQueryClient()
-  const { data: user, isLoading: isLoadingUser } = useUser()
+  const {
+    data: user,
+    isLoading: isLoadingUser,
+    error: userError,
+    refetch: refetchUser,
+  } = useUser()
   const {
     data: sessions = [],
     isLoading: isLoadingSessions,
     error: sessionsError,
     refetch: refetchSessions,
   } = useSessions()
-  const linkEmailMutation = useLinkEmail()
   const revokeSessionMutation = useRevokeSession()
 
-  const [linkEmailForm, setLinkEmailForm] = useState<LinkEmailDto>({
-    email: '',
-    password: '',
-  })
   const [revokingJti, setRevokingJti] = useState<string | null>(null)
 
   const providers = user?.providers ?? []
   const emailProvider = findProvider(providers, 'EMAIL')
   const googleProvider = findProvider(providers, 'GOOGLE')
 
-  const linkEmailError = useMemo(
-    () =>
-      linkEmailMutation.error
-        ? resolveApiError(linkEmailMutation.error, 'auth.link-email')
-        : null,
-    [linkEmailMutation.error]
-  )
   const sessionsErrorPresentation = useMemo(
     () =>
       sessionsError
         ? resolveApiError(sessionsError, 'auth.sessions.list')
         : null,
     [sessionsError]
+  )
+  const userErrorPresentation = useMemo(
+    () => (userError ? resolveApiError(userError, 'generic') : null),
+    [userError]
   )
   const orderedSessions = useMemo(
     () =>
@@ -72,14 +64,6 @@ export const SecuritySettings = () => {
       ),
     [sessions]
   )
-
-  useEffect(() => {
-    if (emailProvider || linkEmailForm.email.trim() !== '' || !user?.email) {
-      return
-    }
-
-    setLinkEmailForm((currentForm) => ({ ...currentForm, email: user.email }))
-  }, [emailProvider, linkEmailForm.email, user?.email])
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -121,20 +105,6 @@ export const SecuritySettings = () => {
     window.location.assign(linkUrl)
   }
 
-  const handleLinkEmail = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-
-    linkEmailMutation.mutate(linkEmailForm, {
-      onSuccess: () => {
-        setLinkEmailForm({ email: '', password: '' })
-        toast({
-          title: 'Método por email vinculado',
-          description: 'Agora você pode acessar também com email e senha.',
-        })
-      },
-    })
-  }
-
   const handleRevokeSession = (jti: string) => {
     setRevokingJti(jti)
     revokeSessionMutation.mutate(jti, {
@@ -155,92 +125,63 @@ export const SecuritySettings = () => {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 px-0 pb-0 sm:p-6 sm:pt-0">
-          <ProviderStatusRow
-            title="Google"
-            description={
-              googleProvider
-                ? `Vinculado em ${formatDateTime(googleProvider.linkedAt)}`
-                : 'Conecte sua conta Google para login social.'
-            }
-            isLinked={Boolean(googleProvider)}
-            icon={<GoogleLogo />}
-            action={
-              googleProvider ? null : (
-                <Button
-                  type="button"
-                  onClick={handleLinkGoogle}
-                  className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
-                >
-                  <Link2 className="mr-2 h-4 w-4" />
-                  Vincular Google
-                </Button>
-              )
-            }
-          />
-
-          <ProviderStatusRow
-            title="Email e senha"
-            description={
-              emailProvider
-                ? `Vinculado em ${formatDateTime(emailProvider.linkedAt)}`
-                : 'Adicione email e senha para ter um método alternativo de acesso.'
-            }
-            isLinked={Boolean(emailProvider)}
-            icon={<Mail className="h-5 w-5 text-primary" />}
-            isPrimary
-            action={
-              emailProvider ? null : (
-                <form onSubmit={handleLinkEmail} className="space-y-3">
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <FormField
-                      label="Email"
-                      type="email"
-                      autoComplete="email"
-                      value={linkEmailForm.email}
-                      onChange={(event) =>
-                        setLinkEmailForm((currentForm) => ({
-                          ...currentForm,
-                          email: event.target.value,
-                        }))
-                      }
-                    />
-                    <FormField
-                      label="Senha"
-                      type="password"
-                      autoComplete="new-password"
-                      value={linkEmailForm.password}
-                      onChange={(event) =>
-                        setLinkEmailForm((currentForm) => ({
-                          ...currentForm,
-                          password: event.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <Button
-                    type="submit"
-                    disabled={
-                      linkEmailMutation.isPending ||
-                      linkEmailForm.email.trim() === '' ||
-                      linkEmailForm.password.trim() === ''
-                    }
-                    className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
-                  >
-                    <Mail className="mr-2 h-4 w-4" />
-                    {linkEmailMutation.isPending
-                      ? 'Vinculando...'
-                      : 'Vincular email'}
-                  </Button>
-                  {linkEmailError ? (
-                    <ApiErrorAlert error={linkEmailError} />
-                  ) : null}
-                </form>
-              )
-            }
-          />
-
           {isLoadingUser ? (
-            <p className="text-sm text-muted-foreground">Sincronizando métodos...</p>
+            <p className="text-sm text-muted-foreground">
+              Sincronizando métodos...
+            </p>
+          ) : null}
+
+          {userErrorPresentation ? (
+            <ApiErrorAlert
+              error={userErrorPresentation}
+              onRetry={() => void refetchUser()}
+            />
+          ) : null}
+
+          {!isLoadingUser && !userError && user ? (
+            <>
+              <ProviderStatusRow
+                title="Google"
+                description={
+                  googleProvider
+                    ? `Vinculado em ${formatDateTime(googleProvider.linkedAt)}`
+                    : 'Conecte sua conta Google para login social.'
+                }
+                isLinked={Boolean(googleProvider)}
+                icon={<GoogleLogo />}
+                action={
+                  googleProvider ? null : (
+                    <Button
+                      type="button"
+                      onClick={handleLinkGoogle}
+                      className="h-11 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
+                    >
+                      <Link2 className="h-4 w-4" aria-hidden />
+                      Vincular Google
+                    </Button>
+                  )
+                }
+              />
+
+              <ProviderStatusRow
+                title="Email e senha"
+                description={
+                  emailProvider
+                    ? `Vinculado em ${formatDateTime(emailProvider.linkedAt)}`
+                    : 'Adicione email e senha para ter um método alternativo de acesso.'
+                }
+                isLinked={Boolean(emailProvider)}
+                icon={<Mail className="h-5 w-5 text-primary" />}
+                isPrimary
+                action={
+                  emailProvider ? (
+                    <ChangePasswordDialog />
+                  ) : (
+                    <LinkEmailProviderForm defaultEmail={user?.email ?? ''} />
+                  )
+                }
+              />
+            </>
           ) : null}
         </CardContent>
       </Card>
@@ -260,7 +201,9 @@ export const SecuritySettings = () => {
             />
           ) : null}
           {isLoadingSessions ? (
-            <p className="text-sm text-muted-foreground">Carregando sessões...</p>
+            <p className="text-sm text-muted-foreground">
+              Carregando sessões...
+            </p>
           ) : null}
 
           {!isLoadingSessions && orderedSessions.length === 0 ? (

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import api from './auth.api'
+import { api } from './auth.api'
 import type { User, Session, UsernameAvailabilityResponse } from '../types'
 import { useAuthStore } from '../stores/auth.store'
 import { AUTH_API_ENDPOINTS, AUTH_QUERY_KEYS } from '../constants/auth.constants'

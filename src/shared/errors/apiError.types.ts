@@ -28,6 +28,7 @@ export type ApiErrorContext =
   | 'auth.email-verification.resend'
   | 'auth.link-email'
   | 'auth.link-google'
+  | 'auth.password.change'
   | 'auth.sessions.list'
   | 'auth.sessions.revoke'
   | 'user.avatar.remove'
@@ -66,4 +67,5 @@ export interface ApiErrorPresentation {
   recovery: ApiErrorRecovery
   fieldErrors: ApiFieldError[]
   isNetworkError: boolean
+  retryAfterSeconds: number | null
 }

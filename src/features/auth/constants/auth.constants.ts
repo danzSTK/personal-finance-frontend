@@ -47,6 +47,7 @@ export const AUTH_API_ENDPOINTS = {
   usernameAvailability: (username: string) =>
     `/users/usernames/${encodeURIComponent(username)}/availability`,
   linkEmail: '/auth/providers/link/email',
+  passwordChange: '/auth/password/change',
   loginGoogle: '/auth/google',
   linkGoogle: '/auth/providers/link/google',
 } as const

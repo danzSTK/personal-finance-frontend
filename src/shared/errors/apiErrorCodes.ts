@@ -17,6 +17,16 @@ export const API_ERROR_CODES = {
   emailVerificationTokenExpired: 'EMAIL_VERIFICATION_TOKEN_EXPIRED',
   emailVerificationTokenInvalid: 'EMAIL_VERIFICATION_TOKEN_INVALID',
   emailVerificationUserBlocked: 'EMAIL_VERIFICATION_USER_BLOCKED',
+  currentPasswordInvalid: 'CURRENT_PASSWORD_INVALID',
+  newPasswordMustDiffer: 'NEW_PASSWORD_MUST_DIFFER',
+  passwordChangeEmailProviderRequired:
+    'PASSWORD_CHANGE_EMAIL_PROVIDER_REQUIRED',
+  passwordChangeBlocked: 'PASSWORD_CHANGE_BLOCKED',
+  passwordChangeCooldownActive: 'PASSWORD_CHANGE_COOLDOWN_ACTIVE',
+  passwordChangeDailyLimitExceeded: 'PASSWORD_CHANGE_DAILY_LIMIT_EXCEEDED',
+  passwordChangeOperationPending: 'PASSWORD_CHANGE_OPERATION_PENDING',
+  passwordChangeCostLimited: 'PASSWORD_CHANGE_COST_LIMITED',
+  passwordChangeStateUnavailable: 'PASSWORD_CHANGE_STATE_UNAVAILABLE',
 
   invalidUsernameFormat: 'INVALID_USERNAME_FORMAT',
   avatarFileTooLarge: 'AVATAR_FILE_TOO_LARGE',

@@ -7,6 +7,8 @@ export type {
   SignInDto,
   Session,
   LinkEmailDto,
+  ChangePasswordDto,
+  ChangePasswordResponse,
   UpdateProfileDto,
   UpdateUsernameDto,
   UsernameAvailabilityResponse,

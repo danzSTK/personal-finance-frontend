@@ -85,3 +85,39 @@ export const isKnownApiErrorCode = (code: string): code is ApiErrorCode =>
 
 export const isApiNetworkError = (error: unknown): boolean =>
   isAxiosError(error) && !error.response
+
+const parsePositiveInteger = (value: unknown): number | null => {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && Number.isInteger(value) && value > 0
+      ? value
+      : null
+  }
+
+  if (typeof value !== 'string' || !/^[1-9]\d*$/.test(value.trim())) {
+    return null
+  }
+
+  const parsedValue = Number(value)
+
+  return Number.isFinite(parsedValue) && Number.isInteger(parsedValue)
+    ? parsedValue
+    : null
+}
+
+export const parseRetryAfterSeconds = (error: unknown): number | null => {
+  if (!isAxiosError(error)) {
+    return null
+  }
+
+  const headerRetryAfter = parsePositiveInteger(
+    error.response?.headers?.['retry-after']
+  )
+
+  if (headerRetryAfter !== null) {
+    return headerRetryAfter
+  }
+
+  return parsePositiveInteger(
+    parsePlatformError(error)?.details?.retryAfterSeconds
+  )
+}
