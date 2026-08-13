@@ -139,8 +139,15 @@ e filtro HTTP atual registram `429`.
 
 1. O usuário acessa `Configurações > Segurança`.
 2. `GET /users/me` fornece `providers[]`.
-3. Se existir `EMAIL`, a UI apresenta `Alterar senha` junto ao método local.
-4. A ação abre um único diálogo e move o foco para `Senha atual`.
+3. Se existir `EMAIL`, o frontend consulta
+   `GET /auth/password/change/status` sem consumir o limite técnico do `POST`.
+4. Enquanto a consulta carrega ou falha, `Alterar senha` permanece visível e
+   desabilitado, com estado e recuperação próximos ao controle.
+5. Com `status: false`, a UI calcula o instante local a partir do
+   `Retry-After`, informa quando a ação poderá voltar e mantém o controle
+   desabilitado.
+6. Com `status: true`, a ação é habilitada e abre um único diálogo, movendo o
+   foco para `Senha atual`.
 
 ### FLW-002 — alterar com sucesso
 
@@ -187,6 +194,24 @@ THE SYSTEM SHALL disponibilizar a ação `Alterar senha`.
 IF o provider `EMAIL` estiver ausente
 THEN o sistema não deve abrir o diálogo e deve manter o fluxo de vínculo já
 existente como próxima ação adequada.
+
+### REQ-010 — consultar disponibilidade operacional
+
+WHEN o provider `EMAIL` estiver presente
+THE SYSTEM SHALL consultar `GET /auth/password/change/status` antes de habilitar
+`Alterar senha`.
+
+IF a resposta confiável trouxer `status: false`
+THEN o sistema deve manter a ação desabilitada e, quando o `Retry-After` for
+válido, apresentar o instante absoluto calculado no fuso local do usuário.
+
+WHEN o prazo conhecido terminar
+THE SYSTEM SHALL refazer somente a consulta idempotente de status; o frontend
+não deve habilitar a ação por relógio local sem uma nova confirmação do backend.
+
+IF a consulta falhar ou retornar payload inválido
+THEN a ação deve permanecer desabilitada e a UI deve oferecer retry manual
+próximo ao controle.
 
 ### REQ-002 — validar e montar o request
 
@@ -245,22 +270,34 @@ THE SYSTEM SHALL oferecer o mesmo comportamento acessível de mostrar/ocultar.
 
 ## Inventário de erros do endpoint
 
-| Código | Superfície e comportamento |
-| --- | --- |
-| `VALIDATION_ERROR` | Aplicar `details.fields` a `currentPassword` e `newPassword`; mensagens não mapeadas ficam no alerta do formulário. |
-| `NEW_PASSWORD_MUST_DIFFER` | Erro em `newPassword`, pedir uma senha diferente e focar o campo. |
-| `CURRENT_PASSWORD_INVALID` | Erro em `currentPassword`; não informar tentativas restantes. |
-| `EMAIL_VERIFICATION_REQUIRED` | Encerrar o diálogo e direcionar ao fluxo de verificação, preservando a sessão válida. |
-| `PASSWORD_CHANGE_EMAIL_PROVIDER_REQUIRED` | Alerta de conflito de capacidade; atualizar `GET /users/me` e orientar vínculo de email se ainda ausente. |
-| `PASSWORD_CHANGE_BLOCKED` | Alerta persistente, countdown e submit bloqueado até o retry. |
-| `PASSWORD_CHANGE_COOLDOWN_ACTIVE` | Informar que uma alteração recente exige espera; countdown. |
-| `PASSWORD_CHANGE_DAILY_LIMIT_EXCEEDED` | Informar limite temporário e prazo; não sugerir repetição imediata. |
-| `PASSWORD_CHANGE_OPERATION_PENDING` | Informar que outra alteração está em andamento e respeitar o retry. Contrato atual: `429`. |
-| `PASSWORD_CHANGE_COST_LIMITED` | Interromper repetição e respeitar o retry por proteção de segurança. |
-| `PASSWORD_CHANGE_STATE_UNAVAILABLE` | `Serviço indisponível no momento`; não assumir sucesso e permitir tentativa manual segura. |
-| `INVALID_ACCESS_TOKEN` / `UNAUTHORIZED` | Usar recuperação central de sessão; em falha terminal, limpar auth e ir ao sign-in. |
-| `USER_NOT_FOUND` | Estado terminal de sessão/perfil inconsistente; limpar auth e pedir novo login. |
-| `INTERNAL_SERVER_ERROR`, rede, malformed ou unknown | Alerta inline seguro, valores preservados e retry manual. |
+### `GET /auth/password/change/status`
+
+| Resultado/código                                    | Superfície e comportamento                                                                                                                         |
+| --------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `200 status: true`                                  | Habilitar `Alterar senha`; não há `Retry-After`.                                                                                                   |
+| `200 status: false`                                 | Desabilitar a ação; validar `Retry-After`, calcular deadline absoluto e reconsultar o status ao fim do prazo. O motivo não é inferido nem exibido. |
+| `PASSWORD_CHANGE_STATE_UNAVAILABLE`                 | Alerta inline de indisponibilidade, ação desabilitada e retry manual.                                                                              |
+| `INVALID_ACCESS_TOKEN` / `UNAUTHORIZED`             | Usar recuperação central de sessão; sem sessão válida, manter a ação indisponível.                                                                 |
+| `INTERNAL_SERVER_ERROR`, rede, malformed ou unknown | Alerta inline seguro, ação desabilitada e retry manual.                                                                                            |
+
+### `POST /auth/password/change`
+
+| Código                                              | Superfície e comportamento                                                                                          |
+| --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `VALIDATION_ERROR`                                  | Aplicar `details.fields` a `currentPassword` e `newPassword`; mensagens não mapeadas ficam no alerta do formulário. |
+| `NEW_PASSWORD_MUST_DIFFER`                          | Erro em `newPassword`, pedir uma senha diferente e focar o campo.                                                   |
+| `CURRENT_PASSWORD_INVALID`                          | Erro em `currentPassword`; não informar tentativas restantes.                                                       |
+| `EMAIL_VERIFICATION_REQUIRED`                       | Encerrar o diálogo e direcionar ao fluxo de verificação, preservando a sessão válida.                               |
+| `PASSWORD_CHANGE_EMAIL_PROVIDER_REQUIRED`           | Alerta de conflito de capacidade; atualizar `GET /users/me` e orientar vínculo de email se ainda ausente.           |
+| `PASSWORD_CHANGE_BLOCKED`                           | Alerta persistente, countdown e submit bloqueado até o retry.                                                       |
+| `PASSWORD_CHANGE_COOLDOWN_ACTIVE`                   | Informar que uma alteração recente exige espera; countdown.                                                         |
+| `PASSWORD_CHANGE_DAILY_LIMIT_EXCEEDED`              | Informar limite temporário e prazo; não sugerir repetição imediata.                                                 |
+| `PASSWORD_CHANGE_OPERATION_PENDING`                 | Informar que outra alteração está em andamento e respeitar o retry. Contrato atual: `429`.                          |
+| `PASSWORD_CHANGE_COST_LIMITED`                      | Interromper repetição e respeitar o retry por proteção de segurança.                                                |
+| `PASSWORD_CHANGE_STATE_UNAVAILABLE`                 | `Serviço indisponível no momento`; não assumir sucesso e permitir tentativa manual segura.                          |
+| `INVALID_ACCESS_TOKEN` / `UNAUTHORIZED`             | Usar recuperação central de sessão; em falha terminal, limpar auth e ir ao sign-in.                                 |
+| `USER_NOT_FOUND`                                    | Estado terminal de sessão/perfil inconsistente; limpar auth e pedir novo login.                                     |
+| `INTERNAL_SERVER_ERROR`, rede, malformed ou unknown | Alerta inline seguro, valores preservados e retry manual.                                                           |
 
 Erros `429` devem ser decididos por `code`, nunca apenas pelo status. Header e
 body precisam ser estreitamente validados; valor ausente ou inválido usa copy
@@ -270,6 +307,12 @@ sem countdown e não cria um prazo inventado.
 
 - Perfil carregando: skeleton/estado estável, sem inferir provider.
 - Perfil falhou: erro da área de segurança continua próximo ao conteúdo.
+- Status carregando: ação visível e desabilitada, sem abrir o diálogo.
+- Status indisponível com retry: exibir data/hora local e confirmar novamente no
+  backend ao fim do prazo.
+- Status indisponível sem retry válido: não inventar prazo; manter bloqueado com
+  retry manual.
+- Status falhou: alerta próximo à ação; retry não dispara o `POST`.
 - Provider removido entre leitura e submit: tratar código do backend e refazer
   `GET /users/me`.
 - Quinta senha atual incorreta: pode retornar bloqueio imediatamente.
@@ -307,6 +350,12 @@ sem countdown e não cria um prazo inventado.
 ## Critérios de aceite
 
 - Apenas contas com provider `EMAIL` veem a ação funcional de alteração.
+- A ação só habilita após `GET /auth/password/change/status` confirmar
+  `status: true`.
+- `status: false` desabilita a ação e mostra o instante local calculado quando
+  `Retry-After` é válido, sem revelar o motivo da restrição.
+- O fim do prazo refaz o `GET`; relógio local sozinho não libera a ação.
+- Falha ou payload inválido do status mantém a ação bloqueada e oferece retry.
 - O diálogo funciona em 320 px, desktop, teclado e leitor de tela.
 - O request contém apenas `currentPassword` e `newPassword`.
 - Sign-up exige confirmação idêntica e não envia `confirmPassword`.

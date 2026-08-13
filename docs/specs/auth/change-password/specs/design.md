@@ -14,7 +14,8 @@ related:
 ## Resumo da solução
 
 A entrega estende o módulo feature-first `auth`. `SecuritySettings` decide a
-capacidade a partir do perfil; um organismo de diálogo mantém o workflow local;
+capacidade a partir do perfil; a query de status confirma a disponibilidade
+operacional; um organismo de diálogo mantém o workflow local;
 React Hook Form e Zod validam dados; TanStack Query executa a mutation; o módulo
 compartilhado de erros resolve códigos e retry; o store de auth encerra a sessão
 local depois do sucesso.
@@ -22,7 +23,9 @@ local depois do sucesso.
 ```mermaid
 flowchart TD
   Profile[GET /users/me e providers] --> Security[SecuritySettings]
-  Security -->|EMAIL presente| Trigger[Alterar senha]
+  Security -->|EMAIL presente| Status[GET password change status]
+  Status -->|status true| Trigger[Alterar senha habilitado]
+  Status -->|status false + Retry-After| Locked[ação desabilitada até nova consulta]
   Trigger --> Dialog[ChangePasswordDialog]
   Policy[passwordSchema central] --> Dialog
   Field[FormField com toggle] --> Dialog
@@ -40,10 +43,15 @@ flowchart TD
 
 - `src/features/auth/constants/auth.constants.ts`
   - adicionar `passwordChange: '/auth/password/change'`;
+  - adicionar `passwordChangeStatus: '/auth/password/change/status'` e query
+    key própria;
   - manter endpoints e rotas sem strings mágicas.
 - `src/features/auth/types/auth.types.ts`
   - `ChangePasswordDto` com `currentPassword` e `newPassword`;
   - `ChangePasswordResponse` discriminada por `object` e `status`.
+  - `PasswordChangeStatusResponse` discriminada por `object` e status boolean;
+  - resultado de disponibilidade com `retryAfterSeconds` e `retryAtMs`
+    estreitamente tipados.
 
 ### Schemas
 
@@ -73,8 +81,12 @@ campos de confirmação de modo explícito, sem assertions amplas.
 - Criar
   `src/features/auth/components/organisms/ChangePasswordDialog.tsx` como único
   dono do React Hook Form, estado do diálogo, countdown e mutation.
-- `SecuritySettings.tsx` apenas detecta provider, apresenta o trigger e compõe o
-  organismo. Não recebe lógica de senha ou parsing de erro.
+- `SecuritySettings.tsx` apenas detecta provider e compõe o organismo. Não
+  recebe lógica de senha ou parsing de erro.
+- `ChangePasswordDialog.tsx` consulta a disponibilidade somente quando
+  composto para provider `EMAIL`, mantém o trigger desabilitado em loading,
+  erro ou `status: false`, apresenta recuperação inline e coordena a nova
+  consulta no deadline conhecido.
 - Atualizar `SignUpForm.tsx`, `SignInForm.tsx` e o formulário de vínculo de email
   para reutilizarem o campo padronizado.
 - Refatorar o vínculo de provider `EMAIL`, hoje controlado manualmente dentro de
@@ -85,6 +97,11 @@ campos de confirmação de modo explícito, sem assertions amplas.
 ### API e estado
 
 - Adicionar `useChangePassword` em `src/features/auth/api/mutations.ts`.
+- Adicionar `usePasswordChangeStatus` em `src/features/auth/api/queries.ts`,
+  sem retry automático e com refetch em foco/montagem para não reutilizar uma
+  permissão antiga.
+- Validar o payload `auth.password_change_status` e o `Retry-After` antes de
+  produzir `retryAtMs = Date.now() + seconds * 1000`.
 - Mutation retry deve ser `false`; alteração de senha não é repetida
   automaticamente.
 - A mutation valida/tipa a resposta de sucesso; payload inesperado não deve ser
@@ -102,14 +119,34 @@ Estado local necessário:
 - form values tipados;
 - visibilidade de cada campo dentro do próprio `FormField`;
 - `retryDeadlineMs: number | null`;
+- disponibilidade da query de status e `retryAtMs` retornado;
 - relógio de apresentação derivado do deadline;
 - erro da mutation resolvido por contexto `auth.password.change`.
 
 O deadline absoluto evita drift de timers. Um intervalo de apresentação pode
 atualizar o restante e deve ser limpo ao desmontar. O bloqueio termina quando
-`deadline <= Date.now()`. Não persistir senha nem countdown em storage.
+`deadline <= Date.now()`, mas o trigger só volta a habilitar depois de um novo
+`GET` com `status: true`. Não persistir senha nem countdown em storage.
 
 ## Contrato HTTP
+
+```http
+GET /auth/password/change/status
+Cookie: accessToken=<HttpOnly>
+```
+
+Response disponível:
+
+```ts
+interface PasswordChangeStatusResponse {
+  object: 'auth.password_change_status'
+  status: true
+}
+```
+
+Response temporariamente indisponível usa `status: false` e `Retry-After` em
+segundos. O frontend não infere o motivo, calcula o instante local apenas para
+apresentação e consulta novamente o backend no fim do prazo.
 
 ```http
 POST /auth/password/change
@@ -196,7 +233,7 @@ mantendo alerta apenas quando existe informação form-wide distinta.
 - A ação principal é brand, não destructive: o ato é sensível, mas não
   destrutivo.
 - Supporting text avisa antes do formulário: `Ao alterar sua senha, você sairá
-  de todos os dispositivos.`
+de todos os dispositivos.`
 - Alertas ficam antes das ações e depois dos campos.
 - Countdown deve ter texto estável e live region moderada, sem anunciar a cada
   segundo de forma agressiva.
@@ -212,6 +249,11 @@ mantendo alerta apenas quando existe informação form-wide distinta.
   não infere regras temporais sem resposta válida.
 
 ## Estratégia de testes
+
+- parser/query de status: disponível, indisponível com header, header inválido,
+  payload inválido e `503`;
+- trigger: loading, erro, `status: false`, data/hora local, retry manual,
+  reconsulta no deadline e habilitação somente após `status: true`;
 
 ### Unitários
 

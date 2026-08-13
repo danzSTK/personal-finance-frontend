@@ -24,6 +24,7 @@ Alterar senha exige uma credencial local existente. Mostrar o formulário para
 OAuth-only cria um beco sem saída previsível.
 
 Alternatives considered:
+
 - Mostrar sempre e deixar o backend rejeitar: feedback tardio e evitável.
 - Criar provider dentro do diálogo: mistura dois fluxos e está fora de escopo.
 
@@ -44,6 +45,7 @@ conclusão explícita. O usuário pediu popup e o caso se enquadra na regra de
 decisão focada do design system.
 
 Alternatives considered:
+
 - Inline permanente: expõe campos sensíveis e aumenta ruído na página.
 - Sheet: adequado a edição contextual comum, mas menos coerente com a decisão de
   segurança focada solicitada.
@@ -64,6 +66,7 @@ DTOs atuais de sign-up, vínculo e alteração usam os mesmos limites. O fronten
 não deve aceitar/rejeitar de modo diferente da API.
 
 Alternatives considered:
+
 - Manter schemas independentes: favorece drift.
 - Tornar a política mais forte só no frontend: cria contrato falso e impede
   senhas que o backend aceita.
@@ -197,3 +200,31 @@ Impact:
 Esta feature recebeu a documentação inicial disponível naquele momento. A spec 2
 substituiu o formato monolítico pelas árvores `decisions/`, `flow/` e
 `components/`, preservando e redistribuindo o conteúdo.
+
+## DEC-012 — provider define capacidade e status define disponibilidade
+
+Status: accepted
+
+Decision:
+Manter `GET /users/me.providers[]` como gate de existência da credencial local e
+usar `GET /auth/password/change/status` como gate operacional antes de habilitar
+o trigger. `status: false` nunca revela a causa e o relógio local apenas agenda
+uma nova consulta; somente novo `status: true` libera a ação.
+
+Reason:
+O use case do backend avalia bloqueio, cooldown, limite diário e mutação
+pendente, mas não verifica provider `EMAIL`. Unir os dois sinais evita tanto um
+formulário impossível para OAuth-only quanto um botão permissivo durante uma
+restrição temporal.
+
+Alternatives considered:
+
+- Substituir providers pelo status: o endpoint não garante existência de senha
+  local.
+- Habilitar automaticamente ao zerar o timer: o estado pode ter mudado e o
+  contrato declara a consulta como apenas informativa.
+
+Impact:
+O frontend consome uma query adicional somente para contas com provider local,
+desabilita de forma fechada em falha e calcula data/hora local a partir do
+`Retry-After`, sem persistir ou expor o motivo da restrição.

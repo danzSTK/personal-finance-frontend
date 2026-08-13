@@ -118,11 +118,28 @@ material ou impacto cross-module exige atualização prévia da spec.
       touch targets.
 - [x] 10.5 Revisar todos os critérios de aceite e atualizar tasks/decisions.
 
+## 11. Disponibilidade operacional antecipada
+
+- [x] 11.1 Adicionar contrato, parser estreito, endpoint e query key do
+      `GET /auth/password/change/status`.
+- [x] 11.2 Implementar `usePasswordChangeStatus` sem retry automático e com
+      deadline absoluto calculado do `Retry-After`.
+- [x] 11.3 Manter o trigger visível e desabilitado em loading, erro e
+      `status: false`, com data/hora local e recuperação inline.
+- [x] 11.4 Reconsultar o status ao fim do prazo sem habilitar pelo relógio local
+      e sem disparar o `POST`.
+- [x] 11.5 Cobrir parser, query, estados do trigger, retry manual e deadline em
+      testes focados.
+- [x] 11.6 Atualizar documentação viva, executar testes, typecheck, lint e
+      build.
+
 ## Evidências de conclusão
 
-- `npm test`: 11 arquivos e 72 testes aprovados.
+- `npm test`: 13 arquivos e 87 testes aprovados.
 - `npm run lint`: concluído sem warnings ou erros.
 - `npm run build`: TypeScript e Vite 8 concluídos com sucesso.
+- Testes novos: parser/query de status, fail-closed do trigger, data local,
+  retry manual e reconsulta no deadline.
 - Auditoria de código: dialog responsivo a partir de 320 px, Danfy tokens,
   Material 3 dialog, navegação por teclado, foco, labels, live status e alvos de
   toque de 44 px verificados.

@@ -6,6 +6,7 @@ status: current
 decision-id: DEC-002
 decision-status: accepted
 related:
+  - ./operational-status-gate.md
   - ../flow/change-password.md
   - ../components/change-password-dialog.md
   - ../../../../specs/auth/change-password/specs/decisions.md
@@ -23,6 +24,8 @@ ao reabrir o dialog poderiam repetir uma operação sensível antes do prazo.
 A interface decide pelo `code` e aceita retry somente como inteiro positivo.
 `Retry-After` válido prevalece sobre `details.retryAfterSeconds`. O dialog
 converte segundos em deadline absoluto, bloqueia submit e nunca auto-retry.
+No `GET` de status, o header é a única fonte do prazo; o deadline agenda uma
+nova consulta, mas não libera o trigger por conta própria.
 
 ## Consequência
 
