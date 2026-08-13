@@ -54,14 +54,31 @@ export interface LinkEmailDto {
 }
 
 export interface ChangePasswordDto {
-  currentPassword: string
-  newPassword: string
+  currentPassword: string;
+  newPassword: string;
 }
 
 export interface ChangePasswordResponse {
-  object: 'auth.password_change'
-  status: 'CHANGED'
+  object: 'auth.password_change';
+  status: 'CHANGED';
 }
+
+export interface PasswordChangeStatusResponse {
+  object: 'auth.password_change_status';
+  status: boolean;
+}
+
+export type PasswordChangeAvailability =
+  | {
+      status: true;
+      retryAfterSeconds: null;
+      retryAtMs: null;
+    }
+  | {
+      status: false;
+      retryAfterSeconds: number | null;
+      retryAtMs: number | null;
+    };
 
 export interface UpdateProfileDto {
   firstName?: string | null;

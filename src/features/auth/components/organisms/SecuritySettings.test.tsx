@@ -36,6 +36,17 @@ vi.mock('../../api/queries', () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  usePasswordChangeStatus: () => ({
+    data: {
+      status: true,
+      retryAfterSeconds: null,
+      retryAtMs: null,
+    },
+    error: null,
+    isPending: false,
+    isFetching: false,
+    refetch: vi.fn(),
+  }),
 }))
 
 vi.mock('../../api/mutations', () => ({

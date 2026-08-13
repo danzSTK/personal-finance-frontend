@@ -9,6 +9,8 @@ export type {
   LinkEmailDto,
   ChangePasswordDto,
   ChangePasswordResponse,
+  PasswordChangeStatusResponse,
+  PasswordChangeAvailability,
   UpdateProfileDto,
   UpdateUsernameDto,
   UsernameAvailabilityResponse,

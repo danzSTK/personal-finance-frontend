@@ -1,14 +1,23 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, within } from '@testing-library/react'
+import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AUTH_QUERY_KEYS, AUTH_ROUTES } from '../../constants/auth.constants'
+import type { PasswordChangeAvailability } from '../../types'
 import { ChangePasswordDialog } from './ChangePasswordDialog'
 
 const mutationState = vi.hoisted(() => ({
   mutate: vi.fn(),
   reset: vi.fn(),
+}))
+
+const statusState = vi.hoisted(() => ({
+  data: undefined as PasswordChangeAvailability | undefined,
+  error: null as unknown,
+  isPending: false,
+  isFetching: false,
+  refetch: vi.fn(),
 }))
 
 vi.mock('../../api/mutations', () => ({
@@ -18,6 +27,10 @@ vi.mock('../../api/mutations', () => ({
     error: null,
     isPending: false,
   }),
+}))
+
+vi.mock('../../api/queries', () => ({
+  usePasswordChangeStatus: () => statusState,
 }))
 
 const renderDialog = () => {
@@ -58,6 +71,80 @@ const fillValidForm = async () => {
 describe('ChangePasswordDialog', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    statusState.data = {
+      status: true,
+      retryAfterSeconds: null,
+      retryAtMs: null,
+    }
+    statusState.error = null
+    statusState.isPending = false
+    statusState.isFetching = false
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('mantém o trigger desabilitado enquanto consulta a disponibilidade', () => {
+    statusState.data = undefined
+    statusState.isPending = true
+
+    renderDialog()
+
+    expect(screen.getByRole('button', { name: 'Alterar senha' })).toBeDisabled()
+    expect(
+      screen.getByText('Verificando a disponibilidade da alteração de senha...')
+    ).toBeInTheDocument()
+  })
+
+  it('mantém o trigger bloqueado e mostra a data local do Retry-After', () => {
+    statusState.data = {
+      status: false,
+      retryAfterSeconds: 527,
+      retryAtMs: new Date('2026-08-13T12:08:47.000Z').getTime(),
+    }
+
+    renderDialog()
+
+    expect(screen.getByRole('button', { name: 'Alterar senha' })).toBeDisabled()
+    expect(
+      screen.getByText('Alteração de senha temporariamente indisponível.')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/Disponível novamente a partir de/)
+    ).toBeInTheDocument()
+  })
+
+  it('mantém o trigger bloqueado e permite repetir a consulta após erro', async () => {
+    const user = userEvent.setup()
+    statusState.data = undefined
+    statusState.error = new Error('network')
+
+    renderDialog()
+
+    expect(screen.getByRole('button', { name: 'Alterar senha' })).toBeDisabled()
+    await user.click(screen.getByRole('button', { name: 'Tentar novamente' }))
+    expect(statusState.refetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('reconsulta o backend no deadline sem liberar pelo relógio local', () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-13T12:00:00.000Z'))
+    statusState.data = {
+      status: false,
+      retryAfterSeconds: 1,
+      retryAtMs: new Date('2026-08-13T12:00:01.000Z').getTime(),
+    }
+
+    renderDialog()
+    const trigger = screen.getByRole('button', { name: 'Alterar senha' })
+
+    act(() => {
+      vi.advanceTimersByTime(1_000)
+    })
+
+    expect(statusState.refetch).toHaveBeenCalledTimes(1)
+    expect(trigger).toBeDisabled()
   })
 
   it('abre com foco inicial e limpa os valores ao cancelar', async () => {

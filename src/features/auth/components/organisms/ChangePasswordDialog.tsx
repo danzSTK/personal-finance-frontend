@@ -21,7 +21,9 @@ import {
 } from '@/shared/errors'
 import { toast } from '@/shared/hooks/use-toast'
 import { Button } from '@/shared/lib/button'
+import { formatDateTime } from '@/shared/utils/formatters'
 import { useChangePassword } from '../../api/mutations'
+import { usePasswordChangeStatus } from '../../api/queries'
 import { AUTH_QUERY_KEYS, AUTH_ROUTES } from '../../constants/auth.constants'
 import { useAuthStore } from '../../stores/auth.store'
 import { buildChangePasswordDto } from '../../utils/formDtos'
@@ -54,6 +56,8 @@ export const ChangePasswordDialog = () => {
   const queryClient = useQueryClient()
   const logout = useAuthStore((state) => state.logout)
   const mutation = useChangePassword()
+  const passwordChangeStatus = usePasswordChangeStatus()
+  const refetchPasswordChangeStatus = passwordChangeStatus.refetch
   const [open, setOpen] = useState(false)
   const [retryDeadlineMs, setRetryDeadlineMs] = useState<number | null>(null)
   const [clockMs, setClockMs] = useState(() => Date.now())
@@ -77,6 +81,17 @@ export const ChangePasswordDialog = () => {
         : null,
     [mutation.error]
   )
+  const statusErrorPresentation = useMemo(
+    () =>
+      passwordChangeStatus.error
+        ? resolveApiError(passwordChangeStatus.error, 'auth.password.change')
+        : null,
+    [passwordChangeStatus.error]
+  )
+  const statusRetryAtMs =
+    passwordChangeStatus.data?.status === false
+      ? passwordChangeStatus.data.retryAtMs
+      : null
   const retrySecondsRemaining = retryDeadlineMs
     ? Math.max(0, Math.ceil((retryDeadlineMs - clockMs) / 1000))
     : 0
@@ -96,6 +111,28 @@ export const ChangePasswordDialog = () => {
     return () => window.clearInterval(interval)
   }, [open, retryDeadlineMs, retrySecondsRemaining])
 
+  useEffect(() => {
+    const deadlines = [statusRetryAtMs, retryDeadlineMs].filter(
+      (deadline): deadline is number => deadline !== null
+    )
+
+    if (deadlines.length === 0) {
+      return
+    }
+
+    const nextDeadlineMs = Math.min(...deadlines)
+    const delayMs = Math.max(0, nextDeadlineMs - Date.now())
+    const timeout = window.setTimeout(() => {
+      setClockMs(Date.now())
+      setRetryDeadlineMs((current) =>
+        current !== null && current <= Date.now() ? null : current
+      )
+      void refetchPasswordChangeStatus()
+    }, delayMs)
+
+    return () => window.clearTimeout(timeout)
+  }, [refetchPasswordChangeStatus, retryDeadlineMs, statusRetryAtMs])
+
   useEffect(
     () => () => {
       reset(DEFAULT_VALUES)
@@ -109,6 +146,10 @@ export const ChangePasswordDialog = () => {
   }
 
   const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen && !isTriggerAvailable) {
+      return
+    }
+
     if (!nextOpen && mutation.isPending) {
       return
     }
@@ -219,101 +260,195 @@ export const ChangePasswordDialog = () => {
   const canSubmit =
     isValid && !mutation.isPending && retrySecondsRemaining === 0
 
+  const isKnownUnavailable = passwordChangeStatus.data?.status === false
+  const isCheckingAvailability =
+    passwordChangeStatus.isPending || passwordChangeStatus.isFetching
+  const hasAvailabilityError = statusErrorPresentation !== null
+  const hasLocalRetry = retryDeadlineMs !== null && retryDeadlineMs > clockMs
+  const isTriggerAvailable =
+    passwordChangeStatus.data?.status === true &&
+    !isCheckingAvailability &&
+    !hasAvailabilityError &&
+    !hasLocalRetry
+  const displayedRetryAtMs = getLatestDeadline(
+    statusRetryAtMs,
+    hasLocalRetry ? retryDeadlineMs : null
+  )
+  const availabilityMessageId = 'password-change-availability'
+
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="h-11 rounded-xl">
-          <KeyRound className="h-4 w-4" aria-hidden />
-          Alterar senha
-        </Button>
-      </DialogTrigger>
-      <DialogContent
-        closeDisabled={mutation.isPending}
-        onOpenAutoFocus={handleInitialFocus}
-        className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md gap-0 overflow-y-auto rounded-2xl border-app-border bg-app-elevated p-0 text-app-text sm:rounded-2xl"
-      >
-        <DialogHeader className="space-y-2 px-5 pb-4 pt-5 pr-14 text-left sm:px-6 sm:pt-6">
-          <DialogTitle>Alterar senha</DialogTitle>
-          <DialogDescription className="leading-6 text-app-muted">
-            Ao alterar sua senha, você sairá de todos os dispositivos.
-          </DialogDescription>
-        </DialogHeader>
+    <div className="space-y-3">
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogTrigger asChild>
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 rounded-xl"
+            disabled={!isTriggerAvailable}
+            aria-describedby={
+              isTriggerAvailable ? undefined : availabilityMessageId
+            }
+          >
+            {isCheckingAvailability ? (
+              <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <KeyRound className="h-4 w-4" aria-hidden />
+            )}
+            Alterar senha
+          </Button>
+        </DialogTrigger>
+        <DialogContent
+          closeDisabled={mutation.isPending}
+          onOpenAutoFocus={handleInitialFocus}
+          className="max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-md gap-0 overflow-y-auto rounded-2xl border-app-border bg-app-elevated p-0 text-app-text sm:rounded-2xl"
+        >
+          <DialogHeader className="space-y-2 px-5 pb-4 pt-5 pr-14 text-left sm:px-6 sm:pt-6">
+            <DialogTitle>Alterar senha</DialogTitle>
+            <DialogDescription className="leading-6 text-app-muted">
+              Ao alterar sua senha, você sairá de todos os dispositivos.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit(handleChangePassword)} noValidate>
-          <div className="space-y-4 px-5 pb-5 sm:px-6">
-            <FormField
-              label="Senha atual"
-              type="password"
-              autoComplete="current-password"
-              required
-              disabled={mutation.isPending}
-              error={errors.currentPassword?.message}
-              prefixIcon={<Lock className="h-4 w-4" />}
-              {...register('currentPassword')}
-            />
-            <FormField
-              label="Nova senha"
-              type="password"
-              autoComplete="new-password"
-              required
-              disabled={mutation.isPending}
-              error={errors.newPassword?.message}
-              helperText="Use entre 6 e 50 caracteres."
-              prefixIcon={<Lock className="h-4 w-4" />}
-              {...register('newPassword')}
-            />
-            <FormField
-              label="Confirmar nova senha"
-              type="password"
-              autoComplete="new-password"
-              required
-              disabled={mutation.isPending}
-              error={errors.confirmNewPassword?.message}
-              prefixIcon={<Lock className="h-4 w-4" />}
-              {...register('confirmNewPassword')}
-            />
+          <form onSubmit={handleSubmit(handleChangePassword)} noValidate>
+            <div className="space-y-4 px-5 pb-5 sm:px-6">
+              <FormField
+                label="Senha atual"
+                type="password"
+                autoComplete="current-password"
+                required
+                disabled={mutation.isPending}
+                error={errors.currentPassword?.message}
+                prefixIcon={<Lock className="h-4 w-4" />}
+                {...register('currentPassword')}
+              />
+              <FormField
+                label="Nova senha"
+                type="password"
+                autoComplete="new-password"
+                required
+                disabled={mutation.isPending}
+                error={errors.newPassword?.message}
+                helperText="Use entre 6 e 50 caracteres."
+                prefixIcon={<Lock className="h-4 w-4" />}
+                {...register('newPassword')}
+              />
+              <FormField
+                label="Confirmar nova senha"
+                type="password"
+                autoComplete="new-password"
+                required
+                disabled={mutation.isPending}
+                error={errors.confirmNewPassword?.message}
+                prefixIcon={<Lock className="h-4 w-4" />}
+                {...register('confirmNewPassword')}
+              />
 
-            {shouldShowFormAlert && errorPresentation ? (
-              <ApiErrorAlert error={errorPresentation} />
-            ) : null}
+              {shouldShowFormAlert && errorPresentation ? (
+                <ApiErrorAlert error={errorPresentation} />
+              ) : null}
 
-            {retrySecondsRemaining > 0 ? (
-              <p className="rounded-xl border border-app-border bg-app-panel px-4 py-3 text-sm text-app-muted">
-                Tente novamente em{' '}
-                <span className="font-semibold text-app-text">
-                  {formatRetryTime(retrySecondsRemaining)}
-                </span>
-                .
-              </p>
-            ) : null}
-          </div>
+              {retrySecondsRemaining > 0 ? (
+                <p className="rounded-xl border border-app-border bg-app-panel px-4 py-3 text-sm text-app-muted">
+                  Tente novamente em{' '}
+                  <span className="font-semibold text-app-text">
+                    {formatRetryTime(retrySecondsRemaining)}
+                  </span>
+                  .
+                </p>
+              ) : null}
+            </div>
 
-          <DialogFooter className="sticky bottom-0 gap-2 border-t border-app-border bg-app-elevated px-5 py-4 sm:px-6">
+            <DialogFooter className="sticky bottom-0 gap-2 border-t border-app-border bg-app-elevated px-5 py-4 sm:px-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={mutation.isPending}
+                className="h-11 rounded-xl"
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                disabled={!canSubmit}
+                aria-live="polite"
+                className="h-11 rounded-xl"
+              >
+                {mutation.isPending ? (
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                ) : null}
+                {mutation.isPending ? 'Alterando...' : 'Alterar senha'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {statusErrorPresentation ? (
+        <div id={availabilityMessageId}>
+          <ApiErrorAlert
+            error={statusErrorPresentation}
+            onRetry={() => void refetchPasswordChangeStatus()}
+          />
+        </div>
+      ) : null}
+
+      {!statusErrorPresentation &&
+      !isCheckingAvailability &&
+      (isKnownUnavailable || hasLocalRetry) ? (
+        <div
+          id={availabilityMessageId}
+          role="status"
+          className="rounded-xl border border-app-border bg-app-panel px-4 py-3 text-sm text-app-muted"
+        >
+          <p>Alteração de senha temporariamente indisponível.</p>
+          {displayedRetryAtMs ? (
+            <p className="mt-1">
+              Disponível novamente a partir de{' '}
+              <span className="font-semibold text-app-text">
+                {formatDateTime(new Date(displayedRetryAtMs))}
+              </span>
+              , após uma nova verificação.
+            </p>
+          ) : (
             <Button
               type="button"
               variant="outline"
-              onClick={handleCancel}
-              disabled={mutation.isPending}
-              className="h-11 rounded-xl"
+              className="mt-3 h-9 rounded-xl"
+              onClick={() => void refetchPasswordChangeStatus()}
             >
-              Cancelar
+              Verificar disponibilidade
             </Button>
-            <Button
-              type="submit"
-              disabled={!canSubmit}
-              aria-live="polite"
-              className="h-11 rounded-xl"
-            >
-              {mutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              ) : null}
-              {mutation.isPending ? 'Alterando...' : 'Alterar senha'}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+        </div>
+      ) : null}
+
+      {isCheckingAvailability ? (
+        <p
+          id={availabilityMessageId}
+          role="status"
+          className="text-sm text-app-muted"
+        >
+          Verificando a disponibilidade da alteração de senha...
+        </p>
+      ) : null}
+    </div>
   )
+}
+
+const getLatestDeadline = (
+  first: number | null,
+  second: number | null
+): number | null => {
+  if (first === null) {
+    return second
+  }
+
+  if (second === null) {
+    return first
+  }
+
+  return Math.max(first, second)
 }
 
 const formatRetryTime = (seconds: number): string => {
