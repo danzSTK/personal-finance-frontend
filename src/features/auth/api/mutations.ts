@@ -107,6 +107,9 @@ export const useResendEmailVerification = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+      void queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.emailVerificationResendStatus,
+      })
     },
   })
 }

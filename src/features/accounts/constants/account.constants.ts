@@ -21,10 +21,12 @@ export const ACCOUNT_ROUTES = {
 export const ACCOUNT_API_ENDPOINTS = {
   accounts: '/accounts',
   summary: '/accounts/summary',
+  templates: '/account-templates',
 } as const
 
 export const ACCOUNT_QUERY_KEYS = {
   accounts: ['accounts'] as const,
+  templates: ['account-templates'] as const,
   list: (params: { includeArchived: boolean; projectedUntil?: string }) =>
     [...ACCOUNT_QUERY_KEYS.accounts, params] as const,
   summary: (params: {
@@ -102,31 +104,112 @@ export interface AccountColorOption {
   value: string
   key: string
   label: string
-  hex: `#${string}`
+  backgroundClass: string
+  foregroundClass: string
 }
 
 export const ACCOUNT_COLOR_OPTIONS: AccountColorOption[] = [
-  { value: 'blue', key: 'blue', label: 'Azul', hex: '#3B82F6' },
-  { value: 'purple', key: 'purple', label: 'Roxo', hex: '#A855F7' },
-  { value: 'emerald', key: 'emerald', label: 'Esmeralda', hex: '#10B981' },
-  { value: 'cyan', key: 'cyan', label: 'Ciano', hex: '#06B6D4' },
-  { value: 'amber', key: 'amber', label: 'Âmbar', hex: '#F59E0B' },
-  { value: 'slate', key: 'slate', label: 'Ardósia', hex: '#64748B' },
-  { value: 'gray', key: 'gray', label: 'Cinza', hex: '#6B7280' },
-  { value: 'zinc', key: 'zinc', label: 'Zinco', hex: '#71717A' },
-  { value: 'red', key: 'red', label: 'Vermelho', hex: '#EF4444' },
-  { value: 'orange', key: 'orange', label: 'Laranja', hex: '#F97316' },
-  { value: 'yellow', key: 'yellow', label: 'Amarelo', hex: '#EAB308' },
-  { value: 'lime', key: 'lime', label: 'Lima', hex: '#84CC16' },
-  { value: 'green', key: 'green', label: 'Verde', hex: '#22C55E' },
-  { value: 'teal', key: 'teal', label: 'Verde azulado', hex: '#14B8A6' },
-  { value: 'sky', key: 'sky', label: 'Céu', hex: '#0EA5E9' },
-  { value: 'indigo', key: 'indigo', label: 'Índigo', hex: '#6366F1' },
-  { value: 'violet', key: 'violet', label: 'Violeta', hex: '#8B5CF6' },
-  { value: 'fuchsia', key: 'fuchsia', label: 'Fúcsia', hex: '#D946EF' },
-  { value: 'pink', key: 'pink', label: 'Rosa', hex: '#EC4899' },
-  { value: 'rose', key: 'rose', label: 'Rose', hex: '#F43F5E' },
+  colorOption('blue', 'Azul', 'bg-account-blue', 'text-app-text'),
+  colorOption('purple', 'Roxo', 'bg-account-purple', 'text-app-text'),
+  colorOption('emerald', 'Esmeralda', 'bg-account-emerald', 'text-app-text'),
+  colorOption('cyan', 'Ciano', 'bg-account-cyan', 'text-app-bg'),
+  colorOption('amber', 'Âmbar', 'bg-account-amber', 'text-app-bg'),
+  colorOption('slate', 'Ardósia', 'bg-account-slate', 'text-app-text'),
+  colorOption('gray', 'Cinza', 'bg-account-gray', 'text-app-text'),
+  colorOption('zinc', 'Zinco', 'bg-account-zinc', 'text-app-text'),
+  colorOption('red', 'Vermelho', 'bg-account-red', 'text-app-text'),
+  colorOption('orange', 'Laranja', 'bg-account-orange', 'text-app-bg'),
+  colorOption('yellow', 'Amarelo', 'bg-account-yellow', 'text-app-bg'),
+  colorOption('lime', 'Lima', 'bg-account-lime', 'text-app-bg'),
+  colorOption('green', 'Verde', 'bg-account-green', 'text-app-bg'),
+  colorOption('teal', 'Verde azulado', 'bg-account-teal', 'text-app-bg'),
+  colorOption('sky', 'Céu', 'bg-account-sky', 'text-app-bg'),
+  colorOption('indigo', 'Índigo', 'bg-account-indigo', 'text-app-text'),
+  colorOption('violet', 'Violeta', 'bg-account-violet', 'text-app-text'),
+  colorOption('fuchsia', 'Fúcsia', 'bg-account-fuchsia', 'text-app-text'),
+  colorOption('pink', 'Rosa', 'bg-account-pink', 'text-app-text'),
+  colorOption('rose', 'Rose', 'bg-account-rose-token', 'text-app-text'),
 ]
+
+function colorOption(
+  key: string,
+  label: string,
+  backgroundClass: string,
+  foregroundClass: string
+): AccountColorOption {
+  return { value: key, key, label, backgroundClass, foregroundClass }
+}
+
+export interface AccountVisualTone {
+  backgroundClass: string
+  foregroundClass: string
+  gradientClass: string
+}
+
+export const ACCOUNT_VISUAL_TONES: Record<string, AccountVisualTone> = {
+  slate: tone('bg-account-slate', 'text-app-text', '--account-slate'),
+  gray: tone('bg-account-gray', 'text-app-text', '--account-gray'),
+  zinc: tone('bg-account-zinc', 'text-app-text', '--account-zinc'),
+  red: tone('bg-account-red', 'text-app-text', '--account-red'),
+  orange: tone('bg-account-orange', 'text-app-bg', '--account-orange'),
+  amber: tone('bg-account-amber', 'text-app-bg', '--account-amber'),
+  yellow: tone('bg-account-yellow', 'text-app-bg', '--account-yellow'),
+  lime: tone('bg-account-lime', 'text-app-bg', '--account-lime'),
+  green: tone('bg-account-green', 'text-app-bg', '--account-green'),
+  emerald: tone('bg-account-emerald', 'text-app-text', '--account-emerald'),
+  teal: tone('bg-account-teal', 'text-app-bg', '--account-teal'),
+  cyan: tone('bg-account-cyan', 'text-app-bg', '--account-cyan'),
+  sky: tone('bg-account-sky', 'text-app-bg', '--account-sky'),
+  blue: tone('bg-account-blue', 'text-app-text', '--account-blue'),
+  indigo: tone('bg-account-indigo', 'text-app-text', '--account-indigo'),
+  violet: tone('bg-account-violet', 'text-app-text', '--account-violet'),
+  purple: tone('bg-account-purple', 'text-app-text', '--account-purple'),
+  fuchsia: tone('bg-account-fuchsia', 'text-app-text', '--account-fuchsia'),
+  pink: tone('bg-account-pink', 'text-app-text', '--account-pink'),
+  rose: tone('bg-account-rose-token', 'text-app-text', '--account-rose-token'),
+  nubank: tone('bg-account-nubank', 'text-app-text', '--account-nubank'),
+  inter: tone('bg-account-inter', 'text-app-bg', '--account-inter'),
+  itau: tone('bg-account-itau', 'text-app-bg', '--account-itau'),
+  bradesco: tone('bg-account-bradesco', 'text-app-text', '--account-bradesco'),
+  santander: tone(
+    'bg-account-santander',
+    'text-app-text',
+    '--account-santander'
+  ),
+  'banco-do-brasil': tone(
+    'bg-account-banco-do-brasil',
+    'text-app-bg',
+    '--account-banco-do-brasil'
+  ),
+  caixa: tone('bg-account-caixa', 'text-app-text', '--account-caixa'),
+  c6: tone('bg-account-c6', 'text-app-bg', '--account-c6'),
+  picpay: tone('bg-account-picpay', 'text-app-bg', '--account-picpay'),
+  'mercado-pago': tone(
+    'bg-account-mercado-pago',
+    'text-app-bg',
+    '--account-mercado-pago'
+  ),
+}
+
+function tone(
+  backgroundClass: string,
+  foregroundClass: string,
+  gradientToneVariable: string
+): AccountVisualTone {
+  const gradientTone = gradientToneVariable.replace('--account-', '')
+
+  return {
+    backgroundClass,
+    foregroundClass,
+    gradientClass: `account-detail-gradient account-detail-tone-${gradientTone}`,
+  }
+}
+
+export const DEFAULT_ACCOUNT_VISUAL_TONE: AccountVisualTone = {
+  backgroundClass: 'bg-app-elevated',
+  foregroundClass: 'text-app-text',
+  gradientClass: 'account-detail-gradient',
+}
 
 export const ACCOUNT_ICON_MAP: Record<string, LucideIcon> =
   ACCOUNT_ICON_OPTIONS.reduce<Record<string, LucideIcon>>((acc, option) => {
@@ -137,12 +220,6 @@ export const ACCOUNT_ICON_MAP: Record<string, LucideIcon> =
 export interface AccountIconMetadata {
   key: string
   label: string
-}
-
-export interface AccountColorMetadata {
-  key: string
-  label: string
-  hex: `#${string}`
 }
 
 export const mergeAccountIconMetadata = (
@@ -160,22 +237,5 @@ export const mergeAccountIconMetadata = (
     ...icon,
     value: icon.key,
     icon: ACCOUNT_ICON_MAP[icon.key] ?? CircleHelp,
-  }))
-}
-
-export const mergeAccountColorMetadata = (
-  colors: AccountColorMetadata[] | undefined
-) => {
-  const metadataByKey = new Map((colors ?? []).map((color) => [color.key, color]))
-  const ordered = ACCOUNT_COLOR_OPTIONS.map(
-    (option) => metadataByKey.get(option.key) ?? option
-  )
-  const orderedKeys = new Set(ACCOUNT_COLOR_OPTIONS.map((option) => option.key))
-  const extras = (colors ?? []).filter((color) => !orderedKeys.has(color.key))
-  const source = colors?.length ? [...ordered, ...extras] : ACCOUNT_COLOR_OPTIONS
-
-  return source.map((color) => ({
-    ...color,
-    value: color.key,
   }))
 }

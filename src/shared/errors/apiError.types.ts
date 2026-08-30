@@ -37,6 +37,7 @@ export type ApiErrorContext =
   | 'user.username.availability'
   | 'user.username.update'
   | 'accounts.list'
+  | 'accounts.templates'
   | 'accounts.summary'
   | 'accounts.create'
   | 'accounts.update'

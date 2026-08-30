@@ -17,6 +17,7 @@ export const API_ERROR_CODES = {
   emailVerificationTokenExpired: 'EMAIL_VERIFICATION_TOKEN_EXPIRED',
   emailVerificationTokenInvalid: 'EMAIL_VERIFICATION_TOKEN_INVALID',
   emailVerificationUserBlocked: 'EMAIL_VERIFICATION_USER_BLOCKED',
+  emailVerificationStateUnavailable: 'EMAIL_VERIFICATION_STATE_UNAVAILABLE',
   currentPasswordInvalid: 'CURRENT_PASSWORD_INVALID',
   newPasswordMustDiffer: 'NEW_PASSWORD_MUST_DIFFER',
   passwordChangeEmailProviderRequired:
@@ -49,8 +50,11 @@ export const API_ERROR_CODES = {
   accountMustRemainActive: 'ACCOUNT_MUST_REMAIN_ACTIVE',
   accountNotArchived: 'ACCOUNT_NOT_ARCHIVED',
   accountNotFound: 'ACCOUNT_NOT_FOUND',
+  accountTemplateNotFound: 'ACCOUNT_TEMPLATE_NOT_FOUND',
+  accountTemplateInputConflict: 'ACCOUNT_TEMPLATE_INPUT_CONFLICT',
   accountUpdateEmpty: 'ACCOUNT_UPDATE_EMPTY',
   invalidAccount: 'INVALID_ACCOUNT',
+  invalidAccountTemplate: 'INVALID_ACCOUNT_TEMPLATE',
   invalidAccountName: 'INVALID_ACCOUNT_NAME',
 
   categoryHasTransactions: 'CATEGORY_HAS_TRANSACTIONS',

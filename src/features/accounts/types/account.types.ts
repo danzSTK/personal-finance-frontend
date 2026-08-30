@@ -2,6 +2,24 @@ export type AccountType = 'CASH' | 'BANK' | 'CREDIT_CARD' | 'INVESTMENT'
 
 export type UserCreatableAccountType = Exclude<AccountType, 'CASH'>
 
+export type AccountTemplateType = 'INSTITUTIONAL' | 'CUSTOM'
+
+export interface AccountTemplate {
+  object: 'account_template.item'
+  id: string
+  type: AccountTemplateType
+  name: string
+  colorToken: string | null
+  iconKey: string | null
+  logoUrl: string | null
+  bankCode: number | null
+  ispb: string | null
+}
+
+export type AccountTemplateInput =
+  | { type: 'institutional'; templateId: string }
+  | { type: 'custom'; colorToken?: string | null; iconKey?: string | null }
+
 export interface AccountBalance {
   currentCents: number
   projectedCents?: number
@@ -16,11 +34,16 @@ export interface AccountSummary {
 }
 
 export interface Account {
+  object: 'account.item'
   id: string
   name: string
   type: AccountType
   initialBalanceCents: number
+  templateId: string | null
+  template: AccountTemplate | null
+  /** @deprecated Compatibility fallback while DB-COMPAT-002 is active. */
   color: string | null
+  /** @deprecated Compatibility fallback while DB-COMPAT-002 is active. */
   icon: string | null
   includeInTotal: boolean
   isArchived: boolean
@@ -34,8 +57,7 @@ export interface CreateAccountDto {
   name: string
   type: UserCreatableAccountType
   initialBalanceCents?: number
-  color?: string | null
-  icon?: string | null
+  template: AccountTemplateInput
   includeInTotal?: boolean
   isDefault?: boolean
 }
@@ -43,8 +65,7 @@ export interface CreateAccountDto {
 export interface UpdateAccountDto {
   name?: string
   type?: AccountType
-  color?: string | null
-  icon?: string | null
+  template?: AccountTemplateInput
   includeInTotal?: boolean
 }
 

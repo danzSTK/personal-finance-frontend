@@ -10,9 +10,17 @@ import type {
   TransactionListResponse,
 } from '../types/transaction.types'
 
-export const useTransactions = (params: ListTransactionsParams) =>
+interface UseTransactionsOptions {
+  enabled?: boolean
+}
+
+export const useTransactions = (
+  params: ListTransactionsParams,
+  options: UseTransactionsOptions = {}
+) =>
   useQuery({
     queryKey: TRANSACTION_QUERY_KEYS.list(params),
+    enabled: options.enabled ?? true,
     queryFn: async () => {
       const { data } = await api.get<TransactionListResponse>(
         TRANSACTION_API_ENDPOINTS.transactions,

@@ -10,6 +10,10 @@ import {
   buildPasswordChangeAvailability,
   parsePasswordChangeStatusResponse,
 } from '../utils/passwordChangeStatus'
+import {
+  buildEmailVerificationResendAvailability,
+  parseEmailVerificationResendStatusResponse,
+} from '../utils/emailVerificationStatus'
 
 export const fetchCurrentUser = async (): Promise<User> => {
   const { data } = await api.get<User>(AUTH_API_ENDPOINTS.me)
@@ -67,6 +71,44 @@ export const usePasswordChangeStatus = (enabled = true) => {
     retry: false,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
+  })
+}
+
+export const useEmailVerificationResendStatus = (options?: {
+  enabled?: boolean
+  refetchInterval?:
+    | number
+    | false
+    | ((query: { state: { data: unknown } }) => number | false)
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const enabled = options?.enabled ?? true
+
+  return useQuery({
+    queryKey: AUTH_QUERY_KEYS.emailVerificationResendStatus,
+    queryFn: async () => {
+      const response = await api.get<unknown>(
+        AUTH_API_ENDPOINTS.emailVerificationResendStatus
+      )
+      const parsed = parseEmailVerificationResendStatusResponse(response.data)
+
+      if (!parsed) {
+        throw new Error(
+          'Invalid email verification resend status response'
+        )
+      }
+
+      return buildEmailVerificationResendAvailability({
+        response: parsed,
+        retryAfterHeader: response.headers['retry-after'],
+      })
+    },
+    enabled: isAuthenticated && enabled,
+    staleTime: 0,
+    retry: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: options?.refetchInterval,
   })
 }
 

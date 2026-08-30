@@ -3,11 +3,8 @@ import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { CircleDashed } from 'lucide-react'
+import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
-import {
-  getAccountColorOption,
-  getAccountIcon,
-} from '@/features/accounts/utils/account.utils'
 import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
@@ -344,17 +341,9 @@ function AccountSelectLabel({
     )
   }
 
-  const Icon = getAccountIcon(account)
-  const color = getAccountColorOption(account.color)
-
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-foreground"
-        style={{ backgroundColor: color.hex }}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
+      <AccountIdentity account={account} size="sm" />
       <span className="truncate">{account.name}</span>
     </div>
   )

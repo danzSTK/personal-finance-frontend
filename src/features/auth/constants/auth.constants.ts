@@ -41,6 +41,7 @@ export const AUTH_API_ENDPOINTS = {
   logout: '/auth/logout',
   emailVerificationConfirm: '/auth/email-verification/confirm',
   emailVerificationResend: '/auth/email-verification/resend',
+  emailVerificationResendStatus: '/auth/email-verification/resend/status',
   sessions: '/auth/sessions',
   userAvatar: '/users/me/avatar',
   username: '/users/me/username',
@@ -56,6 +57,11 @@ export const AUTH_API_ENDPOINTS = {
 export const AUTH_QUERY_KEYS = {
   user: ['user'] as const,
   sessions: ['sessions'] as const,
+  emailVerificationResendStatus: [
+    'auth',
+    'email-verification',
+    'resend-status',
+  ] as const,
   passwordChangeStatus: ['auth', 'password-change', 'status'] as const,
   usernameAvailability: (username: string) =>
     ['user', 'username-availability', username] as const,

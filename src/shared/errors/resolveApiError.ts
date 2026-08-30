@@ -78,6 +78,12 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
       'O acesso desta conta está bloqueado. Entre em contato com o suporte para recuperar o acesso.',
     recovery: 'none',
   },
+  [API_ERROR_CODES.emailVerificationStateUnavailable]: {
+    title: 'Serviço indisponível no momento',
+    description:
+      'Não foi possível verificar o estado do reenvio. Seus dados continuam nesta tela.',
+    recovery: 'retry',
+  },
   [API_ERROR_CODES.currentPasswordInvalid]: {
     title: 'Senha atual incorreta',
     description: 'Confira a senha atual e tente novamente.',
@@ -216,12 +222,29 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     description: 'Ela pode ter sido removida ou não estar mais disponível.',
     recovery: 'retry',
   },
+  [API_ERROR_CODES.accountTemplateNotFound]: {
+    title: 'Instituição não disponível',
+    description:
+      'Ela pode ter saído do catálogo. Volte, atualize as opções e escolha outra instituição.',
+    recovery: 'choose-target',
+  },
+  [API_ERROR_CODES.accountTemplateInputConflict]: {
+    title: 'Não foi possível usar esta identidade',
+    description:
+      'Seus dados foram preservados. Volte à escolha da conta e tente novamente.',
+    recovery: 'choose-target',
+  },
   [API_ERROR_CODES.accountUpdateEmpty]: {
     title: 'Nenhuma alteração para salvar',
     description: 'Altere pelo menos um campo da conta antes de salvar.',
     recovery: 'correct-fields',
   },
   [API_ERROR_CODES.invalidAccount]: invalidAccount(),
+  [API_ERROR_CODES.invalidAccountTemplate]: {
+    title: 'Identidade da conta inválida',
+    description: 'Escolha outra instituição, cor ou ícone para continuar.',
+    recovery: 'correct-fields',
+  },
   [API_ERROR_CODES.invalidAccountName]: invalidAccount(),
   [API_ERROR_CODES.categoryHasTransactions]: {
     title: 'Esta categoria possui lançamentos',
@@ -388,6 +411,7 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     recovery: 'correct-fields',
   },
   'accounts.list': loadFailure('suas contas'),
+  'accounts.templates': loadFailure('as instituições disponíveis'),
   'accounts.summary': loadFailure('o resumo de saldos'),
   'accounts.create': saveFailure('criar a conta'),
   'accounts.update': saveFailure('salvar as alterações da conta'),

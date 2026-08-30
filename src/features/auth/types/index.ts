@@ -19,6 +19,9 @@ export type {
   EmailVerificationConfirmDto,
   EmailVerificationConfirmResponse,
   EmailVerificationResendResponse,
+  EmailVerificationResendBlockedReason,
+  EmailVerificationResendStatusResponse,
+  EmailVerificationResendAvailability,
 } from './auth.types';
 
 export type {
