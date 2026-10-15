@@ -1,9 +1,7 @@
-import type { ReactNode } from 'react'
 import {
   Clock3,
   Loader2,
   LogOut,
-  MailCheck,
   RefreshCw,
   ShieldCheck,
 } from 'lucide-react'
@@ -16,24 +14,33 @@ interface PendingEmailVerificationPanelProps {
   email: string
   isResending: boolean
   isLoggingOut: boolean
-  cooldownMinutes: number | null
+  cooldownSeconds: number | null
   resendQueued: boolean
   error: ApiErrorPresentation | null
   onResend: () => void
   onLogout: () => void
 }
 
+const formatCooldown = (seconds: number): string => {
+  if (seconds < 60) {
+    return `${seconds}s`
+  }
+
+  const minutes = Math.ceil(seconds / 60)
+  return `${minutes} min`
+}
+
 export function PendingEmailVerificationPanel({
   email,
   isResending,
   isLoggingOut,
-  cooldownMinutes,
+  cooldownSeconds,
   resendQueued,
   error,
   onResend,
   onLogout,
 }: PendingEmailVerificationPanelProps) {
-  const isCooldownActive = cooldownMinutes !== null && cooldownMinutes > 0
+  const isCooldownActive = cooldownSeconds !== null && cooldownSeconds > 0
   const disableResend = isResending || isCooldownActive
 
   return (
@@ -48,34 +55,29 @@ export function PendingEmailVerificationPanel({
             </span>
           </div>
 
-          <div className="space-y-5">
-            <span className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-primary/15 text-primary">
-              <MailCheck className="h-6 w-6" />
-            </span>
-            <div className="space-y-3">
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
-                Confirme sua identidade pelo email
-              </h1>
-              <p className="text-sm leading-6 text-muted-foreground">
-                Enviamos um link de verificação para{' '}
-                <span className="font-medium text-foreground">{email}</span>.
-                Sua sessão está ativa, mas os recursos financeiros ficam
-                bloqueados até a confirmação.
-              </p>
-            </div>
+          <div className="space-y-3">
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
+              Confirme sua identidade pelo email
+            </h1>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Enviamos um link de verificação para{' '}
+              <span className="font-medium text-foreground">{email}</span>.
+              Sua sessão está ativa, mas os recursos financeiros ficam
+              bloqueados até a confirmação.
+            </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <GuidanceItem
-              icon={<MailCheck className="h-4 w-4" />}
-              title="Confira sua caixa de entrada"
-              description="O link pode chegar em alguns instantes. Verifique também spam ou lixo eletrônico."
-            />
-            <GuidanceItem
-              icon={<Clock3 className="h-4 w-4" />}
-              title="Reenvio protegido"
-              description="Você pode solicitar um novo email respeitando o intervalo de 60 minutos e o limite diário."
-            />
+          <div className="rounded-xl border border-border bg-secondary p-4">
+            <div className="flex items-center gap-2 text-primary">
+              <Clock3 className="h-4 w-4" />
+              <p className="text-sm font-semibold text-foreground">
+                Reenvio protegido
+              </p>
+            </div>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              Você pode solicitar um novo email respeitando o intervalo de
+              segurança e o limite diário.
+            </p>
           </div>
 
           {resendQueued ? (
@@ -111,7 +113,7 @@ export function PendingEmailVerificationPanel({
                 <>
                   <RefreshCw className="h-4 w-4" />
                   {isCooldownActive
-                    ? `Aguarde ${cooldownMinutes} min`
+                    ? `Aguarde ${formatCooldown(cooldownSeconds)}`
                     : 'Reenviar email'}
                 </>
               )}
@@ -137,20 +139,3 @@ export function PendingEmailVerificationPanel({
   )
 }
 
-interface GuidanceItemProps {
-  icon: ReactNode
-  title: string
-  description: string
-}
-
-const GuidanceItem = ({ icon, title, description }: GuidanceItemProps) => (
-  <div className="rounded-xl border border-border bg-secondary p-4">
-    <div className="flex items-center gap-2 text-primary">
-      {icon}
-      <p className="text-sm font-semibold text-foreground">{title}</p>
-    </div>
-    <p className="mt-2 text-sm leading-6 text-muted-foreground">
-      {description}
-    </p>
-  </div>
-)

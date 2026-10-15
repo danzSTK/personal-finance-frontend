@@ -7,6 +7,10 @@ export type {
   SignInDto,
   Session,
   LinkEmailDto,
+  ChangePasswordDto,
+  ChangePasswordResponse,
+  PasswordChangeStatusResponse,
+  PasswordChangeAvailability,
   UpdateProfileDto,
   UpdateUsernameDto,
   UsernameAvailabilityResponse,
@@ -15,6 +19,9 @@ export type {
   EmailVerificationConfirmDto,
   EmailVerificationConfirmResponse,
   EmailVerificationResendResponse,
+  EmailVerificationResendBlockedReason,
+  EmailVerificationResendStatusResponse,
+  EmailVerificationResendAvailability,
 } from './auth.types';
 
 export type {

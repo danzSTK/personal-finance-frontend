@@ -6,6 +6,7 @@ import {
   isApiNetworkError,
   parseApiFieldErrors,
   parsePlatformError,
+  parseRetryAfterSeconds,
 } from './parseApiError'
 
 type Copy = Pick<ApiErrorPresentation, 'title' | 'description' | 'recovery'>
@@ -77,6 +78,64 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
       'O acesso desta conta está bloqueado. Entre em contato com o suporte para recuperar o acesso.',
     recovery: 'none',
   },
+  [API_ERROR_CODES.emailVerificationStateUnavailable]: {
+    title: 'Serviço indisponível no momento',
+    description:
+      'Não foi possível verificar o estado do reenvio. Seus dados continuam nesta tela.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.currentPasswordInvalid]: {
+    title: 'Senha atual incorreta',
+    description: 'Confira a senha atual e tente novamente.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.newPasswordMustDiffer]: {
+    title: 'Escolha uma nova senha',
+    description: 'A nova senha precisa ser diferente da senha atual.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.passwordChangeEmailProviderRequired]: {
+    title: 'Método por email não disponível',
+    description:
+      'Vincule email e senha à sua conta antes de tentar alterar a senha.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.passwordChangeBlocked]: {
+    title: 'Alteração de senha bloqueada temporariamente',
+    description:
+      'Por segurança, aguarde o prazo informado antes de tentar novamente.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.passwordChangeCooldownActive]: {
+    title: 'Aguarde antes de alterar novamente',
+    description:
+      'Sua senha foi alterada recentemente. Tente novamente após o prazo de segurança.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.passwordChangeDailyLimitExceeded]: {
+    title: 'Limite diário atingido',
+    description:
+      'O limite de alterações de senha foi atingido. Aguarde o prazo informado.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.passwordChangeOperationPending]: {
+    title: 'Alteração de senha em andamento',
+    description:
+      'Outra alteração ainda está sendo processada. Aguarde antes de tentar novamente.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.passwordChangeCostLimited]: {
+    title: 'Aguarde para tentar novamente',
+    description:
+      'Esta proteção de segurança está temporariamente ativa. Tente novamente após o prazo informado.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.passwordChangeStateUnavailable]: {
+    title: 'Serviço indisponível no momento',
+    description:
+      'Não foi possível verificar o estado da alteração. Seus dados continuam nesta tela.',
+    recovery: 'retry',
+  },
   [API_ERROR_CODES.invalidUsernameFormat]: {
     title: 'Nome de usuário inválido',
     description: 'Revise o nome de usuário e tente novamente.',
@@ -92,8 +151,7 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
   },
   [API_ERROR_CODES.invalidAvatarImage]: {
     title: 'Não foi possível ler esta imagem',
-    description:
-      'Escolha outra foto em JPEG, PNG ou WebP e tente novamente.',
+    description: 'Escolha outra foto em JPEG, PNG ou WebP e tente novamente.',
     recovery: 'correct-fields',
   },
   [API_ERROR_CODES.unsupportedAvatarFile]: {
@@ -164,12 +222,29 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     description: 'Ela pode ter sido removida ou não estar mais disponível.',
     recovery: 'retry',
   },
+  [API_ERROR_CODES.accountTemplateNotFound]: {
+    title: 'Instituição não disponível',
+    description:
+      'Ela pode ter saído do catálogo. Volte, atualize as opções e escolha outra instituição.',
+    recovery: 'choose-target',
+  },
+  [API_ERROR_CODES.accountTemplateInputConflict]: {
+    title: 'Não foi possível usar esta identidade',
+    description:
+      'Seus dados foram preservados. Volte à escolha da conta e tente novamente.',
+    recovery: 'choose-target',
+  },
   [API_ERROR_CODES.accountUpdateEmpty]: {
     title: 'Nenhuma alteração para salvar',
     description: 'Altere pelo menos um campo da conta antes de salvar.',
     recovery: 'correct-fields',
   },
   [API_ERROR_CODES.invalidAccount]: invalidAccount(),
+  [API_ERROR_CODES.invalidAccountTemplate]: {
+    title: 'Identidade da conta inválida',
+    description: 'Escolha outra instituição, cor ou ícone para continuar.',
+    recovery: 'correct-fields',
+  },
   [API_ERROR_CODES.invalidAccountName]: invalidAccount(),
   [API_ERROR_CODES.categoryHasTransactions]: {
     title: 'Esta categoria possui lançamentos',
@@ -299,6 +374,12 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     description: 'Tente novamente ou mantenha seu método de acesso atual.',
     recovery: 'retry',
   },
+  'auth.password.change': {
+    title: 'Não foi possível alterar a senha',
+    description:
+      'Seus dados continuam nesta tela. Revise as senhas e tente novamente.',
+    recovery: 'retry',
+  },
   'auth.sessions.list': loadFailure('as sessões'),
   'auth.sessions.revoke': {
     title: 'Não foi possível encerrar a sessão',
@@ -330,6 +411,7 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     recovery: 'correct-fields',
   },
   'accounts.list': loadFailure('suas contas'),
+  'accounts.templates': loadFailure('as instituições disponíveis'),
   'accounts.summary': loadFailure('o resumo de saldos'),
   'accounts.create': saveFailure('criar a conta'),
   'accounts.update': saveFailure('salvar as alterações da conta'),
@@ -364,6 +446,7 @@ export const resolveApiError = (
   const code = getApiErrorCode(error)
   const fieldErrors = parseApiFieldErrors(platformError)
   const isNetworkError = isApiNetworkError(error)
+  const retryAfterSeconds = parseRetryAfterSeconds(error)
 
   const copy = resolveCopy(code, statusCode, context, isNetworkError)
 
@@ -372,6 +455,7 @@ export const resolveApiError = (
     statusCode,
     fieldErrors,
     isNetworkError,
+    retryAfterSeconds,
     ...copy,
   }
 }

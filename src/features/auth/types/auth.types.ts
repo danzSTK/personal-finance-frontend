@@ -53,6 +53,33 @@ export interface LinkEmailDto {
   password: string;
 }
 
+export interface ChangePasswordDto {
+  currentPassword: string;
+  newPassword: string;
+}
+
+export interface ChangePasswordResponse {
+  object: 'auth.password_change';
+  status: 'CHANGED';
+}
+
+export interface PasswordChangeStatusResponse {
+  object: 'auth.password_change_status';
+  status: boolean;
+}
+
+export type PasswordChangeAvailability =
+  | {
+      status: true;
+      retryAfterSeconds: null;
+      retryAtMs: null;
+    }
+  | {
+      status: false;
+      retryAfterSeconds: number | null;
+      retryAtMs: number | null;
+    };
+
 export interface UpdateProfileDto {
   firstName?: string | null;
   lastName?: string | null;
@@ -89,3 +116,64 @@ export interface EmailVerificationResendResponse {
   object: 'email_verification.resend';
   status: 'QUEUED' | 'ALREADY_VERIFIED';
 }
+
+export type EmailVerificationResendBlockedReason =
+  | 'COOLDOWN'
+  | 'DAILY_LIMIT'
+  | 'OPERATION_PENDING';
+
+export type EmailVerificationResendStatusResponse =
+  | {
+      object: 'email_verification.resend_status.available';
+      status: 'AVAILABLE';
+      available: true;
+      manualResendsUsed: number;
+      manualResendsRemaining: number;
+      manualResendLimit: number;
+      windowSeconds: number;
+      lastLogicalSendAt: string | null;
+    }
+  | {
+      object: 'email_verification.resend_status.blocked';
+      status: 'BLOCKED';
+      available: false;
+      blockedBy?: EmailVerificationResendBlockedReason | string;
+      retryAfterSeconds?: number;
+      manualResendsUsed?: number;
+      manualResendsRemaining?: number;
+      manualResendLimit?: number;
+      windowSeconds?: number;
+      lastLogicalSendAt?: string | null;
+    }
+  | {
+      object: 'email_verification.resend_status.already_verified';
+      status: 'ALREADY_VERIFIED';
+      available: false;
+    };
+
+export type EmailVerificationResendAvailability =
+  | {
+      status: 'AVAILABLE';
+      available: true;
+      retryAfterSeconds: null;
+      retryAtMs: null;
+      manualResendsUsed: number;
+      manualResendsRemaining: number;
+      manualResendLimit: number;
+    }
+  | {
+      status: 'BLOCKED';
+      available: false;
+      blockedBy: EmailVerificationResendBlockedReason | string | null;
+      retryAfterSeconds: number | null;
+      retryAtMs: number | null;
+      manualResendsUsed: number | null;
+      manualResendsRemaining: number | null;
+      manualResendLimit: number | null;
+    }
+  | {
+      status: 'ALREADY_VERIFIED';
+      available: false;
+      retryAfterSeconds: null;
+      retryAtMs: null;
+    };

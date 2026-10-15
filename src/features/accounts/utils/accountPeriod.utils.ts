@@ -58,15 +58,17 @@ export const compareYearMonth = (
 export const formatAccountMonthLabel = (value: AccountYearMonth): string =>
   ACCOUNT_MONTH_LABELS[value.month - 1] ?? ''
 
-export const formatAccountMonthYearLabel = (
-  value: AccountYearMonth
-): string => `${formatAccountMonthLabel(value)} de ${value.year}`
+export const formatAccountMonthYearLabel = (value: AccountYearMonth): string =>
+  `${formatAccountMonthLabel(value)} de ${value.year}`
 
 export const getMonthEndDateOnly = (value: AccountYearMonth): string => {
   const lastDay = getDaysInMonth(value.year, value.month)
 
   return `${value.year}-${pad2(value.month)}-${pad2(lastDay)}`
 }
+
+export const getMonthStartDateOnly = (value: AccountYearMonth): string =>
+  `${value.year}-${pad2(value.month)}-01`
 
 const getDaysInMonth = (year: number, month: number): number => {
   if (month === 2) {

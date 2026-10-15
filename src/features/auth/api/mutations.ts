@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from './auth.api'
+import { api } from './auth.api'
 import type {
+  ChangePasswordDto,
   LinkEmailDto,
   EmailVerificationConfirmDto,
   EmailVerificationConfirmResponse,
@@ -13,9 +14,13 @@ import type {
   UpdateUserAvatarResponse,
   User,
 } from '../types'
+import { parseChangePasswordResponse } from '../utils/changePassword'
 import { useAuthStore } from '../stores/auth.store'
 import { toast } from '@/shared/hooks/use-toast'
-import { AUTH_API_ENDPOINTS, AUTH_QUERY_KEYS } from '../constants/auth.constants'
+import {
+  AUTH_API_ENDPOINTS,
+  AUTH_QUERY_KEYS,
+} from '../constants/auth.constants'
 
 export const useSignUp = () => {
   const setAuth = useAuthStore((state) => state.setAuth)
@@ -102,6 +107,9 @@ export const useResendEmailVerification = () => {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEYS.user })
+      void queryClient.invalidateQueries({
+        queryKey: AUTH_QUERY_KEYS.emailVerificationResendStatus,
+      })
     },
   })
 }
@@ -138,6 +146,24 @@ export const useLinkEmail = () => {
     },
   })
 }
+
+export const useChangePassword = () =>
+  useMutation({
+    mutationFn: async (dto: ChangePasswordDto) => {
+      const { data } = await api.post<unknown>(
+        AUTH_API_ENDPOINTS.passwordChange,
+        dto
+      )
+      const response = parseChangePasswordResponse(data)
+
+      if (!response) {
+        throw new Error('Invalid change password response')
+      }
+
+      return response
+    },
+    retry: false,
+  })
 
 export const useUpdateProfile = () => {
   const queryClient = useQueryClient()

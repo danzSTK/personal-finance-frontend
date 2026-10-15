@@ -1,23 +1,27 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useForm } from 'react-hook-form'
-import { Check, Ellipsis } from 'lucide-react'
-import { useCategoryMetadata } from '@/features/categories/api/queries'
-import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
-import { cn } from '@/shared/lib/utils'
-import { formatCurrencyFromCents } from '@/shared/utils/formatters'
-import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
-import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
+import { ChevronLeft, Landmark } from 'lucide-react'
+import { Controller, useForm } from 'react-hook-form'
+import { useCreateAccount, useUpdateAccount } from '../../api/mutations'
+import { ACCOUNT_COLOR_OPTIONS } from '../../constants/account.constants'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/shared/components/ui/dropdown-menu'
+  accountFormSchema,
+  type AccountFormValues,
+} from '../../schemas/account.schema'
+import type { AccountSheetState } from '../../types/account-ui.types'
+import type {
+  Account,
+  AccountTemplate,
+  CreateAccountDto,
+  UpdateAccountDto,
+} from '../../types/account.types'
+import {
+  getAccountColorToken,
+  getAccountIconOption,
+  getAccountTypeLabel,
+} from '../../utils/account.utils'
+import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import {
   Sheet,
   SheetContent,
@@ -26,561 +30,462 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
-import { useCreateAccount, useUpdateAccount } from '../../api/mutations'
-import {
-  ACCOUNT_COLOR_OPTIONS,
-  mergeAccountColorMetadata,
-  mergeAccountIconMetadata,
-} from '../../constants/account.constants'
-import {
-  type AccountFormValues,
-  type CreateAccountFormValues,
-  createAccountSchema,
-  updateAccountSchema,
-} from '../../schemas/account.schema'
-import type {
-  AccountType,
-  CreateAccountDto,
-  UpdateAccountDto,
-} from '../../types/account.types'
-import type { AccountSheetState } from '../../types/account-ui.types'
-import {
-  getAccountColorOption,
-  getAccountIconOption,
-} from '../../utils/account.utils'
+import { Switch } from '@/shared/components/ui/switch'
+import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
+import { useIsMobile } from '@/shared/hooks/use-mobile'
+import { Button } from '@/shared/lib/button'
+import { Input } from '@/shared/lib/input'
+import { cn } from '@/shared/lib/utils'
+import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import { AccountFormField } from '../molecules/AccountFormField'
+import { AccountFormIdentityHeader } from '../molecules/AccountFormIdentityHeader'
+import { AccountTemplatePicker } from './AccountTemplatePicker'
+import { CustomAccountIdentityFields } from './CustomAccountIdentityFields'
 
 interface AccountFormSheetProps {
   state: AccountSheetState
   onOpenChange: (isOpen: boolean) => void
 }
 
-const accountInputClassName =
-  'h-11 rounded-xl border-border bg-secondary text-foreground placeholder:text-muted-foreground focus-visible:ring-ring focus-visible:ring-offset-secondary'
-
-const VISIBLE_METADATA_OPTIONS = 5
-const MOBILE_SHEET_QUERY = '(max-width: 639px)'
+type AccountFormStep = 'picker' | 'form'
 
 export function AccountFormSheet({
   state,
   onOpenChange,
 }: AccountFormSheetProps) {
-  const createAccountMutation = useCreateAccount()
-  const updateAccountMutation = useUpdateAccount()
-  const { data: visualMetadata } = useCategoryMetadata()
-  const isOpen = state !== null
-  const isEditing = state?.mode === 'edit'
+  const isMobile = useIsMobile()
+  const createMutation = useCreateAccount()
+  const updateMutation = useUpdateAccount()
+  const [step, setStep] = useState<AccountFormStep>('picker')
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<AccountTemplate | null>(null)
+  const pickerTitleRef = useRef<HTMLHeadingElement>(null)
+  const formTitleRef = useRef<HTMLHeadingElement>(null)
   const editingAccount = state?.mode === 'edit' ? state.account : null
-  const isCashAccount = editingAccount?.type === 'CASH'
-  const isPending =
-    createAccountMutation.isPending || updateAccountMutation.isPending
-  const mutationError = isEditing
-    ? updateAccountMutation.error
-    : createAccountMutation.error
-  const errorPresentation = useMemo(
-    () =>
-      mutationError
-        ? resolveApiError(
-            mutationError,
-            isEditing ? 'accounts.update' : 'accounts.create'
-          )
-        : null,
-    [isEditing, mutationError]
-  )
+  const isEditing = editingAccount !== null
+  const isInstitutional =
+    selectedTemplate?.type === 'INSTITUTIONAL' ||
+    editingAccount?.template?.type === 'INSTITUTIONAL'
 
   const form = useForm<AccountFormValues>({
-    resolver: zodResolver(
-      isEditing ? updateAccountSchema : createAccountSchema
-    ),
+    resolver: zodResolver(accountFormSchema),
+    mode: 'onChange',
     defaultValues: getAccountFormDefaults(state),
   })
-  const resetAccountForm = form.reset
-  const resetCreateAccount = createAccountMutation.reset
-  const resetUpdateAccount = updateAccountMutation.reset
-  const [isMobileSheet, setIsMobileSheet] = useState(() =>
-    typeof window === 'undefined'
-      ? false
-      : window.matchMedia(MOBILE_SHEET_QUERY).matches
-  )
+  const resetForm = form.reset
+  const resetCreateMutation = createMutation.reset
+  const resetUpdateMutation = updateMutation.reset
 
   useEffect(() => {
-    const mediaQuery = window.matchMedia(MOBILE_SHEET_QUERY)
-    const handleChange = () => setIsMobileSheet(mediaQuery.matches)
+    if (!state) return
 
-    handleChange()
-    mediaQuery.addEventListener('change', handleChange)
+    const accountTemplate =
+      state.mode === 'edit' && state.account.template?.type === 'INSTITUTIONAL'
+        ? state.account.template
+        : null
 
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
-  useEffect(() => {
-    if (!state) {
-      return
-    }
-
-    const defaults = getAccountFormDefaults(state)
-    resetCreateAccount()
-    resetUpdateAccount()
-    resetAccountForm(defaults)
-  }, [resetAccountForm, resetCreateAccount, resetUpdateAccount, state])
+    setSelectedTemplate(accountTemplate)
+    setStep(state.mode === 'create' ? 'picker' : 'form')
+    resetForm(getAccountFormDefaults(state))
+    resetCreateMutation()
+    resetUpdateMutation()
+  }, [state, resetCreateMutation, resetForm, resetUpdateMutation])
 
   useEffect(() => {
-    if (!errorPresentation) return
+    const target =
+      step === 'picker' ? pickerTitleRef.current : formTitleRef.current
+    target?.focus()
+  }, [step])
+
+  const mutation = isEditing ? updateMutation : createMutation
+  const errorPresentation = mutation.error
+    ? resolveApiError(
+        mutation.error,
+        isEditing ? 'accounts.update' : 'accounts.create'
+      )
+    : null
+
+  const handleInstitutionalSelect = (template: AccountTemplate) => {
+    setSelectedTemplate(template)
+    form.reset({
+      creationKind: 'institutional',
+      name: template.name,
+      type: 'BANK',
+      initialBalanceCents: undefined,
+      templateId: template.id,
+      colorToken: null,
+      iconKey: null,
+      includeInTotal: true,
+      isDefault: false,
+    })
+    setStep('form')
+  }
+
+  const handleCustomSelect = () => {
+    setSelectedTemplate(null)
+    form.reset(getCreateCustomDefaults())
+    setStep('form')
+  }
+
+  const handleBack = () => {
+    createMutation.reset()
+    setStep('picker')
+  }
+
+  const applyFieldErrors = (error: unknown) => {
+    const presentation = resolveApiError(
+      error,
+      isEditing ? 'accounts.update' : 'accounts.create'
+    )
 
     applyApiFieldErrors<AccountFormValues>({
-      fieldErrors: errorPresentation.fieldErrors,
+      fieldErrors: presentation.fieldErrors,
       fieldMap: {
         name: 'name',
         type: 'type',
         initialBalanceCents: 'initialBalanceCents',
-        color: 'color',
-        icon: 'icon',
+        templateId: 'templateId',
+        'template.templateId': 'templateId',
+        colorToken: 'colorToken',
+        'template.colorToken': 'colorToken',
+        iconKey: 'iconKey',
+        'template.iconKey': 'iconKey',
         includeInTotal: 'includeInTotal',
         isDefault: 'isDefault',
       },
       setError: form.setError,
       setFocus: form.setFocus,
     })
-  }, [errorPresentation, form.setError, form.setFocus])
+  }
 
-  const selectedColor = form.watch('color')
-  const selectedIcon = form.watch('icon')
-  const selectedType = form.watch('type')
-  const colorOptions = mergeAccountColorMetadata(visualMetadata?.colors)
-  const iconOptions = mergeAccountIconMetadata(visualMetadata?.icons)
-  const visibleColorOptions = colorOptions.slice(0, VISIBLE_METADATA_OPTIONS)
-  const overflowColorOptions = colorOptions.slice(VISIBLE_METADATA_OPTIONS)
-  const visibleIconOptions = iconOptions.slice(0, VISIBLE_METADATA_OPTIONS)
-  const overflowIconOptions = iconOptions.slice(VISIBLE_METADATA_OPTIONS)
-  const isSelectedColorInOverflow = overflowColorOptions.some(
-    (option) => option.value === selectedColor
-  )
-  const isSelectedIconInOverflow = overflowIconOptions.some(
-    (option) => option.value === selectedIcon
-  )
-
-  const handleSubmit = form.handleSubmit((values) => {
+  const submit = form.handleSubmit((values) => {
     if (state?.mode === 'edit') {
-      const dto: UpdateAccountDto = {
-        name: values.name,
-        color: values.color ?? null,
-        icon: values.icon ?? null,
-        includeInTotal: values.includeInTotal,
-      }
+      const dto = buildUpdateAccountDto(state.account, values)
 
-      if (state.account.type !== 'CASH' && 'type' in values) {
-        dto.type = values.type as AccountType
-      }
+      if (Object.keys(dto).length === 0) return
 
-      updateAccountMutation.mutate(
+      updateMutation.mutate(
         { accountId: state.account.id, dto },
-        { onSuccess: () => onOpenChange(false) }
+        {
+          onSuccess: () => onOpenChange(false),
+          onError: applyFieldErrors,
+        }
       )
       return
     }
 
-    const createValues = values as CreateAccountFormValues
     const dto: CreateAccountDto = {
-      name: createValues.name,
+      name: values.name.trim(),
       type: 'BANK',
-      initialBalanceCents: createValues.initialBalanceCents ?? 0,
-      color: createValues.color ?? null,
-      icon: createValues.icon ?? null,
-      includeInTotal: createValues.includeInTotal,
-      isDefault: createValues.isDefault,
+      initialBalanceCents: values.initialBalanceCents,
+      template:
+        values.creationKind === 'institutional'
+          ? { type: 'institutional', templateId: values.templateId ?? '' }
+          : {
+              type: 'custom',
+              colorToken: values.colorToken ?? null,
+              iconKey: values.iconKey ?? null,
+            },
+      includeInTotal: values.includeInTotal,
+      isDefault: false,
     }
 
-    createAccountMutation.mutate(dto, { onSuccess: () => onOpenChange(false) })
+    createMutation.mutate(dto, {
+      onSuccess: () => onOpenChange(false),
+      onError: applyFieldErrors,
+    })
   })
 
-  const setColor = (value: string) =>
-    form.setValue('color', value, {
-      shouldDirty: true,
-      shouldValidate: true,
-    })
+  const formTitle = isEditing
+    ? isInstitutional
+      ? 'Editar conta'
+      : 'Conta personalizada'
+    : isInstitutional
+      ? 'Nova conta'
+      : 'Conta personalizada'
 
-  const setIcon = (value: string) =>
-    form.setValue('icon', value, {
-      shouldDirty: true,
-      shouldValidate: true,
-    })
+  const showCreatePicker = state?.mode === 'create'
+  const showForm = state?.mode === 'edit' || step === 'form'
 
   return (
-    <Sheet open={isOpen} onOpenChange={onOpenChange}>
+    <Sheet open={state !== null} onOpenChange={onOpenChange}>
       <SheetContent
-        side={isMobileSheet ? 'bottom' : 'right'}
+        side={isMobile ? 'bottom' : 'right'}
         className={cn(
-          'w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl',
-          isMobileSheet &&
-            'max-h-[90vh] rounded-t-3xl pb-[max(env(safe-area-inset-bottom),1rem)]'
+          'flex overflow-hidden border-app-border bg-app-surface p-0 text-app-text',
+          isMobile ? 'h-[92dvh] rounded-t-3xl' : 'h-full w-full sm:max-w-lg'
         )}
       >
-        <SheetHeader className="pr-8 text-left">
-          <SheetTitle className="text-foreground">
-            {isEditing ? 'Editar conta' : 'Nova conta'}
-          </SheetTitle>
-          <SheetDescription className="text-muted-foreground">
-            {isEditing
-              ? 'Atualize como esta conta aparece e se ela entra no saldo total.'
-              : 'Cadastre uma origem para movimentações, saldos e relatórios.'}
-          </SheetDescription>
-        </SheetHeader>
-
-        <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate>
-          <AccountFormField
-            label="Nome"
-            error={form.formState.errors.name?.message}
-          >
-            <Input
-              className={accountInputClassName}
-              placeholder="Ex.: Nubank, Reserva, Banco principal"
-              {...form.register('name')}
-            />
-          </AccountFormField>
-
-          <AccountFormField
-            label="Tipo"
-            error={form.formState.errors.type?.message}
-          >
-            {isCashAccount ? (
-              <div className="rounded-2xl border border-border bg-secondary p-4">
-                <p className="text-sm font-semibold text-foreground">Carteira</p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Você pode ajustar nome, cor e ícone dessa conta inicial.
-                </p>
-              </div>
-            ) : (
-              <div className="rounded-2xl border border-border bg-secondary p-4">
-                <p className="text-sm font-semibold text-foreground">
-                  Conta bancária
-                </p>
-                <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                  Use para conta corrente, poupança ou conta digital.
-                </p>
-              </div>
-            )}
-          </AccountFormField>
-
-          <input
-            type="hidden"
-            value={selectedType}
-            {...form.register('type')}
-          />
-
-          {!isEditing ? (
-            <AccountFormField
-              label="Saldo inicial"
-              error={
-                'initialBalanceCents' in form.formState.errors
-                  ? form.formState.errors.initialBalanceCents?.message
-                  : undefined
-              }
+        <div className="relative min-h-0 flex-1 overflow-hidden">
+          {showCreatePicker ? (
+            <section
+              className={cn(
+                'absolute inset-0 flex min-h-0 flex-col gap-5 px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-5 transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none sm:px-6 sm:pb-6 sm:pt-6',
+                step === 'picker'
+                  ? 'translate-x-0 opacity-100'
+                  : 'pointer-events-none -translate-x-8 opacity-0'
+              )}
+              aria-hidden={step !== 'picker'}
             >
-              <CurrencyInput
-                className={cn(accountInputClassName, 'numeric text-base')}
-                valueCents={
-                  'initialBalanceCents' in form.getValues()
-                    ? form.watch('initialBalanceCents')
-                    : undefined
-                }
-                onValueCentsChange={(value) =>
-                  form.setValue('initialBalanceCents', value, {
-                    shouldDirty: true,
-                    shouldValidate: true,
-                  })
-                }
-                aria-label="Saldo inicial"
-                aria-invalid={Boolean(
-                  'initialBalanceCents' in form.formState.errors &&
-                    form.formState.errors.initialBalanceCents
-                )}
+              <SheetHeader className="shrink-0 pr-9 text-left">
+                <SheetTitle ref={pickerTitleRef} tabIndex={-1}>
+                  Escolha como criar
+                </SheetTitle>
+                <SheetDescription className="text-app-muted">
+                  Use a identidade de uma instituição ou personalize sua conta.
+                </SheetDescription>
+              </SheetHeader>
+
+              <AccountTemplatePicker
+                enabled={state?.mode === 'create'}
+                onSelect={handleInstitutionalSelect}
+                onSelectCustom={handleCustomSelect}
               />
-              <p className="text-xs leading-5 text-muted-foreground">
-                Informe o valor que essa conta já tem hoje. Deixe em branco se
-                quiser começar do zero.
-              </p>
-            </AccountFormField>
-          ) : (
-            <div className="rounded-2xl border border-border bg-secondary p-4">
-              <p className="text-xs font-medium uppercase text-muted-foreground">
-                Saldo inicial
-              </p>
-              <p className="numeric mt-1 text-sm font-semibold text-foreground">
-                {editingAccount
-                  ? formatCurrencyFromCents(editingAccount.initialBalanceCents)
-                  : '-'}
-              </p>
-              <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                Para corrigir esse valor depois, use o reajuste de saldo.
-              </p>
-            </div>
-          )}
-
-          <AccountFormField label="Cor">
-            <div className="grid grid-cols-6 gap-2">
-              {visibleColorOptions.map((option) => {
-                const isSelected = selectedColor === option.value
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={cn(
-                      'flex h-12 items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
-                      isSelected
-                        ? 'border-primary bg-primary/15'
-                        : 'border-border bg-secondary hover:border-primary/60 hover:bg-accent'
-                    )}
-                    onClick={() => setColor(option.value)}
-                    aria-label={`Cor ${option.label}`}
-                    aria-pressed={isSelected}
-                    title={option.label}
-                  >
-                    <span
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-full"
-                      style={{ backgroundColor: option.hex }}
-                      aria-hidden
-                    >
-                      {isSelected ? (
-                        <Check className="h-3.5 w-3.5 text-foreground" />
-                      ) : null}
-                    </span>
-                  </button>
-                )
-              })}
-
-              {overflowColorOptions.length > 0 ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="icon"
-                      className={cn(
-                        'h-12 w-full rounded-2xl border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
-                        isSelectedColorInOverflow &&
-                          'border-primary bg-primary/15 text-foreground'
-                      )}
-                      aria-label="Mais cores"
-                      title="Mais cores"
-                    >
-                      <Ellipsis className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-64 rounded-2xl border-border bg-card p-2 text-foreground"
-                  >
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      Outras cores
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-border" />
-                    <div className="grid grid-cols-2 gap-1">
-                      {overflowColorOptions.map((option) => {
-                        const isSelected = selectedColor === option.value
-
-                        return (
-                          <DropdownMenuItem
-                            key={option.value}
-                            className="rounded-xl focus:bg-accent focus:text-foreground"
-                            onSelect={() => setColor(option.value)}
-                            title={option.label}
-                          >
-                            <span
-                              className="h-4 w-4 rounded-full"
-                              style={{ backgroundColor: option.hex }}
-                              aria-hidden
-                            />
-                            <span className="min-w-0 truncate">
-                              {option.label}
-                            </span>
-                            {isSelected ? (
-                              <Check className="ml-auto h-3.5 w-3.5" />
-                            ) : null}
-                          </DropdownMenuItem>
-                        )
-                      })}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-            </div>
-          </AccountFormField>
-
-          <AccountFormField label="Ícone">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
-              {visibleIconOptions.map((option) => {
-                const Icon = option.icon
-                const isSelected = selectedIcon === option.value
-
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    className={cn(
-                      'flex min-h-11 items-center gap-2 rounded-2xl border px-3 py-2 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
-                      isSelected
-                        ? 'border-primary bg-primary/15 text-foreground'
-                        : 'border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground'
-                    )}
-                    onClick={() => setIcon(option.value)}
-                    aria-pressed={isSelected}
-                    title={option.label}
-                  >
-                    <Icon className="h-4 w-4" />
-                    {option.label}
-                  </button>
-                )
-              })}
-
-              {overflowIconOptions.length > 0 ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className={cn(
-                        'flex min-h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 py-2 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
-                        isSelectedIconInOverflow &&
-                          'border-primary bg-primary/15 text-foreground'
-                      )}
-                      aria-label="Mais ícones"
-                      title="Mais ícones"
-                    >
-                      <Ellipsis className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    className="w-72 rounded-2xl border-border bg-card p-2 text-foreground"
-                  >
-                    <DropdownMenuLabel className="text-xs text-muted-foreground">
-                      Outros ícones
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator className="bg-border" />
-                    <div className="grid max-h-72 grid-cols-1 gap-1 overflow-y-auto sm:grid-cols-2">
-                      {overflowIconOptions.map((option) => {
-                        const Icon = option.icon
-                        const isSelected = selectedIcon === option.value
-
-                        return (
-                          <DropdownMenuItem
-                            key={option.value}
-                            className="rounded-xl focus:bg-accent focus:text-foreground"
-                            onSelect={() => setIcon(option.value)}
-                            title={option.label}
-                          >
-                            <Icon className="h-4 w-4" />
-                            <span className="min-w-0 truncate">
-                              {option.label}
-                            </span>
-                            {isSelected ? (
-                              <Check className="ml-auto h-3.5 w-3.5" />
-                            ) : null}
-                          </DropdownMenuItem>
-                        )
-                      })}
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : null}
-            </div>
-          </AccountFormField>
-
-          <div className="space-y-3">
-            <label className="group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-border bg-secondary p-4 transition hover:border-state-income/50 hover:bg-accent has-[:checked]:border-state-income has-[:checked]:bg-state-income/10">
-              <input
-                type="checkbox"
-                className="peer sr-only"
-                {...form.register('includeInTotal')}
-              />
-              <span className="min-w-0">
-                <span className="block text-sm font-medium text-foreground">
-                  Incluir nos totais
-                </span>
-                <span className="block text-xs leading-5 text-muted-foreground">
-                  Considere esta conta no saldo geral e nos relatórios.
-                </span>
-              </span>
-              <span
-                className="relative inline-flex h-7 w-12 shrink-0 rounded-full border border-border bg-card transition after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-muted-foreground after:transition peer-checked:border-state-income peer-checked:bg-state-income peer-checked:after:translate-x-5 peer-checked:after:bg-foreground"
-                aria-hidden
-              />
-            </label>
-
-            {!isEditing ? (
-              <label className="group flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-border bg-secondary p-4 transition hover:border-state-info/50 hover:bg-accent has-[:checked]:border-state-info has-[:checked]:bg-state-info/10">
-                <input
-                  type="checkbox"
-                  className="peer sr-only"
-                  {...form.register('isDefault')}
-                />
-                <span className="min-w-0">
-                  <span className="block text-sm font-medium text-foreground">
-                    Tornar padrão
-                  </span>
-                  <span className="block text-xs leading-5 text-muted-foreground">
-                    Use esta conta como primeira opção em novos lançamentos.
-                  </span>
-                </span>
-                <span
-                  className="relative inline-flex h-7 w-12 shrink-0 rounded-full border border-border bg-card transition after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-muted-foreground after:transition peer-checked:border-state-info peer-checked:bg-state-info peer-checked:after:translate-x-5 peer-checked:after:bg-foreground"
-                  aria-hidden
-                />
-              </label>
-            ) : null}
-          </div>
-
-          {errorPresentation ? (
-            <ApiErrorAlert error={errorPresentation} />
+            </section>
           ) : null}
 
-          <SheetFooter className="gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
-              onClick={() => onOpenChange(false)}
+          <section
+            className={cn(
+              'absolute inset-0 flex min-h-0 flex-col px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-5 transition duration-200 ease-out motion-reduce:transform-none motion-reduce:transition-none sm:px-6 sm:pb-6 sm:pt-6',
+              showForm
+                ? 'translate-x-0 opacity-100'
+                : 'pointer-events-none translate-x-8 opacity-0'
+            )}
+            aria-hidden={!showForm}
+          >
+            <SheetHeader className="shrink-0 pr-9 text-left">
+              <div className="flex items-center gap-2">
+                {!isEditing ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 shrink-0 rounded-full text-app-muted hover:bg-app-elevated hover:text-app-text"
+                    onClick={handleBack}
+                    aria-label="Voltar para escolha de conta"
+                  >
+                    <ChevronLeft className="h-5 w-5" />
+                  </Button>
+                ) : null}
+                <div className="min-w-0">
+                  <SheetTitle ref={formTitleRef} tabIndex={-1}>
+                    {formTitle}
+                  </SheetTitle>
+                  <SheetDescription className="sr-only">
+                    {isEditing
+                      ? 'Atualize os dados desta conta.'
+                      : 'Informe os dados para criar sua conta.'}
+                  </SheetDescription>
+                </div>
+              </div>
+            </SheetHeader>
+
+            <form
+              className="mt-5 flex min-h-0 flex-1 flex-col"
+              onSubmit={submit}
             >
-              Cancelar
-            </Button>
-            <Button
-              type="submit"
-              className="h-10 rounded-xl bg-primary px-4 text-primary-foreground hover:bg-primary/90"
-              disabled={isPending}
-            >
-              {isPending ? 'Salvando...' : 'Salvar conta'}
-            </Button>
-          </SheetFooter>
-        </form>
+              <div className="-mx-1 min-h-0 flex-1 space-y-5 overflow-y-auto overscroll-contain px-1 pb-1">
+                <AccountFormIdentityHeader
+                  account={editingAccount}
+                  template={selectedTemplate}
+                  isInstitutional={isInstitutional}
+                />
+
+                <AccountFormField
+                  label="Nome"
+                  htmlFor="account-name"
+                  error={form.formState.errors.name?.message}
+                >
+                  <Input
+                    id="account-name"
+                    autoComplete="off"
+                    placeholder="Minha conta"
+                    className="h-12 rounded-xl border-app-border bg-app-panel text-app-text placeholder:text-app-muted"
+                    aria-invalid={Boolean(form.formState.errors.name)}
+                    {...form.register('name')}
+                  />
+                </AccountFormField>
+
+                <AccountFormField label="Tipo">
+                  <div className="flex min-h-12 items-center gap-3 rounded-xl border border-app-border bg-app-panel px-3 text-sm text-app-text">
+                    <Landmark className="h-4 w-4 text-app-muted" />
+                    {getAccountTypeLabel(form.watch('type'))}
+                  </div>
+                </AccountFormField>
+
+                {isEditing && editingAccount ? (
+                  <AccountFormField label="Saldo inicial">
+                    <div className="numeric flex min-h-12 items-center rounded-xl border border-app-border bg-app-panel px-3 text-sm text-app-muted">
+                      {formatCurrencyFromCents(
+                        editingAccount.initialBalanceCents
+                      )}
+                    </div>
+                  </AccountFormField>
+                ) : (
+                  <AccountFormField
+                    label="Saldo inicial"
+                    htmlFor="account-initial-balance"
+                    error={form.formState.errors.initialBalanceCents?.message}
+                  >
+                    <Controller
+                      name="initialBalanceCents"
+                      control={form.control}
+                      render={({ field }) => (
+                        <CurrencyInput
+                          id="account-initial-balance"
+                          valueCents={field.value}
+                          onValueCentsChange={field.onChange}
+                          onBlur={field.onBlur}
+                          ref={field.ref}
+                          className="h-12 rounded-xl border-app-border bg-app-panel text-app-text placeholder:text-app-muted"
+                          aria-invalid={Boolean(
+                            form.formState.errors.initialBalanceCents
+                          )}
+                        />
+                      )}
+                    />
+                  </AccountFormField>
+                )}
+
+                {!isInstitutional ? (
+                  <CustomAccountIdentityFields form={form} />
+                ) : null}
+
+                <Controller
+                  name="includeInTotal"
+                  control={form.control}
+                  render={({ field }) => (
+                    <div className="flex min-h-20 items-center justify-between gap-4 rounded-2xl border border-app-border bg-app-panel p-4">
+                      <label
+                        htmlFor="account-include-total"
+                        className="min-w-0"
+                      >
+                        <span className="block text-sm font-medium text-app-text">
+                          Incluir nos totais
+                        </span>
+                        <span className="mt-1 block text-xs leading-5 text-app-muted">
+                          Considere esta conta no saldo geral e nos relatórios.
+                        </span>
+                      </label>
+                      <Switch
+                        id="account-include-total"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        aria-label="Incluir esta conta nos totais"
+                      />
+                    </div>
+                  )}
+                />
+
+                {errorPresentation ? (
+                  <ApiErrorAlert error={errorPresentation} />
+                ) : null}
+              </div>
+
+              <SheetFooter className="mt-4 shrink-0 gap-2 border-t border-app-border pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 rounded-xl border-app-border bg-app-panel text-app-text hover:bg-app-elevated hover:text-app-text"
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  className="h-11 rounded-xl bg-brand px-4 text-brand-foreground hover:bg-brand/90"
+                  disabled={
+                    mutation.isPending ||
+                    !form.formState.isValid ||
+                    (isEditing && !form.formState.isDirty)
+                  }
+                >
+                  {mutation.isPending
+                    ? isEditing
+                      ? 'Salvando...'
+                      : 'Criando...'
+                    : isEditing
+                      ? 'Salvar alterações'
+                      : 'Criar conta'}
+                </Button>
+              </SheetFooter>
+            </form>
+          </section>
+        </div>
       </SheetContent>
     </Sheet>
   )
 }
 
+const getCreateCustomDefaults = (): AccountFormValues => ({
+  creationKind: 'custom',
+  name: '',
+  type: 'BANK',
+  initialBalanceCents: undefined,
+  templateId: undefined,
+  colorToken: ACCOUNT_COLOR_OPTIONS[0].value,
+  iconKey: 'landmark',
+  includeInTotal: true,
+  isDefault: false,
+})
+
 const getAccountFormDefaults = (
   state: AccountSheetState
 ): AccountFormValues => {
-  if (state?.mode === 'edit') {
-    const colorOption = getAccountColorOption(state.account.color)
-    const iconOption = getAccountIconOption(state.account.icon)
+  if (state?.mode !== 'edit') return getCreateCustomDefaults()
 
-    return {
-      name: state.account.name,
-      type: state.account.type,
-      color: colorOption.value,
-      icon: iconOption?.value ?? 'wallet',
-      includeInTotal: state.account.includeInTotal,
+  const account = state.account
+  const isInstitutional = account.template?.type === 'INSTITUTIONAL'
+  const colorToken = getAccountColorToken(account)
+  const iconKey = account.template?.iconKey ?? account.icon
+
+  return {
+    creationKind: isInstitutional ? 'institutional' : 'custom',
+    name: account.name,
+    type: account.type,
+    initialBalanceCents: undefined,
+    templateId: isInstitutional ? (account.templateId ?? undefined) : undefined,
+    colorToken:
+      ACCOUNT_COLOR_OPTIONS.find((option) => option.value === colorToken)
+        ?.value ?? ACCOUNT_COLOR_OPTIONS[0].value,
+    iconKey: getAccountIconOption(iconKey)?.value ?? 'wallet',
+    includeInTotal: account.includeInTotal,
+    isDefault: account.isDefault,
+  }
+}
+
+const buildUpdateAccountDto = (
+  account: Account,
+  values: AccountFormValues
+): UpdateAccountDto => {
+  const dto: UpdateAccountDto = {}
+  const nextName = values.name.trim()
+
+  if (nextName !== account.name) dto.name = nextName
+  if (values.includeInTotal !== account.includeInTotal) {
+    dto.includeInTotal = values.includeInTotal
+  }
+
+  if (account.template?.type !== 'INSTITUTIONAL') {
+    const currentColor = getAccountColorToken(account)
+    const currentIcon = account.template?.iconKey ?? account.icon
+    const nextColor = values.colorToken ?? null
+    const nextIcon = values.iconKey ?? null
+
+    if (
+      account.template === null ||
+      currentColor !== nextColor ||
+      currentIcon !== nextIcon
+    ) {
+      dto.template = {
+        type: 'custom',
+        colorToken: nextColor,
+        iconKey: nextIcon,
+      }
     }
   }
 
-  return {
-    name: '',
-    type: 'BANK',
-    initialBalanceCents: undefined,
-    color: ACCOUNT_COLOR_OPTIONS[0].value,
-    icon: 'landmark',
-    includeInTotal: true,
-    isDefault: false,
-  }
+  return dto
 }

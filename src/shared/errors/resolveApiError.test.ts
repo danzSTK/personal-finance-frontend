@@ -30,7 +30,10 @@ describe('resolveApiError em transactions', () => {
     API_ERROR_CODES.transactionAlreadyEffective,
   ])('resolve %s com copy segura e recuperação conhecida', (code) => {
     const error = resolveApiError(
-      makeApiError(code, code === API_ERROR_CODES.transactionNotFound ? 404 : 409),
+      makeApiError(
+        code,
+        code === API_ERROR_CODES.transactionNotFound ? 404 : 409
+      ),
       'transactions.confirm'
     )
 
@@ -90,5 +93,34 @@ describe('resolveApiError em transactions', () => {
     expect(unauthorized.recovery).toBe('sign-in')
     expect(server.recovery).toBe('retry')
     expect(server.description).not.toContain('technical')
+  })
+
+  it('resolve EMAIL_VERIFICATION_STATE_UNAVAILABLE de forma segura', () => {
+    const error = resolveApiError(
+      makeApiError(API_ERROR_CODES.emailVerificationStateUnavailable, 503),
+      'auth.email-verification.resend'
+    )
+
+    expect(error.code).toBe(API_ERROR_CODES.emailVerificationStateUnavailable)
+    expect(error.title).toBe('Serviço indisponível no momento')
+    expect(error.recovery).toBe('retry')
+  })
+
+  it.each([
+    API_ERROR_CODES.accountTemplateNotFound,
+    API_ERROR_CODES.accountTemplateInputConflict,
+    API_ERROR_CODES.invalidAccountTemplate,
+  ])('resolve %s sem expor detalhes técnicos', (code) => {
+    const error = resolveApiError(
+      makeApiError(
+        code,
+        code === API_ERROR_CODES.accountTemplateNotFound ? 404 : 400
+      ),
+      'accounts.create'
+    )
+
+    expect(error.title).not.toContain('técnica')
+    expect(error.description).not.toContain('/transactions/')
+    expect(['choose-target', 'correct-fields']).toContain(error.recovery)
   })
 })

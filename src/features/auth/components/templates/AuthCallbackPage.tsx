@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { toast } from '@/shared/hooks/use-toast'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { showApiErrorToast } from '@/shared/errors'
-import api from '../../api/auth.api'
+import { api } from '../../api/auth.api'
 import { useAuthStore } from '../../stores/auth.store'
 import type { OAuthCallbackParams, User } from '../../types'
 import {

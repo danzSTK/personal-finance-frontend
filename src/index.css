@@ -67,6 +67,38 @@
   --color-account-gold: var(--acct-gold);
   --color-account-rose: var(--acct-rose);
 
+  --color-account-slate: var(--account-slate);
+  --color-account-gray: var(--account-gray);
+  --color-account-zinc: var(--account-zinc);
+  --color-account-red: var(--account-red);
+  --color-account-orange: var(--account-orange);
+  --color-account-amber: var(--account-amber);
+  --color-account-yellow: var(--account-yellow);
+  --color-account-lime: var(--account-lime);
+  --color-account-green: var(--account-green);
+  --color-account-emerald: var(--account-emerald);
+  --color-account-teal: var(--account-teal);
+  --color-account-cyan: var(--account-cyan);
+  --color-account-sky: var(--account-sky);
+  --color-account-blue: var(--account-blue);
+  --color-account-indigo: var(--account-indigo);
+  --color-account-violet: var(--account-violet);
+  --color-account-purple: var(--account-purple);
+  --color-account-fuchsia: var(--account-fuchsia);
+  --color-account-pink: var(--account-pink);
+  --color-account-rose-token: var(--account-rose-token);
+
+  --color-account-nubank: var(--account-nubank);
+  --color-account-inter: var(--account-inter);
+  --color-account-itau: var(--account-itau);
+  --color-account-bradesco: var(--account-bradesco);
+  --color-account-santander: var(--account-santander);
+  --color-account-banco-do-brasil: var(--account-banco-do-brasil);
+  --color-account-caixa: var(--account-caixa);
+  --color-account-c6: var(--account-c6);
+  --color-account-picpay: var(--account-picpay);
+  --color-account-mercado-pago: var(--account-mercado-pago);
+
   --color-sidebar: var(--sidebar-background);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -103,6 +135,113 @@
 
 @utility numeric {
   font-variant-numeric: tabular-nums;
+}
+
+@utility account-detail-gradient {
+  background-color: var(--app-surface);
+  background-image: linear-gradient(
+    to top,
+    color-mix(
+        in srgb,
+        var(--account-detail-tone, var(--app-muted)) 24%,
+        var(--app-surface)
+      )
+      0%,
+    var(--app-surface) 72%
+  );
+}
+
+@layer utilities {
+  .account-detail-tone-slate {
+    --account-detail-tone: var(--account-slate);
+  }
+  .account-detail-tone-gray {
+    --account-detail-tone: var(--account-gray);
+  }
+  .account-detail-tone-zinc {
+    --account-detail-tone: var(--account-zinc);
+  }
+  .account-detail-tone-red {
+    --account-detail-tone: var(--account-red);
+  }
+  .account-detail-tone-orange {
+    --account-detail-tone: var(--account-orange);
+  }
+  .account-detail-tone-amber {
+    --account-detail-tone: var(--account-amber);
+  }
+  .account-detail-tone-yellow {
+    --account-detail-tone: var(--account-yellow);
+  }
+  .account-detail-tone-lime {
+    --account-detail-tone: var(--account-lime);
+  }
+  .account-detail-tone-green {
+    --account-detail-tone: var(--account-green);
+  }
+  .account-detail-tone-emerald {
+    --account-detail-tone: var(--account-emerald);
+  }
+  .account-detail-tone-teal {
+    --account-detail-tone: var(--account-teal);
+  }
+  .account-detail-tone-cyan {
+    --account-detail-tone: var(--account-cyan);
+  }
+  .account-detail-tone-sky {
+    --account-detail-tone: var(--account-sky);
+  }
+  .account-detail-tone-blue {
+    --account-detail-tone: var(--account-blue);
+  }
+  .account-detail-tone-indigo {
+    --account-detail-tone: var(--account-indigo);
+  }
+  .account-detail-tone-violet {
+    --account-detail-tone: var(--account-violet);
+  }
+  .account-detail-tone-purple {
+    --account-detail-tone: var(--account-purple);
+  }
+  .account-detail-tone-fuchsia {
+    --account-detail-tone: var(--account-fuchsia);
+  }
+  .account-detail-tone-pink {
+    --account-detail-tone: var(--account-pink);
+  }
+  .account-detail-tone-rose-token {
+    --account-detail-tone: var(--account-rose-token);
+  }
+  .account-detail-tone-nubank {
+    --account-detail-tone: var(--account-nubank);
+  }
+  .account-detail-tone-inter {
+    --account-detail-tone: var(--account-inter);
+  }
+  .account-detail-tone-itau {
+    --account-detail-tone: var(--account-itau);
+  }
+  .account-detail-tone-bradesco {
+    --account-detail-tone: var(--account-bradesco);
+  }
+  .account-detail-tone-santander {
+    --account-detail-tone: var(--account-santander);
+  }
+  .account-detail-tone-banco-do-brasil {
+    --account-detail-tone: var(--account-banco-do-brasil);
+  }
+  .account-detail-tone-caixa {
+    --account-detail-tone: var(--account-caixa);
+  }
+  .account-detail-tone-c6 {
+    --account-detail-tone: var(--account-c6);
+  }
+  .account-detail-tone-picpay {
+    --account-detail-tone: var(--account-picpay);
+  }
+  .account-detail-tone-mercado-pago {
+    --account-detail-tone: var(--account-mercado-pago);
+  }
 }
 
 :root,
@@ -152,6 +291,39 @@
   --acct-mint: hsl(164 62% 56%);
   --acct-gold: hsl(44 90% 58%);
   --acct-rose: hsl(344 82% 68%);
+
+  /* Account template tokens. Values are resolved locally from backend keys. */
+  --account-slate: hsl(215 16% 47%);
+  --account-gray: hsl(220 9% 46%);
+  --account-zinc: hsl(240 5% 46%);
+  --account-red: hsl(0 84% 60%);
+  --account-orange: hsl(25 95% 53%);
+  --account-amber: hsl(38 92% 50%);
+  --account-yellow: hsl(48 96% 53%);
+  --account-lime: hsl(84 81% 44%);
+  --account-green: hsl(142 71% 45%);
+  --account-emerald: hsl(160 84% 39%);
+  --account-teal: hsl(173 80% 40%);
+  --account-cyan: hsl(189 94% 43%);
+  --account-sky: hsl(199 89% 48%);
+  --account-blue: hsl(217 91% 60%);
+  --account-indigo: hsl(239 84% 67%);
+  --account-violet: hsl(258 90% 66%);
+  --account-purple: hsl(271 91% 65%);
+  --account-fuchsia: hsl(292 84% 61%);
+  --account-pink: hsl(330 81% 60%);
+  --account-rose-token: hsl(350 89% 60%);
+
+  --account-nubank: hsl(276 91% 43%);
+  --account-inter: hsl(25 100% 50%);
+  --account-itau: hsl(28 100% 46%);
+  --account-bradesco: hsl(346 91% 42%);
+  --account-santander: hsl(0 100% 46%);
+  --account-banco-do-brasil: hsl(54 97% 51%);
+  --account-caixa: hsl(205 100% 33%);
+  --account-c6: hsl(0 0% 72%);
+  --account-picpay: hsl(145 72% 45%);
+  --account-mercado-pago: hsl(198 100% 45%);
   --sidebar-background: var(--background);
   --sidebar-foreground: var(--foreground);
   --sidebar-primary: var(--primary);

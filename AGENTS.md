@@ -6,7 +6,7 @@ This repository is a React + TypeScript personal finance frontend for account, a
 
 ## Stack
 
-- Vite 5, React 18, TypeScript 5.
+- Vite 8, React 18, TypeScript 5.
 - React Router 6 for routing.
 - TanStack Query for server state.
 - Zustand for focused global client state.
@@ -34,6 +34,15 @@ This repository is a React + TypeScript personal finance frontend for account, a
 - Do not implement feature code until `requirements.md`, `design.md`, and `tasks.md` have been reviewed or explicitly approved by the user.
 - Keep the spec alive during implementation. Stop and update it before continuing whenever a business rule, API/schema contract, cross-module impact, or material design decision changes.
 - A narrowly scoped bug fix or mechanical refactor does not require a full feature spec unless the user requests one or the change reveals a broader product decision.
+
+## Live Feature Documentation
+
+- Follow `.agents/skills/platform-feature-documentation/SKILL.md` whenever creating, updating, reviewing, or reorganizing feature documentation, and whenever an implementation changes a flow, decision, backend operation, dependency, or component responsibility.
+- Keep specs as implementation contracts under `docs/specs/<module>/<feature>/specs/`; keep implemented behavior under `docs/<module>/<feature>/[<subfeature>/]documentacao/`.
+- Every live documentation tree contains `decisions/`, `flow/`, and `components/` directories. Store one cohesive responsibility per Markdown file instead of creating monolithic summary files.
+- Each decision is a separate file under `decisions/` with `Problema`, `Decisão`, and `Consequência`. A contradicting decision must explicitly supersede the previous decision and update the reverse relation.
+- Update live documentation in the same delivery whenever behavior, API consumption, error recovery, state ownership, dependencies, or component composition changes.
+- Mark documents `current` only when confirmed by implemented code or an active backend contract. Keep proposals and historical reconstruction explicit.
 
 ## Atomic Design
 

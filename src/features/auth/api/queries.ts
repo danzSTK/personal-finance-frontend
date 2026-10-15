@@ -1,8 +1,19 @@
 import { useQuery } from '@tanstack/react-query'
-import api from './auth.api'
+import { api } from './auth.api'
 import type { User, Session, UsernameAvailabilityResponse } from '../types'
 import { useAuthStore } from '../stores/auth.store'
-import { AUTH_API_ENDPOINTS, AUTH_QUERY_KEYS } from '../constants/auth.constants'
+import {
+  AUTH_API_ENDPOINTS,
+  AUTH_QUERY_KEYS,
+} from '../constants/auth.constants'
+import {
+  buildPasswordChangeAvailability,
+  parsePasswordChangeStatusResponse,
+} from '../utils/passwordChangeStatus'
+import {
+  buildEmailVerificationResendAvailability,
+  parseEmailVerificationResendStatusResponse,
+} from '../utils/emailVerificationStatus'
 
 export const fetchCurrentUser = async (): Promise<User> => {
   const { data } = await api.get<User>(AUTH_API_ENDPOINTS.me)
@@ -35,10 +46,73 @@ export const useSessions = () => {
   })
 }
 
-export const useUsernameAvailability = (
-  username: string,
-  enabled: boolean
-) => {
+export const usePasswordChangeStatus = (enabled = true) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  return useQuery({
+    queryKey: AUTH_QUERY_KEYS.passwordChangeStatus,
+    queryFn: async () => {
+      const response = await api.get<unknown>(
+        AUTH_API_ENDPOINTS.passwordChangeStatus
+      )
+      const parsed = parsePasswordChangeStatusResponse(response.data)
+
+      if (!parsed) {
+        throw new Error('Invalid password change status response')
+      }
+
+      return buildPasswordChangeAvailability({
+        response: parsed,
+        retryAfterHeader: response.headers['retry-after'],
+      })
+    },
+    enabled: isAuthenticated && enabled,
+    staleTime: 0,
+    retry: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+  })
+}
+
+export const useEmailVerificationResendStatus = (options?: {
+  enabled?: boolean
+  refetchInterval?:
+    | number
+    | false
+    | ((query: { state: { data: unknown } }) => number | false)
+}) => {
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const enabled = options?.enabled ?? true
+
+  return useQuery({
+    queryKey: AUTH_QUERY_KEYS.emailVerificationResendStatus,
+    queryFn: async () => {
+      const response = await api.get<unknown>(
+        AUTH_API_ENDPOINTS.emailVerificationResendStatus
+      )
+      const parsed = parseEmailVerificationResendStatusResponse(response.data)
+
+      if (!parsed) {
+        throw new Error(
+          'Invalid email verification resend status response'
+        )
+      }
+
+      return buildEmailVerificationResendAvailability({
+        response: parsed,
+        retryAfterHeader: response.headers['retry-after'],
+      })
+    },
+    enabled: isAuthenticated && enabled,
+    staleTime: 0,
+    retry: false,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchInterval: options?.refetchInterval,
+  })
+}
+
+export const useUsernameAvailability = (username: string, enabled: boolean) => {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
   return useQuery({
@@ -70,8 +144,7 @@ const parseUsernameAvailabilityResponse = (
   }
 
   const maybeResponse = data as Record<string, unknown>
-  const availabilityValue =
-    maybeResponse.available ?? maybeResponse.isAvailable
+  const availabilityValue = maybeResponse.available ?? maybeResponse.isAvailable
 
   if (typeof availabilityValue !== 'boolean') {
     return null
@@ -79,9 +152,7 @@ const parseUsernameAvailabilityResponse = (
 
   return {
     username:
-      typeof maybeResponse.username === 'string'
-        ? maybeResponse.username
-        : '',
+      typeof maybeResponse.username === 'string' ? maybeResponse.username : '',
     available: availabilityValue,
   }
 }

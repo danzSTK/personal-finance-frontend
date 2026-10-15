@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeft,
   ChevronRight,
@@ -7,8 +8,8 @@ import {
   EllipsisVertical,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
-import { useCategoryMetadata } from '@/features/categories/api/queries'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
+import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
 import { Button } from '@/shared/lib/button'
 import { cn } from '@/shared/lib/utils'
@@ -36,7 +37,6 @@ import {
   useSetDefaultAccount,
   useUnarchiveAccount,
 } from '../../api/mutations'
-import { mergeAccountColorMetadata } from '../../constants/account.constants'
 import type { Account } from '../../types/account.types'
 import type { AccountSheetState } from '../../types/account-ui.types'
 import {
@@ -45,9 +45,12 @@ import {
   getCurrentYearMonth,
   getMonthEndDateOnly,
 } from '../../utils/accountPeriod.utils'
+import {
+  buildAccountPeriodTransactionsUrl,
+  buildAccountTransactionsUrl,
+} from '../../utils/accountTransactions.utils'
 import { AddAccountButton } from '../molecules/AddAccountButton'
 import { AccountSummaryCard } from '../molecules/AccountSummaryCard'
-import { AccountsPeriodPicker } from '../molecules/AccountsPeriodPicker'
 import { CreateAccountCard } from '../molecules/CreateAccountCard'
 import { AccountCard } from '../organisms/AccountCard'
 import { AccountFormSheet } from '../organisms/AccountFormSheet'
@@ -60,16 +63,12 @@ const DEFAULT_ACCOUNT_PROVISION_MAX_ATTEMPTS = 4
 const DEFAULT_ACCOUNT_PROVISION_RETRY_MS = 1800
 
 export function AccountsPage() {
+  const navigate = useNavigate()
   const [includeArchived, setIncludeArchived] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState(getCurrentYearMonth)
   const [sheetState, setSheetState] = useState<AccountSheetState>(null)
   const [archiveTarget, setArchiveTarget] = useState<Account | null>(null)
   const [defaultProvisionAttempts, setDefaultProvisionAttempts] = useState(0)
-  const { data: visualMetadata } = useCategoryMetadata()
-  const accountColorOptions = useMemo(
-    () => mergeAccountColorMetadata(visualMetadata?.colors),
-    [visualMetadata?.colors]
-  )
   const projectedUntil = useMemo(
     () => getMonthEndDateOnly(selectedPeriod),
     [selectedPeriod]
@@ -114,8 +113,7 @@ export function AccountsPage() {
         : accounts.filter((account) => !account.isArchived),
     [accounts, includeArchived]
   )
-  const hasProjectedBalance =
-    typeof accountSummary?.projectedCents === 'number'
+  const hasProjectedBalance = typeof accountSummary?.projectedCents === 'number'
   const hasAccounts = accounts.length > 0
   const hasVisibleAccounts = visibleAccounts.length > 0
   const isWaitingForDefaultProvisioning =
@@ -246,9 +244,10 @@ export function AccountsPage() {
               >
                 <ChevronLeft className="h-5 w-5" />
               </Button>
-              <AccountsPeriodPicker
+              <MonthYearPicker
                 value={selectedPeriod}
                 onChange={setSelectedPeriod}
+                showCalendarIcon={false}
                 triggerClassName="min-w-36"
               />
               <Button
@@ -303,7 +302,6 @@ export function AccountsPage() {
         </section>
 
         <section className="space-y-4" aria-label="Lista de contas">
-
           {isFetching && !isLoading ? (
             <span className="block text-xs font-medium text-muted-foreground">
               Atualizando contas...
@@ -332,8 +330,20 @@ export function AccountsPage() {
                     key={account.id}
                     account={account}
                     isMutating={isMutatingAccount}
+                    selectedPeriod={selectedPeriod}
                     projectedBalanceLabel={projectedAccountLabel}
-                    colorOptions={accountColorOptions}
+                    onViewTransactions={() =>
+                      navigate(buildAccountTransactionsUrl(account.id))
+                    }
+                    onViewPeriodTransactions={(view) =>
+                      navigate(
+                        buildAccountPeriodTransactionsUrl({
+                          accountId: account.id,
+                          period: selectedPeriod,
+                          view,
+                        })
+                      )
+                    }
                     onEdit={() => setSheetState({ mode: 'edit', account })}
                     onArchive={() => setArchiveTarget(account)}
                     onUnarchive={() => unarchiveMutation.mutate(account.id)}

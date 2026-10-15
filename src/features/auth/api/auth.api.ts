@@ -12,7 +12,7 @@ const apiBaseUrl =
   import.meta.env.VITE_API_BASE_URL ||
   DEFAULT_API_BASE_URL
 
-const api = axios.create({
+export const api = axios.create({
   baseURL: apiBaseUrl,
   withCredentials: true,
   headers: {
@@ -120,5 +120,3 @@ api.interceptors.response.use(
     }
   }
 )
-
-export default api

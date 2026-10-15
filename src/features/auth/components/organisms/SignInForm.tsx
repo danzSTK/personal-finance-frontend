@@ -9,7 +9,7 @@ import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 import { FormField } from '../molecules/FormField'
 import { Button } from '../atoms'
 import { useSignIn } from '../../api/mutations'
-import { signInSchema, SignInFormData } from '../../utils/validation'
+import { signInSchema, type SignInFormData } from '../../utils/validation'
 import { AUTH_ROUTES } from '../../constants/auth.constants'
 import { resolvePostAuthRoute } from '../../utils/emailVerification'
 

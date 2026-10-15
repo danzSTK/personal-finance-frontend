@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import api from '@/features/auth/api/auth.api'
+import { api } from '@/features/auth/api/auth.api'
 import { toast } from '@/shared/hooks/use-toast'
 import { showApiErrorToast } from '@/shared/errors'
 import {

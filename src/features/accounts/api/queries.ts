@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import api from '@/features/auth/api/auth.api'
+import { api } from '@/features/auth/api/auth.api'
 import {
   ACCOUNT_API_ENDPOINTS,
   ACCOUNT_QUERY_KEYS,
@@ -7,9 +7,25 @@ import {
 import type {
   Account,
   AccountSummary,
+  AccountTemplate,
   GetAccountSummaryParams,
   ListAccountsParams,
 } from '../types/account.types'
+
+export const useAccountTemplates = ({ enabled = true } = {}) =>
+  useQuery({
+    queryKey: ACCOUNT_QUERY_KEYS.templates,
+    queryFn: async () => {
+      const { data } = await api.get<AccountTemplate[]>(
+        ACCOUNT_API_ENDPOINTS.templates
+      )
+
+      return data
+    },
+    enabled,
+    staleTime: 5 * 60 * 1000,
+    retry: (failureCount) => failureCount < 2,
+  })
 
 export const useAccounts = ({
   includeArchived = false,

@@ -1,11 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import { ArrowLeftRight, Edit3, Paperclip, Trash2 } from 'lucide-react'
+import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
-import {
-  getAccountColorOption,
-  getAccountIcon,
-} from '@/features/accounts/utils/account.utils'
 import {
   getCategoryColorOption,
   getCategoryColorToken,
@@ -286,19 +283,9 @@ function TransactionAccountDetail({
     return <span>{fallback}</span>
   }
 
-  const Icon = getAccountIcon(account)
-  const style: CSSProperties = {
-    backgroundColor: getAccountColorOption(account.color).hex,
-  }
-
   return (
     <span className="inline-flex min-w-0 items-center gap-2">
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-foreground"
-        style={style}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
+      <AccountIdentity account={account} size="sm" />
       <span className="truncate">{account.name}</span>
     </span>
   )
