@@ -21,18 +21,18 @@ export function TransactionKpiCard({
   return (
     <article
       className={cn(
-        'rounded-2xl border border-border bg-card p-4',
+        'rounded-2xl border border-border bg-card p-3.5 sm:p-4',
         className
       )}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">
+      <div className="flex items-start justify-between gap-2 sm:gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-xs font-medium uppercase tracking-normal text-muted-foreground">
             {label}
           </p>
           <p
             className={cn(
-              'mt-2 truncate text-xl font-semibold text-foreground sm:text-2xl',
+              'mt-1.5 truncate text-base font-semibold text-foreground sm:mt-2 sm:text-2xl',
               isNumeric && 'numeric'
             )}
           >
@@ -41,7 +41,7 @@ export function TransactionKpiCard({
         </div>
         <span
           className={cn(
-            'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
+            'inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-xl sm:h-10 sm:w-10',
             toneClassName[tone]
           )}
           aria-hidden
