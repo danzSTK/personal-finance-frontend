@@ -463,7 +463,7 @@ export function TransactionsPage() {
             />
 
             {transactions.length > 0 ? (
-              <>
+              <div className="w-full min-w-0 max-w-full space-y-4">
                 <TransactionsTable
                   transactions={transactions}
                   accounts={accounts}
@@ -491,7 +491,7 @@ export function TransactionsPage() {
                   }}
                   onPageChange={(nextPage) => updateUrlState({ page: nextPage })}
                 />
-              </>
+              </div>
             ) : (
               <TransactionsEmptyState
                 view={view}
@@ -695,7 +695,7 @@ function TransactionsPagination({
   onPageChange,
 }: TransactionsPaginationProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
+    <div className="flex w-full min-w-0 max-w-full flex-col gap-3 rounded-2xl border border-border bg-card p-3 md:flex-row md:items-center md:justify-between">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <span>Linhas por página</span>
         <Select

@@ -169,7 +169,7 @@ export const AuthAppShell = ({
 
   return (
     <div className="dark min-h-screen overflow-x-hidden bg-background text-foreground">
-      <div className="flex min-h-screen">
+      <div className="flex min-h-screen min-w-0 max-w-full">
         <div className="hidden lg:block">
           <aside
             className={cn(
@@ -208,12 +208,12 @@ export const AuthAppShell = ({
 
         <div
           className={cn(
-            'flex min-h-screen flex-1 flex-col transition-[margin] duration-200',
+            'flex min-h-screen min-w-0 max-w-full flex-1 flex-col transition-[margin] duration-200',
             isDesktopSidebarCollapsed ? 'lg:ml-22' : 'lg:ml-72'
           )}
         >
           <main
-            className="flex-1 overflow-y-auto overflow-x-hidden p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8"
+            className="flex-1 min-w-0 max-w-full overflow-y-auto overflow-x-hidden p-4 pb-28 sm:p-6 sm:pb-28 lg:p-8"
             aria-label={`${title}: ${subtitle}`}
           >
             {settingsSidebar ? (
@@ -221,10 +221,10 @@ export const AuthAppShell = ({
                 <div className="hidden min-w-0 lg:block">
                   {settingsSidebar}
                 </div>
-                <section className="min-w-0 space-y-4">{children}</section>
+                <section className="min-w-0 max-w-full space-y-4">{children}</section>
               </div>
             ) : (
-              <section className="min-w-0 space-y-4">{children}</section>
+              <section className="min-w-0 max-w-full space-y-4">{children}</section>
             )}
           </main>
         </div>
@@ -547,7 +547,7 @@ const MobileBottomNavigation = ({
         )}
         aria-label="Navegação principal"
       >
-        <div className="mx-auto grid max-w-md grid-cols-5 items-end gap-1">
+        <div className="mx-auto grid w-full max-w-md grid-cols-5 items-end gap-1">
           <MobileNavButton
             label="Principal"
             icon={<Home className="h-5 w-5" />}
