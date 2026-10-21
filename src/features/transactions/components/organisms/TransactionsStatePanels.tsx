@@ -58,13 +58,7 @@ export function TransactionsEmptyState({
   const Icon = option.icon
 
   return (
-    <div
-      className={cn(
-        'rounded-2xl border p-6 text-center',
-        getTransactionViewToneClassName(view, 'border'),
-        getTransactionViewToneClassName(view, 'softBg')
-      )}
-    >
+    <div className="rounded-2xl p-6 text-center">
       <span
         className={cn(
           'mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl',

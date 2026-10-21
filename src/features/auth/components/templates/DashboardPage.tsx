@@ -12,7 +12,10 @@ import {
 } from 'lucide-react'
 import { useAccountSummary } from '@/features/accounts/api/queries'
 import { AUTH_ROUTES } from '@/features/auth/constants/auth.constants'
-import { useTransactions } from '@/features/transactions/api/queries'
+import {
+  usePendingTransactionRange,
+  useTransactions,
+} from '@/features/transactions/api/queries'
 import {
   TRANSACTION_DEFAULT_LIMIT,
   TRANSACTION_DEFAULT_PAGE,
@@ -33,6 +36,7 @@ import {
   buildTransactionsUrl,
   type TransactionUrlState,
 } from '@/features/transactions/utils/transactionUrl.utils'
+import { buildPendingDashboardTransactionsUrl } from '@/features/auth/utils/dashboardTransactions.utils'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
@@ -86,7 +90,8 @@ const metricToneClasses: Record<
 export function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const selectedPeriod = useMemo(
-    () => parseDashboardPeriod(searchParams.get('period')) ?? getCurrentYearMonth(),
+    () =>
+      parseDashboardPeriod(searchParams.get('period')) ?? getCurrentYearMonth(),
     [searchParams]
   )
   const dateFrom = useMemo(
@@ -151,40 +156,47 @@ export function DashboardPage() {
     sort: 'date:desc',
   })
   const {
-    data: pendingExpenseResponse,
+    response: pendingExpenseResponse,
+    oldestTransaction: oldestPendingExpense,
+    furthestTransaction: furthestPendingExpense,
     isLoading: isPendingExpenseLoading,
     isError: isPendingExpenseError,
     error: pendingExpenseError,
     refetch: refetchPendingExpense,
-  } = useTransactions({
-    page: 1,
-    limit: 1,
-    sort: 'date:desc',
-    type: 'EXPENSE',
-    status: 'PENDING',
-  })
+  } = usePendingTransactionRange('EXPENSE')
   const {
-    data: pendingIncomeResponse,
+    response: pendingIncomeResponse,
+    oldestTransaction: oldestPendingIncome,
+    furthestTransaction: furthestPendingIncome,
     isLoading: isPendingIncomeLoading,
     isError: isPendingIncomeError,
     error: pendingIncomeError,
     refetch: refetchPendingIncome,
-  } = useTransactions({
-    page: 1,
-    limit: 1,
-    sort: 'date:desc',
-    type: 'INCOME',
-    status: 'PENDING',
-  })
+  } = usePendingTransactionRange('INCOME')
 
   const incomeCents = getEffectiveSummaryCents(incomeResponse)
   const expenseCents = getEffectiveSummaryCents(expenseResponse)
   const pendingExpenseCents = getPendingSummaryCents(pendingExpenseResponse)
   const pendingIncomeCents = getPendingSummaryCents(pendingIncomeResponse)
+  const pendingExpenseTo = buildPendingDashboardTransactionsUrl({
+    state: transactionLinkState,
+    type: 'EXPENSE',
+    oldestTransaction: oldestPendingExpense,
+    furthestTransaction: furthestPendingExpense,
+  })
+  const pendingIncomeTo = buildPendingDashboardTransactionsUrl({
+    state: transactionLinkState,
+    type: 'INCOME',
+    oldestTransaction: oldestPendingIncome,
+    furthestTransaction: furthestPendingIncome,
+  })
   const metrics: DashboardMetric[] = [
     {
       title: 'Saldo atual',
-      value: formatMetricValue(accountSummary?.currentCents, isAccountSummaryLoading),
+      value: formatMetricValue(
+        accountSummary?.currentCents,
+        isAccountSummaryLoading
+      ),
       helper: 'Saldo real das contas ativas.',
       icon: WalletCards,
       tone: 'brand',
@@ -337,7 +349,10 @@ export function DashboardPage() {
         ) : null}
 
         <section className="grid gap-5 xl:grid-cols-2">
-          <section className="space-y-3 xl:hidden" aria-labelledby="mobile-pending-title">
+          <section
+            className="space-y-3 xl:hidden"
+            aria-labelledby="mobile-pending-title"
+          >
             <div className="flex items-center gap-3">
               <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent text-primary">
                 <ArrowDownLeft className="h-4 w-4" />
@@ -356,15 +371,7 @@ export function DashboardPage() {
                 isPendingExpenseLoading
               )}
               pendingExpenseIsNumeric={typeof pendingExpenseCents === 'number'}
-              pendingExpenseTo={buildTransactionsUrl(
-                AUTH_ROUTES.transactions,
-                transactionLinkState,
-                {
-                  view: 'EXPENSE',
-                  status: 'PENDING',
-                  page: TRANSACTION_DEFAULT_PAGE,
-                }
-              )}
+              pendingExpenseTo={pendingExpenseTo}
               pendingIncomeCount={pendingIncomeResponse?.meta.total ?? null}
               pendingIncomeValue={formatMetricValue(
                 pendingIncomeCents,
@@ -372,15 +379,7 @@ export function DashboardPage() {
                 '+ '
               )}
               pendingIncomeIsNumeric={typeof pendingIncomeCents === 'number'}
-              pendingIncomeTo={buildTransactionsUrl(
-                AUTH_ROUTES.transactions,
-                transactionLinkState,
-                {
-                  view: 'INCOME',
-                  status: 'PENDING',
-                  page: TRANSACTION_DEFAULT_PAGE,
-                }
-              )}
+              pendingIncomeTo={pendingIncomeTo}
             />
           </section>
 
@@ -391,7 +390,10 @@ export function DashboardPage() {
           >
             {isPendingExpenseError ? (
               <ApiErrorAlert
-                error={resolveApiError(pendingExpenseError, 'transactions.list')}
+                error={resolveApiError(
+                  pendingExpenseError,
+                  'transactions.list'
+                )}
                 onRetry={() => void refetchPendingExpense()}
                 className="mb-3"
               />
@@ -412,15 +414,7 @@ export function DashboardPage() {
                 isPendingExpenseLoading
               )}
               pendingExpenseIsNumeric={typeof pendingExpenseCents === 'number'}
-              pendingExpenseTo={buildTransactionsUrl(
-                AUTH_ROUTES.transactions,
-                transactionLinkState,
-                {
-                  view: 'EXPENSE',
-                  status: 'PENDING',
-                  page: TRANSACTION_DEFAULT_PAGE,
-                }
-              )}
+              pendingExpenseTo={pendingExpenseTo}
               pendingIncomeCount={pendingIncomeResponse?.meta.total ?? null}
               pendingIncomeValue={formatMetricValue(
                 pendingIncomeCents,
@@ -428,15 +422,7 @@ export function DashboardPage() {
                 '+ '
               )}
               pendingIncomeIsNumeric={typeof pendingIncomeCents === 'number'}
-              pendingIncomeTo={buildTransactionsUrl(
-                AUTH_ROUTES.transactions,
-                transactionLinkState,
-                {
-                  view: 'INCOME',
-                  status: 'PENDING',
-                  page: TRANSACTION_DEFAULT_PAGE,
-                }
-              )}
+              pendingIncomeTo={pendingIncomeTo}
             />
           </FinancialPanel>
 
@@ -771,7 +757,9 @@ function PendingAlertCard({
           {count ?? '-'}
         </span>
       </div>
-      <h3 className="mt-5 text-sm font-medium text-muted-foreground">{title}</h3>
+      <h3 className="mt-5 text-sm font-medium text-muted-foreground">
+        {title}
+      </h3>
       <p
         className={cn(
           'mt-2 truncate text-xl font-semibold',
@@ -823,10 +811,7 @@ function LatestTransactionsList({
   return (
     <div className="divide-y divide-border rounded-xl border border-border bg-secondary">
       {transactions.map((transaction) => (
-        <LatestTransactionItem
-          key={transaction.id}
-          transaction={transaction}
-        />
+        <LatestTransactionItem key={transaction.id} transaction={transaction} />
       ))}
     </div>
   )
@@ -844,7 +829,8 @@ function LatestTransactionItem({ transaction }: LatestTransactionItemProps) {
       <span
         className={cn(
           'inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl',
-          transaction.type === 'INCOME' && 'bg-state-income/10 text-state-income',
+          transaction.type === 'INCOME' &&
+            'bg-state-income/10 text-state-income',
           transaction.type === 'EXPENSE' &&
             'bg-state-expense/10 text-state-expense',
           transaction.type !== 'INCOME' &&

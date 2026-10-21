@@ -6,7 +6,6 @@ import {
   Scale,
   WalletCards,
 } from 'lucide-react'
-import type { ReactNode } from 'react'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import type { TransactionListResponse } from '../../types/transaction.types'
 import type { TransactionView } from '../../types/transaction-ui.types'
@@ -34,73 +33,36 @@ export function TransactionsKpiGrid({
     const hasCurrentBalance = typeof currentBalanceCents === 'number'
 
     return (
-      <>
-        <MobileKpiTrack>
-          <TransactionKpiCard
-            label="Saldo atual"
-            value={formatCurrentBalance(
-              currentBalanceCents,
-              isCurrentBalanceLoading
-            )}
-            icon={<WalletCards className="h-4 w-4" />}
-            tone="info"
-            className="w-52 shrink-0"
-            isNumeric={hasCurrentBalance}
-          />
-          <TransactionKpiCard
-            label="Receitas"
-            value={formatCurrencyFromCents(summary.income.totalCents)}
-            icon={<HandCoins className="h-4 w-4" />}
-            tone="income"
-            className="w-52 shrink-0"
-          />
-          <TransactionKpiCard
-            label="Despesas"
-            value={formatCurrencyFromCents(summary.expense.totalCents)}
-            icon={<ReceiptText className="h-4 w-4" />}
-            tone="expense"
-            className="w-52 shrink-0"
-          />
-          <TransactionKpiCard
-            label="Balanço mensal"
-            value={formatCurrencyFromCents(summary.balance.expectedBalanceCents)}
-            icon={<Scale className="h-4 w-4" />}
-            tone="info"
-            className="w-52 shrink-0"
-          />
-        </MobileKpiTrack>
-
-        <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
-          <TransactionKpiCard
-            label="Saldo atual"
-            value={formatCurrentBalance(
-              currentBalanceCents,
-              isCurrentBalanceLoading
-            )}
-            icon={<WalletCards className="h-4 w-4" />}
-            tone="info"
-            isNumeric={hasCurrentBalance}
-          />
-          <TransactionKpiCard
-            label="Receitas"
-            value={formatCurrencyFromCents(summary.income.totalCents)}
-            icon={<HandCoins className="h-4 w-4" />}
-            tone="income"
-          />
-          <TransactionKpiCard
-            label="Despesas"
-            value={formatCurrencyFromCents(summary.expense.totalCents)}
-            icon={<ReceiptText className="h-4 w-4" />}
-            tone="expense"
-          />
-          <TransactionKpiCard
-            label="Balanço mensal"
-            value={formatCurrencyFromCents(summary.balance.expectedBalanceCents)}
-            icon={<Scale className="h-4 w-4" />}
-            tone="info"
-          />
-        </div>
-      </>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <TransactionKpiCard
+          label="Saldo atual"
+          value={formatCurrentBalance(
+            currentBalanceCents,
+            isCurrentBalanceLoading
+          )}
+          icon={<WalletCards className="h-4 w-4" />}
+          tone="info"
+          isNumeric={hasCurrentBalance}
+        />
+        <TransactionKpiCard
+          label="Receitas"
+          value={formatCurrencyFromCents(summary.income.totalCents)}
+          icon={<HandCoins className="h-4 w-4" />}
+          tone="income"
+        />
+        <TransactionKpiCard
+          label="Despesas"
+          value={formatCurrencyFromCents(summary.expense.totalCents)}
+          icon={<ReceiptText className="h-4 w-4" />}
+          tone="expense"
+        />
+        <TransactionKpiCard
+          label="Balanço mensal"
+          value={formatCurrencyFromCents(summary.balance.expectedBalanceCents)}
+          icon={<Scale className="h-4 w-4" />}
+          tone="info"
+        />
+      </div>
     )
   }
 
@@ -109,45 +71,27 @@ export function TransactionsKpiGrid({
   const EffectiveIcon = labels.Icon
 
   return (
-    <>
-      <MobileKpiTrack>
-        <TransactionKpiCard
-          label={labels.pending}
-          value={formatCurrencyFromCents(summary.pendingCents)}
-          icon={<CircleDollarSign className="h-4 w-4" />}
-          tone={labels.tone}
-          className="w-52 shrink-0"
-        />
-        <TransactionKpiCard
-          label={labels.effective}
-          value={formatCurrencyFromCents(summary.effectiveCents)}
-          icon={<EffectiveIcon className="h-4 w-4" />}
-          tone={labels.tone}
-          className="w-52 shrink-0"
-        />
-      </MobileKpiTrack>
-
-      <div className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-3">
-        <TransactionKpiCard
-          label={labels.pending}
-          value={formatCurrencyFromCents(summary.pendingCents)}
-          icon={<CircleDollarSign className="h-4 w-4" />}
-          tone={labels.tone}
-        />
-        <TransactionKpiCard
-          label={labels.effective}
-          value={formatCurrencyFromCents(summary.effectiveCents)}
-          icon={<EffectiveIcon className="h-4 w-4" />}
-          tone={labels.tone}
-        />
-        <TransactionKpiCard
-          label={labels.total}
-          value={formatCurrencyFromCents(summary.totalCents)}
-          icon={<Scale className="h-4 w-4" />}
-          tone="neutral"
-        />
-      </div>
-    </>
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <TransactionKpiCard
+        label={labels.pending}
+        value={formatCurrencyFromCents(summary.pendingCents)}
+        icon={<CircleDollarSign className="h-4 w-4" />}
+        tone={labels.tone}
+      />
+      <TransactionKpiCard
+        label={labels.effective}
+        value={formatCurrencyFromCents(summary.effectiveCents)}
+        icon={<EffectiveIcon className="h-4 w-4" />}
+        tone={labels.tone}
+      />
+      <TransactionKpiCard
+        label={labels.total}
+        value={formatCurrencyFromCents(summary.totalCents)}
+        icon={<Scale className="h-4 w-4" />}
+        tone="neutral"
+        className="col-span-2 sm:col-span-1"
+      />
+    </div>
   )
 }
 
@@ -160,16 +104,6 @@ const formatCurrentBalance = (
   }
 
   return isLoading ? 'Carregando' : 'Não carregado'
-}
-
-function MobileKpiTrack({ children }: { children: ReactNode }) {
-  return (
-    <div className="block min-w-0 max-w-full overflow-hidden sm:hidden">
-      <div className="w-[calc(100vw-2rem)] max-w-full overflow-x-auto overscroll-x-contain pb-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-        <div className="flex w-max gap-3 pr-4">{children}</div>
-      </div>
-    </div>
-  )
 }
 
 const getTypeSummaryLabels = (view: TransactionView) => {
