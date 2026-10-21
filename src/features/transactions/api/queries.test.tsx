@@ -6,9 +6,10 @@ import { api } from '@/features/auth/api/auth.api'
 import { TRANSACTION_API_ENDPOINTS } from '../constants/transaction.constants'
 import type {
   ListTransactionsParams,
+  Transaction,
   TransactionListResponse,
 } from '../types/transaction.types'
-import { useTransactions } from './queries'
+import { usePendingTransactionRange, useTransactions } from './queries'
 
 vi.mock('@/features/auth/api/auth.api', () => ({
   api: { get: vi.fn() },
@@ -89,5 +90,93 @@ describe('useTransactions', () => {
       { params }
     )
     expect(result.current.data?.summary).toEqual(response.summary)
+  })
+  describe('usePendingTransactionRange', () => {
+    beforeEach(() => vi.clearAllMocks())
+
+    it('consulta os extremos ascendente e descendente sem limitar datas futuras', async () => {
+      const oldestTransaction: Transaction = {
+        id: 'oldest-id',
+        accountId: 'account-id',
+        destinationAccountId: null,
+        categoryId: 'category-id',
+        type: 'INCOME',
+        status: 'PENDING',
+        amountCents: 10000,
+        date: '2024-11-18',
+        effectiveAt: null,
+        description: null,
+        direction: null,
+        createdAt: '2024-11-18T12:00:00.000Z',
+        updatedAt: '2024-11-18T12:00:00.000Z',
+      }
+      const oldestResponse: TransactionListResponse = {
+        object: 'transaction.list',
+        data: [oldestTransaction],
+        meta: {
+          total: 2,
+          page: 1,
+          limit: 1,
+          totalPages: 2,
+          hasNextPage: true,
+          hasPreviousPage: false,
+        },
+        summary: {
+          object: 'transaction_summary.type',
+          pendingCents: 30000,
+          effectiveCents: 0,
+          totalCents: 30000,
+        },
+      }
+      const furthestResponse: TransactionListResponse = {
+        ...oldestResponse,
+        data: [
+          {
+            ...oldestTransaction,
+            id: 'furthest-id',
+            date: '2028-04-10',
+          },
+        ],
+      }
+
+      vi.mocked(api.get)
+        .mockResolvedValueOnce({ data: oldestResponse })
+        .mockResolvedValueOnce({ data: furthestResponse })
+
+      const { result } = renderHook(
+        () => usePendingTransactionRange('INCOME'),
+        { wrapper: createWrapper() }
+      )
+
+      await waitFor(() => expect(result.current.isLoading).toBe(false))
+
+      expect(api.get).toHaveBeenCalledWith(
+        TRANSACTION_API_ENDPOINTS.transactions,
+        {
+          params: {
+            page: 1,
+            limit: 1,
+            sort: 'date:asc',
+            type: 'INCOME',
+            status: 'PENDING',
+          },
+        }
+      )
+      expect(api.get).toHaveBeenCalledWith(
+        TRANSACTION_API_ENDPOINTS.transactions,
+        {
+          params: {
+            page: 1,
+            limit: 1,
+            sort: 'date:desc',
+            type: 'INCOME',
+            status: 'PENDING',
+          },
+        }
+      )
+      expect(result.current.oldestTransaction?.date).toBe('2024-11-18')
+      expect(result.current.furthestTransaction?.date).toBe('2028-04-10')
+      expect(result.current.response?.meta.total).toBe(2)
+    })
   })
 })
