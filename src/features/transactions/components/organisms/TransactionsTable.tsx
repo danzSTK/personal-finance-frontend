@@ -102,7 +102,7 @@ export function TransactionsTable({
         </Table>
       </div>
 
-      <div className="grid gap-3 md:hidden">
+      <div className="grid w-full min-w-0 max-w-full gap-3 md:hidden">
         {transactions.map((transaction) => (
           <TransactionMobileItem
             key={transaction.id}
@@ -204,7 +204,7 @@ function TransactionMobileItem({
   return (
     <button
       type="button"
-      className="flex min-h-20 w-full items-center gap-3 border-b border-border py-3 text-left transition hover:bg-secondary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+      className="flex min-h-20 w-full min-w-0 max-w-full items-center gap-3 overflow-hidden border-b border-border py-3 text-left transition hover:bg-secondary focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       onClick={() => onOpenDetails(transaction)}
     >
       <span
@@ -214,7 +214,7 @@ function TransactionMobileItem({
       >
         <CategoryIcon className="h-4 w-4" />
       </span>
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0 flex-1 overflow-hidden">
         <span className="block truncate text-sm font-semibold text-foreground">
           {getTransactionDescription(transaction)}
         </span>
@@ -226,7 +226,7 @@ function TransactionMobileItem({
       <span className="flex shrink-0 flex-col items-end gap-2">
         <span
           className={cn(
-            'numeric text-sm font-semibold',
+            'numeric text-sm font-semibold whitespace-nowrap',
             getTransactionAmountClassName(transaction.type)
           )}
         >
