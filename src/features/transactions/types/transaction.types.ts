@@ -24,6 +24,7 @@ export interface Transaction {
   effectiveAt: string | null
   description: string | null
   direction: TransactionDirection | null
+  attachmentsCount?: number
   createdAt: string
   updatedAt: string
 }

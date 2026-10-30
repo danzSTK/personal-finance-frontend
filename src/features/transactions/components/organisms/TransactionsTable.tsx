@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Edit3,
   EllipsisVertical,
+  Eye,
   Trash2,
 } from 'lucide-react'
 import type { Account } from '@/features/accounts/types/account.types'
@@ -46,6 +47,7 @@ import {
   getTransactionTypeIcon,
 } from '../../utils/transaction.utils'
 import { TransactionStatusPill } from '../molecules/TransactionStatusPill'
+import { TransactionAttachmentBadge } from '../atoms/TransactionAttachmentBadge'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
@@ -96,6 +98,7 @@ export function TransactionsTable({
                 onConfirm={onConfirm}
                 onDelete={onDelete}
                 onEdit={onEdit}
+                onOpenDetails={onOpenDetails}
               />
             ))}
           </TableBody>
@@ -128,6 +131,7 @@ interface TransactionRowProps extends TransactionItemProps {
   onConfirm: (transaction: Transaction) => void
   onDelete: (transaction: Transaction) => void
   onEdit: (transaction: Transaction) => void
+  onOpenDetails: (transaction: Transaction) => void
 }
 
 function TransactionRow({
@@ -138,12 +142,16 @@ function TransactionRow({
   onConfirm,
   onDelete,
   onEdit,
+  onOpenDetails,
 }: TransactionRowProps) {
   const derivedStatus = getTransactionDerivedStatus(transaction)
   const accountLabel = getAccountLabel(transaction, accounts)
 
   return (
-    <TableRow className="border-border hover:bg-secondary">
+    <TableRow
+      className="cursor-pointer border-border hover:bg-secondary/70"
+      onClick={() => onOpenDetails(transaction)}
+    >
       <TableCell>
         <TransactionStatusPill status={derivedStatus} />
       </TableCell>
@@ -151,9 +159,14 @@ function TransactionRow({
         {formatTransactionDate(transaction.date)}
       </TableCell>
       <TableCell className="max-w-72">
-        <span className="block truncate font-medium text-foreground">
-          {getTransactionDescription(transaction)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="truncate font-medium text-foreground">
+            {getTransactionDescription(transaction)}
+          </span>
+          {transaction.attachmentsCount ? (
+            <TransactionAttachmentBadge count={transaction.attachmentsCount} />
+          ) : null}
+        </div>
       </TableCell>
       <TableCell>
         <TransactionCategory
@@ -181,6 +194,7 @@ function TransactionRow({
           onConfirm={() => onConfirm(transaction)}
           onDelete={() => onDelete(transaction)}
           onEdit={() => onEdit(transaction)}
+          onOpenDetails={() => onOpenDetails(transaction)}
         />
       </TableCell>
     </TableRow>
@@ -218,9 +232,17 @@ function TransactionMobileItem({
         <span className="block truncate text-sm font-semibold text-foreground">
           {getTransactionDescription(transaction)}
         </span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-          {getCategoryName(categories, transaction)} |{' '}
-          {getAccountName(accounts, transaction.accountId)}
+        <span className="mt-0.5 flex items-center gap-2 truncate text-xs text-muted-foreground">
+          <span className="truncate">
+            {getCategoryName(categories, transaction)} |{' '}
+            {getAccountName(accounts, transaction.accountId)}
+          </span>
+          {transaction.attachmentsCount ? (
+            <TransactionAttachmentBadge
+              count={transaction.attachmentsCount}
+              compact
+            />
+          ) : null}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">
@@ -272,6 +294,7 @@ interface TransactionActionsMenuProps {
   onConfirm: () => void
   onDelete: () => void
   onEdit: () => void
+  onOpenDetails: () => void
 }
 
 function TransactionActionsMenu({
@@ -280,6 +303,7 @@ function TransactionActionsMenu({
   onConfirm,
   onDelete,
   onEdit,
+  onOpenDetails,
 }: TransactionActionsMenuProps) {
   const canConfirm = transaction.status === 'PENDING'
 
@@ -290,6 +314,7 @@ function TransactionActionsMenu({
           type="button"
           variant="ghost"
           size="icon"
+          onClick={(e) => e.stopPropagation()}
           className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
           aria-label={`Abrir ações de ${getTransactionDescription(transaction)}`}
           title="Ações"
@@ -305,6 +330,13 @@ function TransactionActionsMenu({
           Ações da transação
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem
+          className="cursor-pointer rounded-xl focus:bg-accent focus:text-foreground"
+          onSelect={onOpenDetails}
+        >
+          <Eye className="h-4 w-4" />
+          Ver detalhes
+        </DropdownMenuItem>
         {canConfirm ? (
           <DropdownMenuItem
             className="rounded-xl focus:bg-accent focus:text-foreground"

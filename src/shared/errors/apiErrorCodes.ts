@@ -76,6 +76,16 @@ export const API_ERROR_CODES = {
   transactionInvalidStateTransition: 'TRANSACTION_INVALID_STATE_TRANSITION',
   transactionNotFound: 'TRANSACTION_NOT_FOUND',
   transactionUpdateEmpty: 'TRANSACTION_UPDATE_EMPTY',
+
+  transactionTypeDoesNotSupportAttachments:
+    'TRANSACTION_TYPE_DOES_NOT_SUPPORT_ATTACHMENTS',
+  transactionAttachmentLimitExceeded:
+    'TRANSACTION_ATTACHMENT_LIMIT_EXCEEDED',
+  attachmentFileTooLarge: 'ATTACHMENT_FILE_TOO_LARGE',
+  unsupportedAttachmentFile: 'UNSUPPORTED_ATTACHMENT_FILE',
+  attachmentDimensionsExceeded: 'ATTACHMENT_DIMENSIONS_EXCEEDED',
+  invalidAttachmentPosition: 'INVALID_ATTACHMENT_POSITION',
+  transactionAttachmentNotFound: 'TRANSACTION_ATTACHMENT_NOT_FOUND',
 } as const
 
 export type ApiErrorCode =
