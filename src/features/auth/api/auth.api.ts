@@ -8,9 +8,9 @@ import {
 } from '../constants/auth.constants'
 
 const apiBaseUrl =
-  import.meta.env.VITE_API_URL ||
-  import.meta.env.VITE_API_BASE_URL ||
-  DEFAULT_API_BASE_URL
+  typeof import.meta.env.VITE_API_URL === 'string'
+    ? import.meta.env.VITE_API_URL
+    : import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE_URL
 
 export const api = axios.create({
   baseURL: apiBaseUrl,

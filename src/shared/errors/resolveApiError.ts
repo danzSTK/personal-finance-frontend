@@ -339,6 +339,48 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
     description: 'Altere pelo menos um campo antes de salvar.',
     recovery: 'correct-fields',
   },
+  [API_ERROR_CODES.transactionTypeDoesNotSupportAttachments]: {
+    title: 'Tipo de transação sem suporte a comprovantes',
+    description:
+      'Apenas transações de receita e despesa aceitam comprovantes anexados.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.transactionAttachmentLimitExceeded]: {
+    title: 'Limite de comprovantes atingido',
+    description:
+      'Cada transação pode ter no máximo 3 comprovantes anexados.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.attachmentFileTooLarge]: {
+    title: 'Arquivo muito grande',
+    description:
+      'Cada imagem deve ter no máximo 5 MB.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.unsupportedAttachmentFile]: {
+    title: 'Formato não suportado',
+    description:
+      'Envie apenas comprovantes em formato PNG, JPEG ou WebP.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.attachmentDimensionsExceeded]: {
+    title: 'Dimensões da imagem excedidas',
+    description:
+      'A resolução máxima permitida para o comprovante é de 60 Megapixels.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.invalidAttachmentPosition]: {
+    title: 'Posição inválida',
+    description:
+      'Não foi possível salvar a nova ordem dos comprovantes. Tente novamente.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.transactionAttachmentNotFound]: {
+    title: 'Comprovante não encontrado',
+    description:
+      'O comprovante selecionado pode já ter sido removido.',
+    recovery: 'retry',
+  },
 }
 
 const contextFallbacks: Record<ApiErrorContext, Copy> = {
@@ -434,6 +476,19 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
   'transactions.update': saveFailure('salvar as alterações da transação'),
   'transactions.confirm': actionFailure('efetivar esta transação'),
   'transactions.delete': actionFailure('excluir esta transação'),
+  'transactions.attachments.list': loadFailure('os comprovantes da transação'),
+  'transactions.attachments.add': {
+    title: 'Não foi possível enviar os comprovantes',
+    description:
+      'Verifique se os arquivos são PNG, JPEG ou WebP de até 5 MB e tente novamente.',
+    recovery: 'retry',
+  },
+  'transactions.attachments.reorder': {
+    title: 'Não foi possível reordenar os comprovantes',
+    description: 'Tente alterar a posição novamente.',
+    recovery: 'retry',
+  },
+  'transactions.attachments.delete': actionFailure('excluir este comprovante'),
   generic: serviceUnavailable(),
 }
 
