@@ -34,6 +34,7 @@ export default defineConfig({
     },
   },
   server: {
+    host: true,
     port: 3001,
     fs: {
       allow: ['..', '/home/daniel/projects/personal-finance-app/personal-finance-frontend'],
@@ -41,6 +42,7 @@ export default defineConfig({
     proxy: proxyConfig,
   },
   preview: {
+    host: true,
     port: 4173,
     proxy: proxyConfig,
   },
