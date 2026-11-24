@@ -54,7 +54,9 @@ pequeno.
 
 ## DEC-003 — skill específica do repositório
 
-Status: accepted
+Status: superseded
+
+Superseded-by: `../../modular-documentation-and-agents/specs/decisions.md` (`DEC-002`)
 
 Decision:
 Criar `platform-feature-documentation` em `.agents/skills`, não no diretório
@@ -182,9 +184,10 @@ Revisões documentais precisam percorrer relações antes de aceitar uma mudanç
 
 ## DEC-011 — documentação viva usa árvores de responsabilidade única
 
-Status: accepted
+Status: superseded
 
 Supersedes: DEC-002
+Superseded-by: `../../modular-documentation-and-agents/specs/decisions.md` (`DEC-001`)
 
 Problem:
 Arquivos únicos de `decisions`, `flow` e `components` crescem de forma
