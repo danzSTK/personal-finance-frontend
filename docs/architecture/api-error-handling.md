@@ -1,3 +1,13 @@
+---
+area: architecture
+type: reference
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ../README.md
+  - ./module-boundaries.md
+---
+
 # Tratamento de erros da API
 
 O frontend trata falhas da API pelo contrato estável `code`. O campo `message`
@@ -5,9 +15,9 @@ do backend não é texto de interface e não deve ser exibido ao usuário.
 
 ## Fonte da verdade
 
-1. `../personal-finance-backend/docs/integrations/errors.md`
+1. `personal-finance-backend:docs/integrations/errors.md`
 2. Documentação completa do recurso em
-   `../personal-finance-backend/docs/integrations/<resource>/`
+   `personal-finance-backend:docs/integrations/<resource>/`
 3. `.agents/skills/danfy-api-error-handling/SKILL.md`
 
 Antes de integrar um endpoint, registre todos os códigos documentados para a
