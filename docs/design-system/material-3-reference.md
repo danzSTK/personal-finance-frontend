@@ -1,3 +1,13 @@
+---
+area: design-system
+type: reference
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ../README.md
+  - ./danfy-finance-design-system.md
+---
+
 # Material 3 Reference
 
 Material 3 is the component and foundation reference for Danfy Finance UI decisions. Danfy Dark remains the product identity and token system; Material 3 informs component purpose, hierarchy, states, spacing, accessibility, and interaction behavior.

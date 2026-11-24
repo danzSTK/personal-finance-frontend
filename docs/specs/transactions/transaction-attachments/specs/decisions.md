@@ -1,3 +1,17 @@
+---
+area: transactions
+feature: transaction-attachments
+type: spec-decisions
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ./requirements.md
+  - ./design.md
+  - ./tasks.md
+  - ../../../../transactions/decisions/lazy-attachment-fetching-and-cache.md
+  - ../../../../transactions/decisions/dual-reordering-drag-and-accessible-menu.md
+---
+
 # Decisões de Arquitetura: Galeria de Anexos
 
 ## 1. Busca sob Demanda (Lazy Fetching) e Cache de 240s

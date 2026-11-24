@@ -7,7 +7,6 @@ related:
   - ./design.md
   - ./tasks.md
   - ./decisions.md
-  - ../../../../../../personal-finance-backend/docs/integrations/auth/email-verification.md
 ---
 
 # Requisitos — verificação de email e status de reenvio
@@ -25,9 +24,9 @@ Permitir que usuários com status `PENDING_EMAIL_VERIFICATION` acompanhem o esta
 - `.agents/skills/material-3-ui-guidance/SKILL.md`.
 - `docs/design-system/danfy-finance-design-system.md`.
 - `docs/design-system/material-3-reference.md`.
-- `../personal-finance-backend/docs/integrations/auth/email-verification.md`.
-- `../personal-finance-backend/docs/integrations/auth/get-me.md`.
-- `../personal-finance-backend/docs/integrations/errors.md`.
+- `personal-finance-backend:docs/integrations/auth/email-verification.md`.
+- `personal-finance-backend:docs/integrations/auth/get-me.md`.
+- `personal-finance-backend:docs/integrations/errors.md`.
 
 ## Escopo
 

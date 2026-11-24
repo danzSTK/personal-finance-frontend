@@ -1208,7 +1208,7 @@ Antes de considerar a feature completa:
 ## 📚 Recursos
 
 - [Design Spec](./design.md)
-- [Backend API Docs](../../../../../../personal-finance-backend/docs/integrations/auth/README.md)
+- Backend API Docs: `personal-finance-backend:docs/integrations/auth/README.md`
 - Referências históricas removidas: `.github/instructions/atomic-design.instructions.md`
   e `.github/instructions/silicon-valley-ux.instructions.md`.
 - Instruções atuais: `AGENTS.md` na raiz do frontend.

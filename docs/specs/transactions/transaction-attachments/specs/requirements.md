@@ -1,3 +1,16 @@
+---
+area: transactions
+feature: transaction-attachments
+type: spec-requirements
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ./design.md
+  - ./tasks.md
+  - ./decisions.md
+  - ../../../../transactions/flows/manage-attachments.md
+---
+
 # Requisitos: Galeria de Anexos de Transações
 
 ## 1. Contexto & Escopo
