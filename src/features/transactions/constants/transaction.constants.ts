@@ -18,6 +18,12 @@ export const TRANSACTION_CREATE_INTENT_QUERY_PARAM = 'create'
 
 export const TRANSACTION_API_ENDPOINTS = {
   transactions: '/transactions',
+  attachments: (transactionId: string) =>
+    `/transactions/${transactionId}/attachments`,
+  attachmentPositions: (transactionId: string) =>
+    `/transactions/${transactionId}/attachments/positions`,
+  attachmentItem: (transactionId: string, attachmentId: string) =>
+    `/transactions/${transactionId}/attachments/${attachmentId}`,
 } as const
 
 const TRANSACTION_QUERY_ROOT = ['transactions'] as const
@@ -27,6 +33,8 @@ export const TRANSACTION_QUERY_KEYS = {
   list: (params: unknown) => [...TRANSACTION_QUERY_ROOT, 'list', params] as const,
   detail: (transactionId: string) =>
     [...TRANSACTION_QUERY_ROOT, 'detail', transactionId] as const,
+  attachments: (transactionId: string) =>
+    ['transaction-attachments', transactionId] as const,
 } as const
 
 export const TRANSACTION_PAGE_SIZE_OPTIONS = [10, 20, 50, 100] as const

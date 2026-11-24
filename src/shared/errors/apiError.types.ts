@@ -58,6 +58,10 @@ export type ApiErrorContext =
   | 'transactions.update'
   | 'transactions.confirm'
   | 'transactions.delete'
+  | 'transactions.attachments.list'
+  | 'transactions.attachments.add'
+  | 'transactions.attachments.reorder'
+  | 'transactions.attachments.delete'
   | 'generic'
 
 export interface ApiErrorPresentation {

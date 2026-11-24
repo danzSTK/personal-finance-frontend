@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQueryClient } from '@tanstack/react-query'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 import { CheckCircle2, CircleDashed, Clock3 } from 'lucide-react'
 import { AccountIdentity } from '@/features/accounts'
@@ -19,7 +20,11 @@ import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { Button } from '@/shared/lib/button'
 import { Input } from '@/shared/lib/input'
 import { cn } from '@/shared/lib/utils'
-import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
+import {
+  applyApiFieldErrors,
+  resolveApiError,
+  showApiErrorToast,
+} from '@/shared/errors'
 import { getTodayDateOnly, getYesterdayDateOnly } from '@/shared/utils/dateOnly'
 import {
   Select,
@@ -36,14 +41,17 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
+import { uploadTransactionAttachments } from '../../api/attachment.mutations'
 import {
   useCreateTransaction,
   useUpdateTransaction,
 } from '../../api/mutations'
+import { TRANSACTION_QUERY_KEYS } from '../../constants/transaction.constants'
 import {
   type TransactionFormValues,
   transactionFormSchema,
 } from '../../schemas/transaction.schema'
+import { ATTACHMENT_MAX_FILES } from '../../types/transaction-attachment.types'
 import type { TransactionFormSheetState } from '../../types/transaction-ui.types'
 import {
   buildCreateTransactionDto,
@@ -51,6 +59,11 @@ import {
   getTransactionFormDefaults,
   getTransactionTypeLabel,
 } from '../../utils/transaction.utils'
+import { TransactionAttachmentsGallery } from './TransactionAttachmentsGallery'
+import {
+  type StagedTransactionAttachment,
+  TransactionStagedAttachmentsField,
+} from './TransactionStagedAttachmentsField'
 
 interface TransactionFormSheetProps {
   state: TransactionFormSheetState
@@ -68,11 +81,19 @@ export function TransactionFormSheet({
   categories,
   onOpenChange,
 }: TransactionFormSheetProps) {
+  const queryClient = useQueryClient()
   const createMutation = useCreateTransaction()
   const updateMutation = useUpdateTransaction()
+  const [stagedAttachments, setStagedAttachments] = useState<
+    StagedTransactionAttachment[]
+  >([])
+  const [isUploadingStaged, setIsUploadingStaged] = useState(false)
+  const stagedAttachmentsRef = useRef<StagedTransactionAttachment[]>([])
+  stagedAttachmentsRef.current = stagedAttachments
   const isOpen = state !== null
   const isEditing = state?.mode === 'edit'
-  const isPending = createMutation.isPending || updateMutation.isPending
+  const isPending =
+    createMutation.isPending || updateMutation.isPending || isUploadingStaged
   const isMobile = useIsMobile()
   const mutationError = isEditing ? updateMutation.error : createMutation.error
   const errorPresentation = useMemo(
@@ -85,6 +106,21 @@ export function TransactionFormSheet({
         : null,
     [isEditing, mutationError]
   )
+
+  const clearStagedAttachments = useCallback(() => {
+    stagedAttachmentsRef.current.forEach((item) => {
+      URL.revokeObjectURL(item.previewUrl)
+    })
+    setStagedAttachments([])
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      stagedAttachmentsRef.current.forEach((item) => {
+        URL.revokeObjectURL(item.previewUrl)
+      })
+    }
+  }, [])
 
   const initialType =
     state?.mode === 'create' ? state.type : (state?.transaction.type ?? 'EXPENSE')
@@ -100,6 +136,9 @@ export function TransactionFormSheet({
   const resetUpdate = updateMutation.reset
 
   useEffect(() => {
+    clearStagedAttachments()
+    setIsUploadingStaged(false)
+
     if (!state) {
       return
     }
@@ -111,7 +150,7 @@ export function TransactionFormSheet({
         ? getTransactionFormDefaults(state.transaction.type, state.transaction)
         : getTransactionFormDefaults(state.type)
     )
-  }, [resetCreate, resetForm, resetUpdate, state])
+  }, [clearStagedAttachments, resetCreate, resetForm, resetUpdate, state])
 
   useEffect(() => {
     if (!errorPresentation) return
@@ -138,6 +177,8 @@ export function TransactionFormSheet({
   const selectedType = form.watch('type')
   const selectedDate = form.watch('date')
   const selectedStatus = form.watch('status')
+  const supportsAttachments =
+    selectedType === 'INCOME' || selectedType === 'EXPENSE'
   const availableCategories = categories.filter(
     (category) =>
       !category.isArchived &&
@@ -187,6 +228,29 @@ export function TransactionFormSheet({
       'bg-primary text-primary-foreground hover:bg-primary/90'
   )
 
+  const handleAddStagedFiles = (files: File[]) => {
+    setStagedAttachments((current) => {
+      const remaining = Math.max(ATTACHMENT_MAX_FILES - current.length, 0)
+      const accepted = files.slice(0, remaining)
+      const nextItems = accepted.map((file, idx) => ({
+        id: `staged-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }))
+      return [...current, ...nextItems]
+    })
+  }
+
+  const handleRemoveStagedFile = (id: string) => {
+    setStagedAttachments((current) => {
+      const target = current.find((item) => item.id === id)
+      if (target) {
+        URL.revokeObjectURL(target.previewUrl)
+      }
+      return current.filter((item) => item.id !== id)
+    })
+  }
+
   const setDatePreset = (date: string) => {
     form.setValue('date', date, {
       shouldDirty: true,
@@ -208,7 +272,7 @@ export function TransactionFormSheet({
     }
   }
 
-  const handleSubmit = form.handleSubmit((values) => {
+  const handleSubmit = form.handleSubmit(async (values) => {
     if (state?.mode === 'edit') {
       const dto = buildUpdateTransactionDto(values, state.transaction)
 
@@ -228,9 +292,40 @@ export function TransactionFormSheet({
     }
 
     if (state?.mode === 'create') {
-      createMutation.mutate(buildCreateTransactionDto(values), {
-        onSuccess: () => onOpenChange(false),
-      })
+      try {
+        const created = await createMutation.mutateAsync(
+          buildCreateTransactionDto(values)
+        )
+
+        if (
+          stagedAttachments.length > 0 &&
+          (created.type === 'INCOME' || created.type === 'EXPENSE')
+        ) {
+          setIsUploadingStaged(true)
+          try {
+            await uploadTransactionAttachments(
+              created.id,
+              stagedAttachments.map((item) => item.file)
+            )
+            void queryClient.invalidateQueries({
+              queryKey: TRANSACTION_QUERY_KEYS.attachments(created.id),
+            })
+            void queryClient.invalidateQueries({
+              queryKey: TRANSACTION_QUERY_KEYS.transactions,
+              exact: false,
+            })
+          } catch (uploadError) {
+            showApiErrorToast(uploadError, 'transactions.attachments.add')
+          } finally {
+            setIsUploadingStaged(false)
+          }
+        }
+
+        clearStagedAttachments()
+        onOpenChange(false)
+      } catch {
+        // Error presentation is handled via createMutation.error
+      }
     }
   })
 
@@ -533,9 +628,36 @@ export function TransactionFormSheet({
             </TransactionFormField>
           ) : null}
 
-          <div className="rounded-2xl border border-dashed border-border bg-secondary p-4 text-sm text-muted-foreground">
-            Anexos e mais detalhes: em breve.
-          </div>
+          {supportsAttachments ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-sm font-medium text-foreground">
+                  Comprovantes
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  PNG, JPEG ou WebP (até 5 MB)
+                </span>
+              </div>
+
+              {state?.mode === 'edit' ? (
+                <TransactionAttachmentsGallery
+                  transaction={{
+                    ...state.transaction,
+                    type: selectedType,
+                  }}
+                />
+              ) : (
+                <TransactionStagedAttachmentsField
+                  items={stagedAttachments}
+                  disabled={isPending}
+                  isUploading={isUploadingStaged}
+                  onAddFiles={handleAddStagedFiles}
+                  onRemove={handleRemoveStagedFile}
+                  onReorder={setStagedAttachments}
+                />
+              )}
+            </div>
+          ) : null}
 
           {errorPresentation ? (
             <ApiErrorAlert error={errorPresentation} />
@@ -558,7 +680,11 @@ export function TransactionFormSheet({
                 (selectedType === 'TRANSFER' && activeAccounts.length < 2)
               }
             >
-              {isPending ? 'Salvando...' : submitLabel}
+              {isUploadingStaged
+                ? 'Enviando comprovantes...'
+                : isPending
+                  ? 'Salvando...'
+                  : submitLabel}
             </Button>
           </SheetFooter>
         </form>

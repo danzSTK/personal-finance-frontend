@@ -1,9 +1,10 @@
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import {
   ArrowLeftRight,
   CheckCircle2,
   Edit3,
   EllipsisVertical,
+  Eye,
   Trash2,
 } from 'lucide-react'
 import type { Account } from '@/features/accounts/types/account.types'
@@ -44,8 +45,10 @@ import {
   getTransactionDerivedStatus,
   getTransactionDescription,
   getTransactionTypeIcon,
+  groupTransactionsByDate,
 } from '../../utils/transaction.utils'
 import { TransactionStatusPill } from '../molecules/TransactionStatusPill'
+import { TransactionAttachmentBadge } from '../atoms/TransactionAttachmentBadge'
 
 interface TransactionsTableProps {
   transactions: Transaction[]
@@ -68,6 +71,8 @@ export function TransactionsTable({
   onEdit,
   onOpenDetails,
 }: TransactionsTableProps) {
+  const dayGroups = groupTransactionsByDate(transactions)
+
   return (
     <>
       <div className="hidden max-w-full overflow-hidden rounded-2xl border border-border bg-card md:block">
@@ -86,34 +91,71 @@ export function TransactionsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
-              <TransactionRow
-                key={transaction.id}
-                transaction={transaction}
-                accounts={accounts}
-                categories={categories}
-                isMutating={isMutating}
-                onConfirm={onConfirm}
-                onDelete={onDelete}
-                onEdit={onEdit}
-              />
+            {dayGroups.map((group) => (
+              <Fragment key={group.date}>
+                <TableRow className="border-border/70 bg-secondary/30 hover:bg-secondary/30">
+                  <TableCell colSpan={7} className="py-2">
+                    <TransactionDayDivider label={group.label} />
+                  </TableCell>
+                </TableRow>
+                {group.transactions.map((transaction) => (
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    accounts={accounts}
+                    categories={categories}
+                    isMutating={isMutating}
+                    onConfirm={onConfirm}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onOpenDetails={onOpenDetails}
+                  />
+                ))}
+              </Fragment>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      <div className="grid w-full min-w-0 max-w-full gap-3 md:hidden">
-        {transactions.map((transaction) => (
-          <TransactionMobileItem
-            key={transaction.id}
-            transaction={transaction}
-            accounts={accounts}
-            categories={categories}
-            onOpenDetails={onOpenDetails}
-          />
+      <div className="grid w-full min-w-0 max-w-full gap-4 md:hidden">
+        {dayGroups.map((group) => (
+          <div key={group.date} className="min-w-0 max-w-full space-y-1">
+            <TransactionDayDivider label={group.label} />
+            <div className="grid w-full min-w-0 max-w-full">
+              {group.transactions.map((transaction) => (
+                <TransactionMobileItem
+                  key={transaction.id}
+                  transaction={transaction}
+                  accounts={accounts}
+                  categories={categories}
+                  onOpenDetails={onOpenDetails}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </>
+  )
+}
+
+interface TransactionDayDividerProps {
+  label: string
+}
+
+function TransactionDayDivider({ label }: TransactionDayDividerProps) {
+  return (
+    <div
+      className="flex w-full min-w-0 items-center gap-3 py-1"
+      role="separator"
+      aria-label={`Lançamentos de ${label}`}
+    >
+      <span className="h-px flex-1 bg-border" aria-hidden />
+      <span className="numeric shrink-0 text-xs font-medium tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="h-px flex-1 bg-border" aria-hidden />
+    </div>
   )
 }
 
@@ -128,6 +170,7 @@ interface TransactionRowProps extends TransactionItemProps {
   onConfirm: (transaction: Transaction) => void
   onDelete: (transaction: Transaction) => void
   onEdit: (transaction: Transaction) => void
+  onOpenDetails: (transaction: Transaction) => void
 }
 
 function TransactionRow({
@@ -138,12 +181,16 @@ function TransactionRow({
   onConfirm,
   onDelete,
   onEdit,
+  onOpenDetails,
 }: TransactionRowProps) {
   const derivedStatus = getTransactionDerivedStatus(transaction)
   const accountLabel = getAccountLabel(transaction, accounts)
 
   return (
-    <TableRow className="border-border hover:bg-secondary">
+    <TableRow
+      className="cursor-pointer border-border hover:bg-secondary/70"
+      onClick={() => onOpenDetails(transaction)}
+    >
       <TableCell>
         <TransactionStatusPill status={derivedStatus} />
       </TableCell>
@@ -151,9 +198,14 @@ function TransactionRow({
         {formatTransactionDate(transaction.date)}
       </TableCell>
       <TableCell className="max-w-72">
-        <span className="block truncate font-medium text-foreground">
-          {getTransactionDescription(transaction)}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="truncate font-medium text-foreground">
+            {getTransactionDescription(transaction)}
+          </span>
+          {transaction.attachmentsCount ? (
+            <TransactionAttachmentBadge count={transaction.attachmentsCount} />
+          ) : null}
+        </div>
       </TableCell>
       <TableCell>
         <TransactionCategory
@@ -181,6 +233,7 @@ function TransactionRow({
           onConfirm={() => onConfirm(transaction)}
           onDelete={() => onDelete(transaction)}
           onEdit={() => onEdit(transaction)}
+          onOpenDetails={() => onOpenDetails(transaction)}
         />
       </TableCell>
     </TableRow>
@@ -218,9 +271,17 @@ function TransactionMobileItem({
         <span className="block truncate text-sm font-semibold text-foreground">
           {getTransactionDescription(transaction)}
         </span>
-        <span className="mt-0.5 block truncate text-xs text-muted-foreground">
-          {getCategoryName(categories, transaction)} |{' '}
-          {getAccountName(accounts, transaction.accountId)}
+        <span className="mt-0.5 flex items-center gap-2 truncate text-xs text-muted-foreground">
+          <span className="truncate">
+            {getCategoryName(categories, transaction)} |{' '}
+            {getAccountName(accounts, transaction.accountId)}
+          </span>
+          {transaction.attachmentsCount ? (
+            <TransactionAttachmentBadge
+              count={transaction.attachmentsCount}
+              compact
+            />
+          ) : null}
         </span>
       </span>
       <span className="flex shrink-0 flex-col items-end gap-2">
@@ -272,6 +333,7 @@ interface TransactionActionsMenuProps {
   onConfirm: () => void
   onDelete: () => void
   onEdit: () => void
+  onOpenDetails: () => void
 }
 
 function TransactionActionsMenu({
@@ -280,6 +342,7 @@ function TransactionActionsMenu({
   onConfirm,
   onDelete,
   onEdit,
+  onOpenDetails,
 }: TransactionActionsMenuProps) {
   const canConfirm = transaction.status === 'PENDING'
 
@@ -290,6 +353,7 @@ function TransactionActionsMenu({
           type="button"
           variant="ghost"
           size="icon"
+          onClick={(e) => e.stopPropagation()}
           className="h-9 w-9 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground"
           aria-label={`Abrir ações de ${getTransactionDescription(transaction)}`}
           title="Ações"
@@ -305,6 +369,13 @@ function TransactionActionsMenu({
           Ações da transação
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-border" />
+        <DropdownMenuItem
+          className="cursor-pointer rounded-xl focus:bg-accent focus:text-foreground"
+          onSelect={onOpenDetails}
+        >
+          <Eye className="h-4 w-4" />
+          Ver detalhes
+        </DropdownMenuItem>
         {canConfirm ? (
           <DropdownMenuItem
             className="rounded-xl focus:bg-accent focus:text-foreground"

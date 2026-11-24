@@ -310,7 +310,7 @@ export function TransactionsPage() {
     >
       <div className="min-w-0 max-w-full space-y-5 overflow-x-hidden">
         <section className="space-y-4" aria-labelledby="transactions-title">
-          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
             <div className="min-w-0">
               <h1
                 id="transactions-title"
@@ -318,9 +318,6 @@ export function TransactionsPage() {
               >
                 Transações
               </h1>
-              <p className="mt-1 text-sm text-muted-foreground">
-                Acompanhe entradas, saídas e transferências do período.
-              </p>
             </div>
             <div className="flex items-center justify-center gap-4">
               <PeriodButton

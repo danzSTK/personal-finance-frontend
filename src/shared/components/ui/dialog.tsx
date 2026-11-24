@@ -29,16 +29,17 @@ const DialogOverlay = React.forwardRef<
 ))
 DialogOverlay.displayName = DialogPrimitive.Overlay.displayName
 
-interface DialogContentProps extends React.ComponentPropsWithoutRef<
+export interface DialogContentProps extends React.ComponentPropsWithoutRef<
   typeof DialogPrimitive.Content
 > {
   closeDisabled?: boolean
+  hideCloseButton?: boolean
 }
 
 const DialogContent = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Content>,
   DialogContentProps
->(({ className, children, closeDisabled = false, ...props }, ref) => (
+>(({ className, children, closeDisabled = false, hideCloseButton = false, ...props }, ref) => (
   <DialogPortal>
     <DialogOverlay />
     <DialogPrimitive.Content
@@ -50,13 +51,15 @@ const DialogContent = React.forwardRef<
       {...props}
     >
       {children}
-      <DialogPrimitive.Close
-        disabled={closeDisabled}
-        className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-lg opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 data-[state=open]:text-muted-foreground sm:right-3 sm:top-3"
-      >
-        <X className="h-4 w-4" />
-        <span className="sr-only">Fechar</span>
-      </DialogPrimitive.Close>
+      {!hideCloseButton ? (
+        <DialogPrimitive.Close
+          disabled={closeDisabled}
+          className="absolute right-2 top-2 inline-flex h-11 w-11 items-center justify-center rounded-lg opacity-70 ring-offset-background transition-opacity hover:bg-accent hover:opacity-100 focus:outline-hidden focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-40 data-[state=open]:text-muted-foreground sm:right-3 sm:top-3"
+        >
+          <X className="h-4 w-4" />
+          <span className="sr-only">Fechar</span>
+        </DialogPrimitive.Close>
+      ) : null}
     </DialogPrimitive.Content>
   </DialogPortal>
 ))

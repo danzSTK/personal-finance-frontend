@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { ArrowLeftRight, Edit3, Paperclip, Trash2 } from 'lucide-react'
+import { ArrowLeftRight, Edit3, Trash2 } from 'lucide-react'
 import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
@@ -29,12 +29,15 @@ import {
   getCategoryName,
   getConfirmActionLabel,
   getTransactionAmountClassName,
+  getTransactionCreatedDescription,
+  getTransactionDateLabel,
   getTransactionDerivedStatus,
   getTransactionDescription,
   getTransactionTypeLabel,
   getTransactionTypeIcon,
 } from '../../utils/transaction.utils'
 import { TransactionStatusPill } from '../molecules/TransactionStatusPill'
+import { TransactionAttachmentsGallery } from './TransactionAttachmentsGallery'
 
 interface TransactionDetailsSheetProps {
   state: TransactionDetailsSheetState
@@ -75,8 +78,7 @@ export function TransactionDetailsSheet({
                   {getTransactionDescription(transaction)}
                 </SheetTitle>
                 <SheetDescription className="text-muted-foreground">
-                  {getTransactionTypeLabel(transaction.type)} registrada em{' '}
-                  {formatTransactionDate(transaction.date)}.
+                  {getTransactionCreatedDescription(transaction)}
                 </SheetDescription>
               </SheetHeader>
 
@@ -101,8 +103,10 @@ export function TransactionDetailsSheet({
                 <DetailItem label="Situação">
                   <TransactionStatusPill status={derivedStatus} />
                 </DetailItem>
-                <DetailItem label="Data">
-                  {formatTransactionDate(transaction.date)}
+                <DetailItem label={getTransactionDateLabel(transaction.type)}>
+                  <span className="numeric">
+                    {formatTransactionDate(transaction.date)}
+                  </span>
                 </DetailItem>
                 <DetailItem label="Categoria">
                   <TransactionCategoryDetail
@@ -138,16 +142,16 @@ export function TransactionDetailsSheet({
                     />
                   </DetailItem>
                 ) : null}
-                <DetailItem label="Anexos">
-                  <span className="inline-flex items-center gap-2 text-muted-foreground">
-                    <Paperclip className="h-4 w-4" />
-                    Em breve
-                  </span>
-                </DetailItem>
-                <DetailItem label="Mais detalhes">
-                  <span className="text-muted-foreground">Em breve</span>
-                </DetailItem>
               </dl>
+
+              {transaction.type === 'INCOME' || transaction.type === 'EXPENSE' ? (
+                <div className="mt-6">
+                  <h4 className="mb-2 text-sm font-medium text-foreground">
+                    Comprovantes
+                  </h4>
+                  <TransactionAttachmentsGallery transaction={transaction} />
+                </div>
+              ) : null}
             </div>
 
             <SheetFooter className="mt-auto gap-2 border-t border-border bg-card p-4">
