@@ -11,10 +11,11 @@ Treat API failures as recoverable product states. Decide behavior from the stabl
 
 Use this priority:
 
-1. Backend contract: `../personal-finance-backend/docs/integrations/errors.md`.
-2. Resource integration docs in `../personal-finance-backend/docs/integrations/<resource>/` for operation-specific errors and recovery.
-3. `docs/design-system/danfy-finance-design-system.md` for copy, surfaces, tokens, and accessibility.
-4. `docs/design-system/material-3-reference.md` for text fields, snackbars, dialogs, buttons, and progress behavior.
+1. Backend global error contract: `personal-finance-backend:docs/integrations/errors.md`.
+2. Resource integration docs in `personal-finance-backend:docs/integrations/<resource>/` for operation-specific errors and recovery.
+3. `docs/architecture/api-error-handling.md` for this repository's implemented error parser and UI conventions.
+4. `docs/design-system/danfy-finance-design-system.md` for copy, surfaces, tokens, and accessibility.
+5. `docs/design-system/material-3-reference.md` for text fields, snackbars, dialogs, buttons, and progress behavior.
 
 Read [references/platform-error-contract.md](references/platform-error-contract.md) when parsing errors or mapping codes. Read [references/ux-error-presentation.md](references/ux-error-presentation.md) when choosing UI/copy. Read [references/frontend-implementation.md](references/frontend-implementation.md) before implementing shared TypeScript utilities, forms, Axios, or TanStack Query behavior.
 

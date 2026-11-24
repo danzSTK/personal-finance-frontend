@@ -1,0 +1,4 @@
+interface:
+  display_name: "Documentação Modular"
+  short_description: "Padroniza documentação viva por módulo e AGENTS.md locais no frontend"
+  default_prompt: "Use $modular-documentation para documentar ou revisar este módulo conforme o padrão modular A1 da Danfy."
