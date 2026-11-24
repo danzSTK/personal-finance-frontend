@@ -16,7 +16,8 @@
   - `TransactionAttachmentThumbnail`: Card retangular (proporção 4:3 ou 16:9), imagem com object-cover, botão de menu de opções (`...`), indicador de posição e listeners de drag-and-drop / pointer.
   - `TransactionAttachmentUploadCard`: Card pontilhado com estado de upload, drag-and-drop de arquivo e input file oculto.
 - **Organisms**:
-  - `TransactionAttachmentsGallery`: Faixa horizontal com Embla Carousel ou scroll nativo snap-x. No desktop, oculta scrollbar e renderiza botões flutuantes `<` e `>` com degradês de fade nas laterais.
+  - `TransactionAttachmentsGallery`: Faixa horizontal com scroll nativo `snap-x`. No desktop, oculta scrollbar e renderiza botões flutuantes `<` e `>` com degradês de fade nas laterais. Integrado em `TransactionDetailsSheet` e em `TransactionFormSheet` (modo `edit`).
+  - `TransactionStagedAttachmentsField`: Faixa horizontal equivalente para modo `create` da `TransactionFormSheet`, permitindo selecionar, pré-visualizar (incluindo lightbox), reordenar e remover até 3 arquivos locais antes de salvar a transação (`POST /transactions` seguido de `POST /transactions/:id/attachments`).
   - `TransactionAttachmentImageViewer`: Radix Dialog em tela cheia com overlay escuro, suporte a zoom (transform scale), pan (drag translate), navegação por teclado (`Escape`, `ArrowLeft`, `ArrowRight`) e contador ("1 de 3").
 
 ## 3. Contratos de API e DTOs

@@ -29,6 +29,8 @@ import {
   getCategoryName,
   getConfirmActionLabel,
   getTransactionAmountClassName,
+  getTransactionCreatedDescription,
+  getTransactionDateLabel,
   getTransactionDerivedStatus,
   getTransactionDescription,
   getTransactionTypeLabel,
@@ -76,8 +78,7 @@ export function TransactionDetailsSheet({
                   {getTransactionDescription(transaction)}
                 </SheetTitle>
                 <SheetDescription className="text-muted-foreground">
-                  {getTransactionTypeLabel(transaction.type)} registrada em{' '}
-                  {formatTransactionDate(transaction.date)}.
+                  {getTransactionCreatedDescription(transaction)}
                 </SheetDescription>
               </SheetHeader>
 
@@ -102,8 +103,10 @@ export function TransactionDetailsSheet({
                 <DetailItem label="Situação">
                   <TransactionStatusPill status={derivedStatus} />
                 </DetailItem>
-                <DetailItem label="Data">
-                  {formatTransactionDate(transaction.date)}
+                <DetailItem label={getTransactionDateLabel(transaction.type)}>
+                  <span className="numeric">
+                    {formatTransactionDate(transaction.date)}
+                  </span>
                 </DetailItem>
                 <DetailItem label="Categoria">
                   <TransactionCategoryDetail
@@ -139,9 +142,6 @@ export function TransactionDetailsSheet({
                     />
                   </DetailItem>
                 ) : null}
-                <DetailItem label="Mais detalhes">
-                  <span className="text-muted-foreground">Em breve</span>
-                </DetailItem>
               </dl>
 
               {transaction.type === 'INCOME' || transaction.type === 'EXPENSE' ? (

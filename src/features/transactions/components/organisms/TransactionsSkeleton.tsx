@@ -2,12 +2,12 @@ import { Skeleton } from '@/shared/components/ui/skeleton'
 
 export function TransactionsSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <div className="min-w-0 max-w-full space-y-4">
+      <div className="flex w-full min-w-0 max-w-full gap-3 overflow-hidden xl:grid xl:grid-cols-4">
         {Array.from({ length: 4 }).map((_, index) => (
           <Skeleton
             key={index}
-            className="h-24 rounded-2xl bg-card sm:h-32"
+            className="h-24 w-[224px] shrink-0 rounded-2xl bg-card sm:h-28 xl:w-auto"
           />
         ))}
       </div>

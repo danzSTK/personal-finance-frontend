@@ -6,6 +6,7 @@ import {
   getTodayDateOnly,
   isPastDateOnly,
 } from '@/shared/utils/dateOnly'
+import { formatDateTime } from '@/shared/utils/formatters'
 import {
   TRANSACTION_TYPE_ICONS,
   TRANSACTION_TYPE_LABELS,
@@ -277,6 +278,62 @@ export const normalizeOptionalText = (value: string | null): string | null => {
 }
 
 export const formatTransactionDate = formatDateOnlyForDisplay
+
+export const formatTransactionTimestamp = (value: string): string => {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) {
+    return formatTransactionDate(value)
+  }
+
+  return formatDateTime(parsed)
+}
+
+export const getTransactionDateLabel = (type: TransactionType): string => {
+  if (type === 'EXPENSE') return 'Data do pagamento'
+  if (type === 'INCOME') return 'Data do recebimento'
+  if (type === 'TRANSFER') return 'Data da transferência'
+  return 'Data do ajuste'
+}
+
+export const getTransactionCreatedDescription = (
+  transaction: Pick<Transaction, 'type' | 'createdAt' | 'date'>
+): string => {
+  const verb = transaction.type === 'ADJUSTMENT' ? 'criado' : 'criada'
+  const createdLabel = transaction.createdAt
+    ? formatTransactionTimestamp(transaction.createdAt)
+    : formatTransactionDate(transaction.date)
+
+  return `${getTransactionTypeLabel(transaction.type)} ${verb} em ${createdLabel}.`
+}
+
+export interface TransactionDayGroup {
+  date: string
+  label: string
+  transactions: Transaction[]
+}
+
+export const groupTransactionsByDate = (
+  transactions: Transaction[]
+): TransactionDayGroup[] => {
+  const groups: TransactionDayGroup[] = []
+  const byDate = new Map<string, TransactionDayGroup>()
+
+  for (const transaction of transactions) {
+    let group = byDate.get(transaction.date)
+    if (!group) {
+      group = {
+        date: transaction.date,
+        label: formatTransactionDate(transaction.date),
+        transactions: [],
+      }
+      byDate.set(transaction.date, group)
+      groups.push(group)
+    }
+    group.transactions.push(transaction)
+  }
+
+  return groups
+}
 
 export const getConfirmActionLabel = (
   type: TransactionType,

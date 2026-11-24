@@ -14,3 +14,8 @@
 - **Problema**: Barras de rolagem horizontais padrão poluem visualmente o painel de detalhes no desktop e quebram a estética limpa do Danfy Dark tokens.
 - **Decisão**: Ocultar a scrollbar nativa no desktop e fornecer botões suspensos `<` e `>` com degradês laterais de fade suave (`from-card to-transparent`).
 - **Consequência**: Interface sofisticada, mantendo a visibilidade parcial da imagem adjacente (peek) sem elementos nativos intrusivos.
+
+## 4. Anexos no Formulário de Criação e Edição (`TransactionFormSheet`)
+- **Problema**: Exibir o placeholder "Anexos e mais detalhes: em breve." na `TransactionFormSheet` contradiz a disponibilidade da feature e impede o usuário de anexar comprovantes no momento do cadastro ou edição da transação.
+- **Decisão**: No modo `edit` de receitas/despesas, embutir a `TransactionAttachmentsGallery` diretamente no formulário. No modo `create`, oferecer staging local via `TransactionStagedAttachmentsField` (reutilizando miniatura, upload card e lightbox) e enviar os arquivos em sequência via `POST /transactions/:id/attachments` logo após o retorno de `POST /transactions`.
+- **Consequência**: Experiência consistente entre cadastro, edição e detalhes, sem placeholders obsoletos e mantendo prevenção de duplicidade caso o upload falhe após a transação ser criada.

@@ -8,11 +8,10 @@ Descreve o ciclo de vida e interação com comprovantes na galeria de uma transa
 3. Se `attachmentsCount > 0`, a query `GET /transactions/:id/attachments` é disparada sob demanda.
 4. As miniaturas são renderizadas na ordem especificada por `position` (0 a 2).
 
-## 2. Upload
-1. Se `attachmentsCount < 3` e a transação for `INCOME` ou `EXPENSE`, o card de upload fica visível.
-2. O usuário arrasta ou seleciona de 1 a 3 imagens (PNG, JPG, JPEG, WebP de até 5 MB).
-3. `POST /transactions/:id/attachments` é enviado como `multipart/form-data`.
-4. Em caso de sucesso, o cache é invalidado e as novas imagens aparecem na galeria.
+## 2. Upload (Detalhes, Edição e Criação)
+1. Se `attachmentsCount < 3` e a transação for `INCOME` ou `EXPENSE`, o card de upload fica visível tanto na `TransactionDetailsSheet` quanto na `TransactionFormSheet` (modos `edit` e `create`).
+2. Na edição e nos detalhes, ao selecionar ou arrastar de 1 a 3 imagens (PNG, JPG, JPEG, WebP de até 5 MB), `POST /transactions/:id/attachments` é enviado imediatamente como `multipart/form-data` e o cache é invalidado.
+3. Na criação (`TransactionFormSheet` modo `create`), as imagens ficam em staging local (`TransactionStagedAttachmentsField`, com pré-visualização, lightbox e reordenação) e são enviadas via `POST /transactions/:id/attachments` logo após o retorno de `POST /transactions`. Caso o upload falhe após a criação, um toast PT-BR orienta o usuário e o formulário fecha para evitar duplicação do lançamento.
 
 ## 3. Reordenação
 1. O usuário pode arrastar uma miniatura para outra posição ou acionar o menu `...` da imagem e clicar em "Mover para a esquerda" ou "Mover para a direita".

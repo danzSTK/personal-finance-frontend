@@ -145,7 +145,8 @@ export function TransactionAttachmentUploadCard({
           </div>
           <span className="text-xs font-medium">Adicionar</span>
           <span className="text-[10px] text-muted-foreground/80">
-            {remainingSlots} {remainingSlots === 1 ? 'vaga' : 'vagas'} restantes
+            {remainingSlots}{' '}
+            {remainingSlots === 1 ? 'vaga restante' : 'vagas restantes'}
           </span>
         </div>
       )}

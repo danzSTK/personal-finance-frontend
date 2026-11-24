@@ -6,10 +6,11 @@ A experiência é estritamente **Mobile-First**, aderente aos princípios do **A
 
 ## 2. Requisitos de Usuário e Negócio
 - **R1: Indicador na Listagem**: O usuário visualiza na tabela (desktop) e nos itens de lista (mobile) um badge discreto informando a quantidade de anexos (`1 anexo`, `2 anexos`, etc.) apenas se `attachmentsCount > 0`.
-- **R2: Busca sob Demanda (Lazy Fetching)**: As URLs das imagens e metadados detalhados da galeria só são buscados ao abrir os detalhes de uma transação específica (`TransactionDetailsSheet`).
+- **R2: Busca sob Demanda (Lazy Fetching)**: As URLs das imagens e metadados detalhados da galeria só são buscados ao abrir os detalhes (`TransactionDetailsSheet`) ou edição (`TransactionFormSheet` em modo `edit`) de uma transação específica.
 - **R3: Upload de Comprovantes**:
   - Aceita de 1 a 3 imagens válidas (`image/png`, `image/jpeg`, `image/webp`).
   - Tamanho máximo de 5 MB por arquivo.
+  - Disponível na `TransactionDetailsSheet`, na edição (`TransactionFormSheet` modo `edit`) e na criação (`TransactionFormSheet` modo `create`, com staging local enviado imediatamente após `POST /transactions`).
   - Bloqueio e mensagem amigável para transações do tipo `TRANSFER` e `ADJUSTMENT`.
 - **R4: Reordenação Visual e Acessível**:
   - Reordenação fluida por toque/arraste (drag-and-drop / hold & move) das miniaturas.

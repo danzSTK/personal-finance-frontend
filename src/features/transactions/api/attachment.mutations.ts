@@ -11,27 +11,33 @@ import type {
   TransactionAttachment,
 } from '../types/transaction-attachment.types'
 
+export const uploadTransactionAttachments = async (
+  transactionId: string,
+  files: File[]
+): Promise<TransactionAttachment[]> => {
+  const formData = new FormData()
+  files.forEach((file) => {
+    formData.append('files', file)
+  })
+
+  const { data } = await api.post<TransactionAttachment[]>(
+    TRANSACTION_API_ENDPOINTS.attachments(transactionId),
+    formData,
+    {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }
+  )
+  return data
+}
+
 export const useAddTransactionAttachments = (transactionId: string) => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (files: File[]) => {
-      const formData = new FormData()
-      files.forEach((file) => {
-        formData.append('files', file)
-      })
-
-      const { data } = await api.post<TransactionAttachment[]>(
-        TRANSACTION_API_ENDPOINTS.attachments(transactionId),
-        formData,
-        {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      )
-      return data
-    },
+    mutationFn: (files: File[]) =>
+      uploadTransactionAttachments(transactionId, files),
     onSuccess: (createdAttachments) => {
       void queryClient.invalidateQueries({
         queryKey: TRANSACTION_QUERY_KEYS.attachments(transactionId),

@@ -14,11 +14,14 @@ Documenta os componentes do módulo de galeria de comprovantes.
 - **Responsabilidade**: Área de adição de novo comprovante. Exibida enquanto `attachments.length < 3`. Suporta drag-and-drop de arquivo e clique para selecionar via diálogo do sistema.
 
 ## 4. `TransactionAttachmentsGallery` (Organism)
-- **Responsabilidade**: Compor as miniaturas e o slot de upload.
+- **Responsabilidade**: Compor as miniaturas e o slot de upload para transações já persistidas (`TransactionDetailsSheet` e `TransactionFormSheet` modo `edit`).
 - **Responsividade**:
   - **Mobile**: Faixa horizontal com rolagem suave por toque, `snap-x` e peek da próxima imagem.
   - **Desktop**: Ocultação da barra de rolagem nativa, navegação por botões `<` e `>` combinados a degradês laterais de fade.
 
-## 5. `TransactionAttachmentImageViewer` (Organism)
+## 5. `TransactionStagedAttachmentsField` (Organism)
+- **Responsabilidade**: Gerenciar staging local de até 3 comprovantes durante o cadastro de nova receita ou despesa (`TransactionFormSheet` modo `create`), reutilizando `TransactionAttachmentThumbnail`, `TransactionAttachmentUploadCard` e `TransactionAttachmentImageViewer` antes do envio pós-criação.
+
+## 6. `TransactionAttachmentImageViewer` (Organism)
 - **Responsabilidade**: Modal overlay em tela cheia (fundo escuro translúcido) para inspeção da imagem em alta resolução.
 - **Recursos**: Zoom suave (1x a 3x via duplo toque/clique e botões explícitos), pan com arraste, navegação por setas e fechamento via `Esc`.

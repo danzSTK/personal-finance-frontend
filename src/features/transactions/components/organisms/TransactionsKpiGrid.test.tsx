@@ -54,7 +54,7 @@ const typeExpenseResponse: TransactionListResponse = {
 }
 
 describe('TransactionsKpiGrid', () => {
-  it('renderiza os 4 cards da visão geral em grade responsiva sem trilha horizontal', () => {
+  it('renderiza os 4 cards da visão geral em trilha horizontal limitada sem w-max', () => {
     const { container } = render(
       <TransactionsKpiGrid
         response={overviewResponse}
@@ -68,26 +68,42 @@ describe('TransactionsKpiGrid', () => {
     expect(screen.getByText('Despesas')).toBeInTheDocument()
     expect(screen.getByText('Balanço mensal')).toBeInTheDocument()
 
-    const grid = container.firstElementChild
-    expect(grid).toHaveClass('grid', 'grid-cols-2')
-    expect(container.querySelector('.overflow-x-auto')).toBeNull()
+    const track = screen.getByTestId('transactions-kpi-track')
+    expect(track).toHaveClass('flex', 'w-full', 'min-w-0', 'max-w-full', 'overflow-x-auto')
+    expect(track).not.toHaveClass('grid-cols-2')
     expect(container.querySelector('.w-max')).toBeNull()
   })
 
-  it('renderiza os 3 cards do resumo de despesas com spans proporcionais', () => {
-    const { container } = render(
-      <TransactionsKpiGrid
-        response={typeExpenseResponse}
-        view="EXPENSE"
-      />
-    )
+  it.each([
+    ['EXPENSE', 'Despesas pendentes', 'Despesas pagas', 'Total'],
+    ['INCOME', 'Receitas pendentes', 'Receitas recebidas', 'Total'],
+    [
+      'TRANSFER',
+      'Transferências pendentes',
+      'Transferências efetivadas',
+      'Total movimentado',
+    ],
+  ] as const)(
+    'renderiza os 3 cards do resumo de %s em trilha horizontal limitada',
+    (view, pendingLabel, effectiveLabel, totalLabel) => {
+      const { container } = render(
+        <TransactionsKpiGrid response={typeExpenseResponse} view={view} />
+      )
 
-    expect(screen.getByText('Despesas pendentes')).toBeInTheDocument()
-    expect(screen.getByText('Despesas pagas')).toBeInTheDocument()
-    expect(screen.getByText('Total')).toBeInTheDocument()
+      expect(screen.getByText(pendingLabel)).toBeInTheDocument()
+      expect(screen.getByText(effectiveLabel)).toBeInTheDocument()
+      expect(screen.getByText(totalLabel)).toBeInTheDocument()
 
-    const grid = container.firstElementChild
-    expect(grid).toHaveClass('grid', 'grid-cols-2')
-    expect(container.querySelector('.overflow-x-auto')).toBeNull()
-  })
+      const track = screen.getByTestId('transactions-kpi-track')
+      expect(track).toHaveClass(
+        'flex',
+        'w-full',
+        'min-w-0',
+        'max-w-full',
+        'overflow-x-auto'
+      )
+      expect(track).not.toHaveClass('grid-cols-2')
+      expect(container.querySelector('.w-max')).toBeNull()
+    }
+  )
 })

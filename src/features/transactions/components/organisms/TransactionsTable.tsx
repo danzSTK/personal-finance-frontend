@@ -1,4 +1,4 @@
-import type { CSSProperties } from 'react'
+import { Fragment, type CSSProperties } from 'react'
 import {
   ArrowLeftRight,
   CheckCircle2,
@@ -45,6 +45,7 @@ import {
   getTransactionDerivedStatus,
   getTransactionDescription,
   getTransactionTypeIcon,
+  groupTransactionsByDate,
 } from '../../utils/transaction.utils'
 import { TransactionStatusPill } from '../molecules/TransactionStatusPill'
 import { TransactionAttachmentBadge } from '../atoms/TransactionAttachmentBadge'
@@ -70,6 +71,8 @@ export function TransactionsTable({
   onEdit,
   onOpenDetails,
 }: TransactionsTableProps) {
+  const dayGroups = groupTransactionsByDate(transactions)
+
   return (
     <>
       <div className="hidden max-w-full overflow-hidden rounded-2xl border border-border bg-card md:block">
@@ -88,35 +91,71 @@ export function TransactionsTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {transactions.map((transaction) => (
-              <TransactionRow
-                key={transaction.id}
-                transaction={transaction}
-                accounts={accounts}
-                categories={categories}
-                isMutating={isMutating}
-                onConfirm={onConfirm}
-                onDelete={onDelete}
-                onEdit={onEdit}
-                onOpenDetails={onOpenDetails}
-              />
+            {dayGroups.map((group) => (
+              <Fragment key={group.date}>
+                <TableRow className="border-border/70 bg-secondary/30 hover:bg-secondary/30">
+                  <TableCell colSpan={7} className="py-2">
+                    <TransactionDayDivider label={group.label} />
+                  </TableCell>
+                </TableRow>
+                {group.transactions.map((transaction) => (
+                  <TransactionRow
+                    key={transaction.id}
+                    transaction={transaction}
+                    accounts={accounts}
+                    categories={categories}
+                    isMutating={isMutating}
+                    onConfirm={onConfirm}
+                    onDelete={onDelete}
+                    onEdit={onEdit}
+                    onOpenDetails={onOpenDetails}
+                  />
+                ))}
+              </Fragment>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      <div className="grid w-full min-w-0 max-w-full gap-3 md:hidden">
-        {transactions.map((transaction) => (
-          <TransactionMobileItem
-            key={transaction.id}
-            transaction={transaction}
-            accounts={accounts}
-            categories={categories}
-            onOpenDetails={onOpenDetails}
-          />
+      <div className="grid w-full min-w-0 max-w-full gap-4 md:hidden">
+        {dayGroups.map((group) => (
+          <div key={group.date} className="min-w-0 max-w-full space-y-1">
+            <TransactionDayDivider label={group.label} />
+            <div className="grid w-full min-w-0 max-w-full">
+              {group.transactions.map((transaction) => (
+                <TransactionMobileItem
+                  key={transaction.id}
+                  transaction={transaction}
+                  accounts={accounts}
+                  categories={categories}
+                  onOpenDetails={onOpenDetails}
+                />
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </>
+  )
+}
+
+interface TransactionDayDividerProps {
+  label: string
+}
+
+function TransactionDayDivider({ label }: TransactionDayDividerProps) {
+  return (
+    <div
+      className="flex w-full min-w-0 items-center gap-3 py-1"
+      role="separator"
+      aria-label={`Lançamentos de ${label}`}
+    >
+      <span className="h-px flex-1 bg-border" aria-hidden />
+      <span className="numeric shrink-0 text-xs font-medium tracking-wide text-muted-foreground">
+        {label}
+      </span>
+      <span className="h-px flex-1 bg-border" aria-hidden />
+    </div>
   )
 }
 
