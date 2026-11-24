@@ -1,3 +1,15 @@
+---
+area: transactions
+feature: transaction-attachments
+type: spec-tasks
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ./requirements.md
+  - ./design.md
+  - ./decisions.md
+---
+
 # Tarefas de Implementação: Galeria de Anexos
 
 - [x] **1. Contratos de Tipos e Serviços de API**

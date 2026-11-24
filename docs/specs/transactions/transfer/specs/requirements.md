@@ -7,12 +7,6 @@ related:
   - ./design.md
   - ./tasks.md
   - ./decisions.md
-  - ../../../../../../personal-finance-backend/docs/integrations/transactions/README.md
-  - ../../../../../../personal-finance-backend/docs/integrations/transactions/create-transaction.md
-  - ../../../../../../personal-finance-backend/docs/integrations/transactions/update-transaction.md
-  - ../../../../../../personal-finance-backend/docs/integrations/transactions/confirm-transaction.md
-  - ../../../../../../personal-finance-backend/docs/integrations/transactions/delete-transaction.md
-  - ../../../../../../personal-finance-backend/docs/integrations/errors.md
 ---
 
 # Requirements - Transferências Entre Contas
@@ -27,12 +21,12 @@ A entrega também deve corrigir todos os inputs monetários de produto para que 
 
 Esta spec foi derivada das seguintes fontes:
 
-- `personal-finance-backend/docs/integrations/transactions/**`;
-- `personal-finance-backend/docs/integrations/accounts/list-accounts.md`;
-- `personal-finance-backend/docs/integrations/errors.md`;
-- `personal-finance-backend/docs/integrations/date-and-time.md`;
-- `personal-finance-backend/docs/transactions/**`;
-- `personal-finance-backend/docs/specs/transactions/core/specs/**`;
+- `personal-finance-backend:docs/integrations/transactions/**`;
+- `personal-finance-backend:docs/integrations/accounts/list-accounts.md`;
+- `personal-finance-backend:docs/integrations/errors.md`;
+- `personal-finance-backend:docs/integrations/date-and-time.md`;
+- `personal-finance-backend:docs/transactions/**`;
+- `personal-finance-backend:docs/specs/transactions/core/specs/**`;
 - `docs/specs/transactions/screen/specs/design.md`;
 - `docs/design-system/danfy-finance-design-system.md`;
 - `docs/design-system/material-3-reference.md`;

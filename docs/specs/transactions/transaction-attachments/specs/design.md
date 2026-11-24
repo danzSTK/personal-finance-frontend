@@ -1,3 +1,16 @@
+---
+area: transactions
+feature: transaction-attachments
+type: spec-design
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ./requirements.md
+  - ./tasks.md
+  - ./decisions.md
+  - ../../../../transactions/components/attachment-gallery-and-viewer.md
+---
+
 # Design Técnico: Galeria de Anexos de Transações
 
 ## 1. Arquitetura de Estado e Queries (TanStack Query)

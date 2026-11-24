@@ -1,3 +1,13 @@
+---
+area: design-system
+type: reference
+status: current
+last_reviewed: 2026-11-24
+related:
+  - ../README.md
+  - ./material-3-reference.md
+---
+
 # Danfy Finance Design System
 
 Danfy Finance uses **Danfy Dark**: a dark-first SaaS finance interface with Obsidian-like calm, premium dashboard structure, and Apple HIG-first UX judgment. The goal is trust, clarity, control, and fast scanning of money.

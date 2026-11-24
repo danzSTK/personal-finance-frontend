@@ -7,14 +7,13 @@ related:
   - ./requirements.md
   - ./tasks.md
   - ./decisions.md
-  - ../../../../../../personal-finance-backend/docs/integrations/auth/email-verification.md
 ---
 
 # Design — verificação de email e status de reenvio
 
 ## Resumo da solução
 
-A solução aprimora a experiência da rota autenticada `/email-verification-pending` consumindo o endpoint `GET /auth/email-verification/resend/status` via TanStack Query com polling contínuo enquanto a página estiver montada.
+A solução aprimora a experiência da rota autenticada `/email-verification-pending` consumindo o endpoint `GET /auth/email-verification/resend/status` via TanStack Query com polling contínuo enquanto a página estiver montada (contrato backend em `personal-finance-backend:docs/integrations/auth/email-verification.md`).
 
 ```mermaid
 flowchart TD

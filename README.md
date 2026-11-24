@@ -1,58 +1,47 @@
 # Personal Finance App - Frontend
 
-Frontend da aplicação de finanças pessoais desenvolvido com Vite, React e TypeScript.
+Frontend da aplicação de finanças pessoais **Danfy Finance**, desenvolvido com Vite, React e TypeScript.
+
+Para o mapa completo de arquitetura, módulos e contratos, consulte [docs/README.md](./docs/README.md).
 
 ## 🚀 Stack Tecnológica
 
-- **Vite 5.x** - Build tool e dev server
+- **Vite 8.x** - Build tool e dev server
 - **React 18.x** - Biblioteca UI
-- **TypeScript** - Tipagem estática
+- **TypeScript 5.x** - Tipagem estática
 - **React Router 6.x** - Roteamento
-- **TanStack Query** - Gerenciamento de estado assíncrono
-- **Zustand** - Gerenciamento de estado global
-- **Axios** - Cliente HTTP
-- **React Hook Form** - Gerenciamento de formulários
-- **Zod** - Validação de schemas
+- **TanStack Query** - Gerenciamento de estado assíncrono (server state)
+- **Zustand** - Gerenciamento de estado global focado
+- **Axios** - Cliente HTTP com sessão por cookies HttpOnly
+- **React Hook Form + Zod** - Formulários e validação tipada
 - **IMask** - Máscaras de input
-- **Tailwind CSS** - Framework CSS utility-first
-- **Shadcn/UI** - Componentes UI
+- **Tailwind CSS v4 + Shadcn/UI + Radix UI** - Design System Danfy Dark
+- **Vitest + Testing Library** - Testes automatizados
 
 ## 📁 Estrutura do Projeto
 
-```
+```text
 src/
-├── app/                    # Configuração da aplicação
-│   ├── providers/         # Context providers (React Query, etc)
-│   ├── routes/           # Configuração de rotas
-│   └── App.tsx           # Componente raiz
+├── app/                     # Configuração raiz da aplicação
+│   ├── providers/          # Context providers (QueryProvider)
+│   ├── routes/             # Roteamento e guards de autenticação
+│   └── App.tsx             # Componente raiz
 │
-├── features/             # Features organizadas por domínio (DDD-like)
-│   ├── auth/            # Feature de autenticação
-│   │   ├── api/        # Chamadas API
-│   │   ├── components/ # Componentes (Atomic Design)
-│   │   │   ├── atoms/
-│   │   │   ├── molecules/
-│   │   │   ├── organisms/
-│   │   │   └── templates/
-│   │   ├── hooks/      # React hooks customizados
-│   │   ├── stores/     # Zustand stores
-│   │   ├── types/      # TypeScript types
-│   │   └── utils/      # Funções utilitárias
-│   │
-│   └── _template/      # Template para novas features
+├── features/               # Módulos organizados por domínio
+│   ├── accounts/           # Contas e templates visuais (+ AGENTS.md)
+│   ├── auth/               # Autenticação, sessões, perfil, settings e shell (+ AGENTS.md)
+│   ├── categories/         # Categorias de receitas/despesas (+ AGENTS.md)
+│   ├── transactions/       # Lançamentos, transferências e anexos (+ AGENTS.md)
+│   └── _template/          # Template base para novos módulos
 │
-├── shared/             # Código compartilhado
-│   ├── components/    # Componentes globais (Atomic Design)
-│   │   ├── atoms/
-│   │   ├── molecules/
-│   │   └── organisms/
-│   ├── hooks/        # Hooks compartilhados
-│   ├── lib/         # Shadcn components
-│   ├── utils/       # Utilitários (formatters, masks, etc)
-│   ├── config/      # Configurações (axios, env)
-│   └── types/       # Types globais
-│
-└── assets/          # Assets estáticos
+└── shared/                 # Infraestrutura e UI compartilhada (+ AGENTS.md)
+    ├── components/         # Atomic Design compartilhado + ui/ (Shadcn)
+    ├── config/             # Configurações (brand, env, axios)
+    ├── errors/             # Contrato tipado de erros da API
+    ├── hooks/              # Hooks compartilhados
+    ├── lib/                # Utilitário cn() e wrappers base
+    ├── types/              # Tipos compartilhados
+    └── utils/              # Formatters, masks e dateOnly
 ```
 
 ## 🎨 Atomic Design

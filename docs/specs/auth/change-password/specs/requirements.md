@@ -7,8 +7,6 @@ related:
   - ./design.md
   - ./tasks.md
   - ./decisions.md
-  - ../../../../../../personal-finance-backend/docs/integrations/auth/change-password.md
-  - ../../../../../../personal-finance-backend/docs/auth/change-password/index.md
 ---
 
 # Requisitos — segurança e alteração de senha
@@ -33,6 +31,8 @@ que criam ou alteram credenciais.
 - `.agents/skills/frontend-design/SKILL.md`.
 - `.agents/skills/danfy-finance-design-system/SKILL.md`.
 - `.agents/skills/material-3-ui-guidance/SKILL.md`.
+- `personal-finance-backend:docs/integrations/auth/change-password.md`.
+- `personal-finance-backend:docs/auth/change-password/index.md`.
 - `docs/design-system/danfy-finance-design-system.md`.
 - `docs/design-system/material-3-reference.md`.
 - `../personal-finance-backend/docs/integrations/errors.md`.

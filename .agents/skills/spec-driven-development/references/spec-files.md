@@ -1,6 +1,6 @@
-# Spec Files
+# Spec Files (Frontend)
 
-Use this structure for feature specs:
+Use esta estrutura para specs de features no frontend:
 
 ```text
 docs/specs/<module>/<feature>/specs/
@@ -10,124 +10,123 @@ docs/specs/<module>/<feature>/specs/
 └── decisions.md
 ```
 
-Example:
+Exemplo:
 
 ```text
-docs/specs/transactions/core/specs/
+docs/specs/transactions/transaction-attachments/specs/
 ├── requirements.md
 ├── design.md
 ├── tasks.md
 └── decisions.md
 ```
 
-## requirements.md
+Todos os quatro arquivos devem iniciar com frontmatter YAML canônico:
 
-Purpose: define what must happen and why, without implementation code.
+```yaml
+---
+area: <module>
+feature: <feature>
+type: spec-requirements | spec-design | spec-tasks | spec-decisions
+status: draft | approved | current | historical | deprecated
+last_reviewed: YYYY-MM-DD
+related:
+  - ./design.md
+---
+```
 
-Include:
+## `requirements.md`
 
-- objective;
-- context/source docs;
-- in scope;
-- out of scope;
-- business rules;
-- user/system flows;
-- edge cases;
-- acceptance criteria;
-- frontend/API expectations when relevant.
+Propósito: definir **o que** deve acontecer e **por quê**, sem código de implementação.
 
-Prefer testable wording:
+Inclua:
+
+- objetivo e contexto (referenciando `docs/<module>/README.md` e contratos backend como `personal-finance-backend:docs/integrations/<recurso>/...`);
+- escopo (`In Scope`) e fora de escopo (`Out of Scope`);
+- regras de negócio, capacidades (gates por provider/status/permissão) e invariantes financeiras/temporais (`amountCents`, `DateOnly`);
+- fluxos principais e alternativos do usuário;
+- estados obrigatórios de tela (loading, empty, pending, success, error, offline/unauthorized);
+- acessibilidade (teclado, foco, contraste, não depender apenas de cor) e responsividade mobile-first;
+- casos de borda e critérios de aceite testáveis.
+
+Prefira redação testável:
 
 ```text
-WHEN <condition>
-THE SYSTEM SHALL <behavior>
+WHEN <condição>
+THE SYSTEM SHALL <comportamento esperado>
 ```
 
 ```text
-IF <condition>
-THEN <expected result>
+IF <condição>
+THEN <resultado esperado>
 ```
 
-## design.md
+## `design.md`
 
-Purpose: define how the approved requirements will be implemented.
+Propósito: definir **como** os requisitos aprovados serão implementados no frontend.
 
-Include:
+Inclua:
 
-- architecture/layers touched;
-- module dependencies;
-- entity/model shape;
-- database schema and migrations;
-- validation and invariants;
-- errors and HTTP contract impact;
-- events/outbox behavior when relevant;
-- security/ownership rules;
-- testing strategy;
-- documentation/integration/swagger impact;
-- important trade-offs.
+- rotas frontend afetadas e parâmetros de URL (query string para filtros/períodos/busca/ordenação);
+- composição de componentes por Atomic Design (`atoms`, `molecules`, `organisms`, `templates`, `pages`) e distinção entre próprio, `shared` e cross-feature;
+- donos de estado: TanStack Query (query keys, `staleTime`, invalidações), Zustand (quando aplicável), React Hook Form + Zod;
+- consumo de API backend (operações, payloads, contrato `DateOnly`/centavos) e inventário de códigos de erro mapeados em `src/shared/errors/apiErrorCodes.ts` com superfícies de recuperação (`ApiErrorAlert`, erro de campo, toast);
+- decisões de Design System (Danfy Dark tokens, família Material 3, modal vs. sheet vs. inline);
+- impacto em fronteiras entre módulos (`docs/architecture/module-boundaries.md` e API pública `index.ts`);
+- estratégia de testes (Vitest + Testing Library: schemas, utils, queries/mutations, fluxos críticos de erro/acessibilidade);
+- impacto documental em `docs/<module>/` e `src/features/<module>/AGENTS.md`.
 
-Do not hide business-rule changes here. If design reveals a rule change, update `requirements.md`.
+Não esconda mudanças de regra de negócio aqui. Se o design revelar nova regra, atualize `requirements.md`.
 
-For any database schema change, the design must mention the impact on `docs/database/schema.md`. Read that file before creating, generating, or running migrations so existing tables, indexes, triggers, functions, enums, and naming conventions are reused instead of duplicated.
+## `tasks.md`
 
-## tasks.md
+Propósito: quebrar a implementação em tarefas pequenas, ordenadas e rastreáveis.
 
-Purpose: break implementation into small, ordered, trackable tasks.
-
-Use checkbox tasks:
+Use checklist em Markdown:
 
 ```md
-- [ ] 1. Create transaction enums
-- [ ] 2. Create transaction ORM entity
-- [ ] 3. Add migration
+- [ ] 1. Adicionar constantes de rota/endpoint e tipos em `src/features/<module>/`
+- [ ] 2. Implementar schema Zod e utilitários com testes unitários
+- [ ] 3. Implementar queries/mutations e mapeamento de erros em `src/shared/errors`
+- [ ] 4. Construir componentes (atoms/molecules/organisms/page) com estados loading/empty/error
+- [ ] 5. Atualizar documentação viva em `docs/<module>/` e `src/features/<module>/AGENTS.md`
 ```
 
-Rules:
+Regras:
 
-- one task should have a clear output;
-- avoid vague tasks like "implement everything";
-- include tests/docs tasks explicitly;
-- keep order close to execution order;
-- update status as work progresses when the task list is part of the active workflow.
+- cada tarefa deve ter saída clara e verificável;
+- evite tarefas vagas como "implementar tudo";
+- inclua explicitamente tarefas de testes, `npm run lint` / `npm run build` e atualização de documentação modular;
+- mantenha a ordem próxima da ordem real de execução.
 
-## decisions.md
+## `decisions.md`
 
-Purpose: keep the spec alive by recording decisions, trade-offs, and changes.
+Propósito: manter a spec viva registrando escolhas, trade-offs e desvios durante o planejamento e a implementação.
 
-Use lightweight local ADRs:
+Use ADRs leves locais:
 
 ```md
-## DEC-001 - Store transaction amount in cents
+## DEC-001 — Manter filtros da listagem sincronizados na URL
 
 Status: accepted
 
+Problem:
+Manter filtros apenas em `useState` perde o contexto ao recarregar a página ou compartilhar deep links do dashboard.
+
 Decision:
-Transactions store `amount_cents` as integer cents.
+Persistir filtros, busca e período na query string com utilitário dedicado de parse/serialize.
 
-Reason:
-Avoid decimal/float precision issues in money calculations.
-
-Impact:
-API/domain can expose amount, but persistence stores cents.
+Consequences:
+Preserva histórico do navegador e habilita deep links, exigindo normalização segura de parâmetros inválidos.
 ```
 
-Record:
+## Regra de Aprovação e Manutenção
 
-- naming choices;
-- schema trade-offs;
-- rejected alternatives;
-- cross-module impacts;
-- deviations from original design;
-- implementation surprises.
+Não implemente código de feature antes que `requirements.md`, `design.md` e `tasks.md` existam e sejam aprovados ou liberados pelo usuário.
 
-## Approval Rule
+Durante a implementação:
 
-Do not implement feature code before `requirements.md`, `design.md`, and `tasks.md` exist and are approved or explicitly cleared by the user.
-
-During implementation:
-
-- if business behavior changes, update `requirements.md`;
-- if technical design changes, update `design.md`;
-- if task order/scope changes, update `tasks.md`;
-- if a decision/trade-off appears, update `decisions.md`.
-- if a migration changes database structure, update `docs/database/schema.md` in the same task.
+- se comportamento de produto mudar, atualize `requirements.md`;
+- se desenho técnico mudar, atualize `design.md`;
+- se ordem/escopo de tarefas mudar, atualize `tasks.md`;
+- se surgir decisão/trade-off relevante, registre em `decisions.md`;
+- ao concluir a entrega, sincronize a documentação viva em `docs/<module>/` e `src/features/<module>/AGENTS.md` via skill `modular-documentation`.

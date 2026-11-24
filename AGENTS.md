@@ -2,7 +2,7 @@
 
 ## Project Context
 
-This repository is a React + TypeScript personal finance frontend for account, auth, dashboard, and transaction workflows. Build for trust, clarity, and efficiency: financial data must be easy to scan, actions must feel predictable, and errors must be explicit.
+This repository is the React + TypeScript frontend for **Danfy Finance** (personal finance workflows: `accounts`, `auth`, `categories`, and `transactions`). Build for trust, clarity, and efficiency: financial data must be easy to scan, actions must feel predictable, and errors must be explicit and recoverable.
 
 ## Stack
 
@@ -11,47 +11,83 @@ This repository is a React + TypeScript personal finance frontend for account, a
 - TanStack Query for server state.
 - Zustand for focused global client state.
 - React Hook Form + Zod for forms and validation.
-- Axios for HTTP.
-- Tailwind CSS, Shadcn/UI, Radix UI, CVA, and `cn()` for UI composition.
+- Axios for HTTP (HttpOnly cookie session).
+- Tailwind CSS v4, Shadcn/UI, Radix UI, CVA, and `cn()` for UI composition.
 - Lucide React for icons.
 - IMask / react-imask for input masks.
+- Vitest + Testing Library for automated tests.
+
+## Antes de Planejar, Editar ou Revisar
+
+1. Identifique todos os módulos envolvidos na tarefa (`src/features/<modulo>/`, `src/shared/`, `src/app/`).
+2. Leia o `AGENTS.md` local de cada módulo envolvido (`src/features/<modulo>/AGENTS.md` e `src/shared/AGENTS.md`) antes de propor alterações ou comentários de revisão.
+3. Leia o índice do módulo em `docs/<modulo>/README.md` e apenas os documentos específicos relevantes à tarefa.
+4. Se a mudança alcançar outro módulo ou fronteira, leia também `docs/architecture/module-boundaries.md` e repita o processo no módulo afetado.
+5. Instruções locais complementam as regras globais; restrições globais de segurança, Atomic Design, tokens e contratos de erro nunca podem ser relaxadas por instruções locais.
+
+## Leitura Direcionada por Pastas de Contexto (Just-in-Time Routing)
+
+Para evitar sobrecarga de contexto, **nunca leia todas as documentações de uma vez**. Consulte apenas a pasta correspondente ao escopo da tarefa:
+
+| Se a tarefa envolver... | Consulte primeiro | O que contém |
+| --- | --- | --- |
+| **Visão geral e mapa de docs** | `docs/README.md` | Índice global, taxonomia de `status`/`type` e links dos módulos |
+| **Fronteiras entre módulos / imports** | `docs/architecture/module-boundaries.md` | Limites entre `app`, `shared` e `features`, API pública e dívidas técnicas |
+| **Erros de API, retries ou alertas** | `docs/architecture/api-error-handling.md` | Contrato `code`, parser tipado, `ApiErrorAlert`, field errors e toasts |
+| **Identidade visual, tokens ou UX** | `docs/design-system/danfy-finance-design-system.md` | Danfy Dark, semântica financeira, Apple HIG, WCAG 2.2 |
+| **Componentes comuns e variantes M3** | `docs/design-system/material-3-reference.md` | Famílias Material 3, estados, espaçamento e mapeamento para Danfy |
+| **Autenticação, sessão, perfil, settings, shell** | `src/features/auth/AGENTS.md` + `docs/auth/README.md` | Cookies HttpOnly, OAuth, verificação, providers, senha, perfil, shell |
+| **Contas e templates visuais** | `src/features/accounts/AGENTS.md` + `docs/accounts/README.md` | Templates institucionais/customizados, saldo derivado, resumo por período |
+| **Categorias de receita/despesa** | `src/features/categories/AGENTS.md` + `docs/categories/README.md` | Sistema vs. customizadas, metadados, arquivamento, delete-with-merge |
+| **Transações, transferências e anexos** | `src/features/transactions/AGENTS.md` + `docs/transactions/README.md` | CRUD, filtros em URL, KPIs, transferências, confirmação e comprovantes |
+| **Utilitários, erros ou UI compartilhados** | `src/shared/AGENTS.md` | Fronteiras de `shared`, `DateOnly`, `CurrencyInput`, `src/shared/errors` |
+| **Specs ativas ou históricas** | `docs/specs/<modulo>/<feature>/specs/` | Contratos de mudança (`requirements`, `design`, `tasks`, `decisions`) |
+
+## Skills do Repositório
+
+As skills canônicas ficam em `.agents/skills/` (espelhadas via symlink `.claude/skills -> ../.agents/skills`). Use a skill adequada ao tipo de tarefa:
+
+- `spec-driven-development`: criar ou manter specs em `docs/specs/<modulo>/<feature>/specs/` antes e durante a implementação de features ou mudanças relevantes.
+- `modular-documentation`: criar, atualizar ou revisar documentação viva modular em `docs/<modulo>/`, `docs/README.md`, `docs/architecture/module-boundaries.md` e `AGENTS.md` locais.
+- `danfy-api-error-handling`: integrar ou revisar queries, mutations, parsers de erro, `apiErrorCodes.ts`, `applyApiFieldErrors`, `ApiErrorAlert` e recuperação UX.
+- `frontend-design`: construir ou refinar telas e fluxos React + TypeScript respeitando Atomic Design, tokens Danfy, UX e TypeScript safety.
+- `danfy-finance-design-system`: aplicar tokens Danfy Dark, semântica financeira, tipografia Inter, hierarquia de dashboard e acessibilidade WCAG 2.2.
+- `material-3-ui-guidance`: auditar variantes, estados, espaçamento e comportamento de componentes comuns com base em Material 3 mapeado para tokens Danfy.
 
 ## Architecture Rules
 
-- Organize by feature first: prefer `src/features/<feature>/{api,components,hooks,stores,types,utils}` over technical top-level buckets.
-- Keep shared reusable building blocks under `src/shared`.
+- Organize by feature first: `src/features/<feature>/{api,components,constants,hooks,schemas,stores,types,utils}`.
+- Keep shared reusable building blocks under `src/shared/`. `src/shared/` must not grow new dependencies on `src/features/` (see registered debts in `docs/architecture/module-boundaries.md`).
 - Use named exports; avoid default exports for project components and utilities.
 - Keep one primary component per file.
 - Use `index.ts` only for public feature exports. Do not export private stores, internals, or one-off helpers unless they are a real public API.
-- Keep business logic out of presentation components when a hook, service, schema, or utility can own it more cleanly.
+- Keep business logic out of presentation components when a hook, schema, or utility can own it more cleanly.
 
 ## Spec-Driven Development
 
-- Follow `.agents/skills/spec-driven-development/SKILL.md` for every new feature, cross-module behavior, materially large change, or request explicitly framed by the user as a feature.
-- Before implementation, inspect every affected module and read the relevant domain, backend integration, error-contract, design-system, and database documentation.
-- Create the implementation contract under `docs/specs/<module>/<feature>/specs/` with `requirements.md`, `design.md`, `tasks.md`, and `decisions.md`.
-- Write requirements first, derive the technical design from the approved behavior, and only then generate small, ordered implementation tasks from the requirements and design.
-- Do not implement feature code until `requirements.md`, `design.md`, and `tasks.md` have been reviewed or explicitly approved by the user.
-- Keep the spec alive during implementation. Stop and update it before continuing whenever a business rule, API/schema contract, cross-module impact, or material design decision changes.
-- A narrowly scoped bug fix or mechanical refactor does not require a full feature spec unless the user requests one or the change reveals a broader product decision.
+- Follow `.agents/skills/spec-driven-development/SKILL.md` for every new feature, cross-module behavior, materially large change, or request explicitly framed as a feature.
+- Before implementation, inspect every affected module's `AGENTS.md`, live docs (`docs/<modulo>/`), error/design-system docs, and backend integration contract (`personal-finance-backend:docs/integrations/<recurso>/`).
+- Create or update `docs/specs/<module>/<feature>/specs/{requirements,design,tasks,decisions}.md`.
+- Do not implement feature code until `requirements.md`, `design.md`, and `tasks.md` are reviewed or explicitly approved by the user.
+- Keep the spec alive during implementation. Stop and update it before continuing whenever a business rule, API contract, cross-module impact, or material UX/design decision changes.
+- Narrowly scoped bug fixes or mechanical refactors do not require a full spec unless they reveal a broader product decision.
 
-## Live Feature Documentation
+## Modular Live Documentation
 
-- Follow `.agents/skills/platform-feature-documentation/SKILL.md` whenever creating, updating, reviewing, or reorganizing feature documentation, and whenever an implementation changes a flow, decision, backend operation, dependency, or component responsibility.
-- Keep specs as implementation contracts under `docs/specs/<module>/<feature>/specs/`; keep implemented behavior under `docs/<module>/<feature>/[<subfeature>/]documentacao/`.
-- Every live documentation tree contains `decisions/`, `flow/`, and `components/` directories. Store one cohesive responsibility per Markdown file instead of creating monolithic summary files.
-- Each decision is a separate file under `decisions/` with `Problema`, `Decisão`, and `Consequência`. A contradicting decision must explicitly supersede the previous decision and update the reverse relation.
-- Update live documentation in the same delivery whenever behavior, API consumption, error recovery, state ownership, dependencies, or component composition changes.
-- Mark documents `current` only when confirmed by implemented code or an active backend contract. Keep proposals and historical reconstruction explicit.
+- Follow `.agents/skills/modular-documentation/SKILL.md` whenever creating, updating, reviewing, or reorganizing documentation, and whenever an implementation changes flows, decisions, backend operations, dependencies, components, or module invariants.
+- Keep implementation contracts under `docs/specs/<module>/<feature>/specs/` and implemented behavior under `docs/<module>/{README.md,concepts/,flows/,decisions/,components/,reference/}`.
+- Keep `docs/<module>/README.md` and `src/features/<module>/AGENTS.md` synchronized in the same delivery whenever behavior, endpoints, state ownership, boundaries, or invariants change.
+- Each decision under `docs/<module>/decisions/` is its own file with `Problema`, `Decisão`, and `Consequência`; contradicting decisions must explicitly supersede previous ones (`supersedes` / `superseded-by`).
+- Mark documents `status: current` only when confirmed by implemented code or an active backend contract.
 
 ## Atomic Design
 
 Component hierarchy is mandatory for `src/features/*/components` and `src/shared/components`:
 
-- `atoms`: primitive UI elements such as Button, Input, Label, Badge, Icon. Atoms may use native HTML/SVG, Tailwind, CVA, and basic local UI state only. They must not import custom components, call APIs, or contain business logic.
-- `molecules`: small combinations of atoms such as FormField, SearchBar, CardHeader. Molecules may manage simple UI state, but must not import organisms/templates/pages, call APIs, or use global state.
-- `organisms`: complete UI sections such as LoginForm, TransactionCard, Navbar, DataTable. Organisms may compose atoms and molecules, use hooks, handle mutations, and own local workflow state.
-- `templates`: layout structures and slots only. Templates define placement and responsive structure, not real data fetching or business rules.
+- `atoms`: primitive UI elements only (native HTML/SVG, Tailwind, CVA, basic local UI state). Must not import custom components, call APIs, or contain business logic.
+- `molecules`: small combinations of atoms with simple UI state. Must not import organisms/templates/pages, call APIs, or use global state.
+- `organisms`: complete UI sections. May compose atoms/molecules, use hooks, handle mutations, and own local workflow state.
+- `templates`: layout structures and slots only. No real data fetching or business rules.
 - `pages`: route-level composition with real data, URL params, page state, and template usage.
 
 Lower levels must not import higher levels.
@@ -60,88 +96,47 @@ Lower levels must not import higher levels.
 
 - Do not use `any`; `as any` is prohibited.
 - Use `unknown` rarely and narrow it immediately with type guards.
-- Do not access nested error payloads with loose assumptions. Parse error shapes through typed helpers or guards.
-- Avoid broad object assertions. Prefer discriminated unions, schema inference, and small narrow functions.
+- Parse API error shapes strictly through `src/shared/errors` helpers.
+- Prefer discriminated unions, Zod schema inference, and small narrow functions over broad assertions.
 - Put routes, endpoints, query keys, event names, and error codes in shared constants instead of magic strings.
-- Invalid parsing should return typed fallback values such as `null` or a safe explicit result. Do not invent data to hide failures.
+- Invalid parsing returns explicit safe fallbacks (`null` or typed defaults) instead of fabricating data.
 
-## State, Data, and Forms
+## State, Data, Money, and Temporal Contracts
 
-- Use TanStack Query for server data, including loading, error, cache, and invalidation behavior.
-- Use mutations for POST/PUT/PATCH/DELETE and invalidate the smallest practical query key after success.
-- Use Zustand only for focused client state such as theme, sidebar visibility, wizard state, or session-adjacent UI state.
-- Keep Zustand stores small and scoped. Avoid one giant app store.
-- Persist user-facing filters, search terms, sort order, pagination, selected periods, and other shareable view parameters in the URL query string instead of component memory. This preserves refresh/back behavior and enables deep links from dashboards or related workflows.
-- Use React Hook Form + Zod for forms. Infer form types from schemas when possible.
-- Validate early, disable invalid submissions, and show field-level errors in clear human language.
-
-## Date And Time Contract
-
-- Treat backend `DateOnly` fields as civil-date strings in `YYYY-MM-DD` format. Do not convert them to `Date`, ISO datetime, UTC, or local timezone before sending them back to the API.
-- Examples of `DateOnly`: `transactions.date`, `dateFrom`, `dateTo`, and `projectedUntil`.
-- Treat backend instant fields as ISO 8601 UTC timestamps. They may be converted for local display only.
-- Examples of instants: `createdAt`, `updatedAt`, `effectiveAt`, `deletedAt`, and `archivedAt`.
-- When building month filters, derive request values as literal strings such as `2026-06-30`; avoid `new Date(...).toISOString()` for date-only API params.
+- **Server state:** TanStack Query for queries/mutations; invalidate the smallest practical query key after writes.
+- **Client state:** Zustand only for focused global UI/session-adjacent state; keep stores small and scoped.
+- **URL state:** persist user-facing filters, search terms, sort order, pagination, selected periods, and shareable view parameters in the URL query string.
+- **Forms:** React Hook Form + Zod; validate early, disable invalid submissions, preserve values on error, and show human-readable field errors.
+- **Money:** represent and submit monetary values as safe integer cents (`amountCents`, `initialBalanceCents`); never use floating-point math for money; display values with the `numeric` utility for tabular numbers.
+- **DateOnly vs. Instant:**
+  - Treat backend `DateOnly` fields (`transactions.date`, `dateFrom`, `dateTo`, `projectedUntil`) as civil-date strings in `YYYY-MM-DD`. Never convert them to `Date`, ISO datetime, or UTC via `toISOString()` before sending to the API; use `src/shared/utils/dateOnly.ts`.
+  - Treat backend `Instant` fields (`createdAt`, `updatedAt`, `effectiveAt`, `deletedAt`, `archivedAt`) as ISO 8601 UTC timestamps, converting to local timezone for display only.
 
 ## API Error Handling
 
-- Follow `.agents/skills/danfy-api-error-handling/SKILL.md` whenever adding or changing an API query, mutation, form submission, retry, or error state.
-- Read the global backend error contract and the complete integration documentation for the resource before implementing its errors.
-- Keep backend codes in `src/shared/errors/apiErrorCodes.ts`; do not scatter code literals or translations through feature components.
-- Parse `unknown` failures with `src/shared/errors`, branch on stable `code`, and use HTTP status only as fallback.
-- Never expose raw backend messages, codes, paths, identifiers, or technical details in product copy.
-- Use `ApiErrorAlert` for blocking form/query failures and `showApiErrorToast` only for brief, non-blocking action feedback.
-- Map `VALIDATION_ERROR.details.fields` to React Hook Form fields with `applyApiFieldErrors` and preserve all entered values after failure.
-- Unknown, network, and server failures need safe actionable copy and a retry path where the operation is safe.
+- Follow `.agents/skills/danfy-api-error-handling/SKILL.md` and `docs/architecture/api-error-handling.md`.
+- Keep stable backend codes in `src/shared/errors/apiErrorCodes.ts`; branch on `code` and use HTTP status only as fallback.
+- Never expose raw backend messages, codes, paths, or technical identifiers in product copy.
+- Use `ApiErrorAlert` for blocking form/query failures, `applyApiFieldErrors` for `VALIDATION_ERROR.details.fields`, and `showApiErrorToast` only for brief non-blocking feedback.
 
-## UI and UX
+## UI, UX, and Color Governance
 
-- Follow the Danfy Finance design system in `docs/design-system/danfy-finance-design-system.md`.
-- Treat Apple Human Interface Guidelines as the primary UX reference for clarity, hierarchy, accessibility, typography, layout, and user control. WCAG 2.2 is the accessibility baseline.
-- Treat Material 3 as the component and foundation reference for buttons, icon buttons, dialogs, sheets, snackbars, text fields, cards, navigation, progress, tabs, chips, menus, layout spacing, styles, and component states. Use `docs/design-system/material-3-reference.md` before building or changing common UI.
-- Design mobile-first with responsive Tailwind breakpoints.
-- Provide visible system status: loading states, disabled pending buttons, skeletons, progress, and success/error feedback.
-- Preserve user control: destructive actions need confirmation or undo where appropriate; dialogs need Cancel and keyboard escape paths.
-- Use familiar financial language and local formats, especially for currency, dates, and account balances.
-- Prefer recognition over recall: selects, visible options, labels, icons with text, breadcrumbs, and contextual help.
-- Keep screens minimal but not empty. Show the essential financial signal first and hide technical metadata unless it helps the user.
-- Make error messages actionable: explain what failed and how to fix it.
-- Ensure semantic HTML, keyboard support, aria labels where needed, and sensible focus states.
-- Use large enough touch targets for primary actions.
-- Do not depend on color alone for financial meaning. Pair color with signs (`+`/`-`), labels, icons, or clear context.
-- Monetary values must use the `numeric` utility for tabular numbers.
-- Dark mode uses layered Danfy Dark surfaces. Do not flatten product UI into absolute black.
-- Before styling a screen, identify the primary action, the first information the user needs, all loading/empty/error states, keyboard-only path, and whether charts actually support a decision.
-- Before finishing common UI, identify the closest Material 3 component family and verify the chosen variant, spacing, states, and accessibility. Use Danfy tokens for final colors.
-- Prefer inline UI for non-blocking details. Use modals only for focused decisions, destructive confirmations, or critical actionable information. Use sheets/drawers for contextual creation or editing.
-- Critical errors must explain what happened and how to recover near the affected region. A toast alone is not enough for a blocking or data-loss risk.
+- Follow `docs/design-system/danfy-finance-design-system.md` (Apple HIG-first UX, WCAG 2.2 baseline) and `docs/design-system/material-3-reference.md` (M3 component families mapped to Danfy tokens).
+- Design mobile-first with visible system status (loading, pending, empty, error, recovery), keyboard accessibility, and safe confirmations for destructive actions.
+- Prefer inline UI for non-blocking details, sheets/drawers for contextual creation/editing, and modals only for focused decisions or destructive confirmations.
+- Do not hardcode `#...`, `rgb(...)`, `rgba(...)`, inline `hsl(...)`, or raw Tailwind palette utilities (`text-slate-*`, `bg-violet-*`, `border-red-*`, etc.) in product UI.
+- Use semantic Tailwind v4 tokens from `src/index.css`: `app-*`, `brand*`, `state-income`, `state-expense`, `state-warning`, `state-info`, and `destructive` (use `destructive` for errors and risky actions, never `state-expense`).
+- Never depend on color alone for financial meaning; pair color with signs (`+`/`-`), labels, or icons.
 
-## Color Governance
+## File, Naming, and Commit Conventions
 
-All product UI colors must come from design tokens.
-
-- Do not hardcode `#...`, `rgb(...)`, `rgba(...)`, or inline `hsl(...)` in components.
-- Do not use raw Tailwind palette utilities for product UI such as `text-slate-*`, `bg-violet-*`, `border-red-*`, `text-emerald-*`, or similar.
-- Use semantic Tailwind v4 tokens from `src/index.css`: `app`, `brand`, `state`, and the Shadcn semantic tokens when appropriate.
-- Preferred product classes include `bg-app-bg`, `bg-app-surface`, `bg-app-panel`, `bg-app-elevated`, `text-app-text`, `text-app-muted`, `border-app-border`, `bg-brand`, `text-brand`, `text-state-income`, `text-state-expense`, `text-state-warning`, and `text-state-info`.
-- Use `state-income` for incoming money, positive financial movement, and earned value. Use `state-expense` for outgoing money and negative financial movement.
-- Use `destructive` for validation errors, failed requests, delete/revoke/logout-danger states, and other risky or destructive actions. Do not use `state-expense` for errors.
-- New colors must be added first as CSS variables in `src/index.css`, then exposed through the Tailwind v4 `@theme inline` block in the same file, then used through semantic classes.
-
-Current product palette is Danfy Dark: near-black layered app surfaces, purple brand accents, green income, coral/red expense, amber warning, blue info, and destructive red for errors or risky actions.
-
-## File and Naming Conventions
-
-- Components: `PascalCase.tsx`.
-- Hooks: `useThing.ts`.
-- Stores: `thingStore.ts` or the existing local store naming pattern.
-- Types: prefer clear PascalCase types; use `.type.ts` when matching existing feature conventions.
-- Constants: `UPPER_SNAKE_CASE` for exported constant maps.
+- Components: `PascalCase.tsx`; Hooks: `useThing.ts`; Stores: `thing.store.ts`; Constants: `UPPER_SNAKE_CASE`.
 - Import aliases: `@/` maps to `src/`, with `@/features` and `@/shared` as common roots.
+- Use Conventional Commits in Portuguese with `<type>(<scope>): <description>` (e.g., `feat(transactions)`, `fix(auth)`, `docs(categories)`).
 
 ## Quality Checks
 
 - Run `npm run lint` after meaningful TypeScript or React changes.
+- Run `npm test` to verify affected unit and integration tests.
 - Run `npm run build` when changes affect routing, config, shared types, or cross-feature behavior.
-- Add focused tests for critical auth, money, validation, and data transformation behavior when changing those paths.
 - Do not commit secrets or edit `.env` values casually.
