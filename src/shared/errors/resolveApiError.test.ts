@@ -124,3 +124,65 @@ describe('resolveApiError em transactions', () => {
     expect(['choose-target', 'correct-fields']).toContain(error.recovery)
   })
 })
+
+describe('resolveApiError em transactions.balance-adjustment', () => {
+  it('resolve BALANCE_ADJUSTMENT_NO_DIFFERENCE (409) com copy segura e recovery correct-fields', () => {
+    const error = resolveApiError(
+      makeApiError(API_ERROR_CODES.balanceAdjustmentNoDifference, 409),
+      'transactions.balance-adjustment'
+    )
+
+    expect(error.code).toBe(API_ERROR_CODES.balanceAdjustmentNoDifference)
+    expect(error.title).toBe('O saldo já está atualizado')
+    expect(error.description).not.toContain('técnica')
+    expect(error.recovery).toBe('correct-fields')
+  })
+
+  it('usa copy contextualizada para TRANSACTION_CATEGORY_UNAVAILABLE em transactions.balance-adjustment', () => {
+    const error = resolveApiError(
+      makeApiError(API_ERROR_CODES.transactionCategoryUnavailable, 409),
+      'transactions.balance-adjustment'
+    )
+
+    expect(error.title).toBe('Não foi possível registrar o reajuste')
+    expect(error.description).not.toContain('Escolha uma categoria')
+    expect(error.recovery).toBe('retry')
+  })
+
+  it.each([
+    { code: API_ERROR_CODES.transactionAccountUnavailable, status: 409, expectedRecovery: 'correct-fields' },
+    { code: API_ERROR_CODES.invalidTransaction, status: 400, expectedRecovery: 'correct-fields' },
+    { code: API_ERROR_CODES.validation, status: 400, expectedRecovery: 'correct-fields' },
+  ])('resolve %s no contexto de reajuste', ({ code, status, expectedRecovery }) => {
+    const error = resolveApiError(
+      makeApiError(code, status),
+      'transactions.balance-adjustment'
+    )
+
+    expect(error.code).toBe(code)
+    expect(error.recovery).toBe(expectedRecovery)
+    expect(error.title).not.toContain('técnica')
+  })
+
+  it('resolve erro de rede, 500 e fallback de contexto em transactions.balance-adjustment', () => {
+    const network = resolveApiError(
+      { isAxiosError: true, message: 'Network Error' },
+      'transactions.balance-adjustment'
+    )
+    const server = resolveApiError(
+      makeApiError('INTERNAL_SERVER_ERROR', 500),
+      'transactions.balance-adjustment'
+    )
+    const fallback = resolveApiError(
+      makeApiError('UNKNOWN_ADJUSTMENT_CODE', 422),
+      'transactions.balance-adjustment'
+    )
+
+    expect(network.isNetworkError).toBe(true)
+    expect(network.recovery).toBe('retry')
+    expect(server.title).toBe('Serviço indisponível no momento')
+    expect(server.recovery).toBe('retry')
+    expect(fallback.title).toBe('Não foi possível aplicar o reajuste')
+    expect(fallback.recovery).toBe('retry')
+  })
+})

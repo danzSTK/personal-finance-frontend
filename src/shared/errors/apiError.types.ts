@@ -55,6 +55,7 @@ export type ApiErrorContext =
   | 'transactions.list'
   | 'transactions.detail'
   | 'transactions.create'
+  | 'transactions.balance-adjustment'
   | 'transactions.update'
   | 'transactions.confirm'
   | 'transactions.delete'

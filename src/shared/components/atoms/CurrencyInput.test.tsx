@@ -5,12 +5,19 @@ import { describe, expect, it, vi } from 'vitest'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import { CurrencyInput } from './CurrencyInput'
 
-function CurrencyInputHarness({ initialValue }: { initialValue?: number }) {
+function CurrencyInputHarness({
+  initialValue,
+  allowNegative = false,
+}: {
+  initialValue?: number
+  allowNegative?: boolean
+}) {
   const [valueCents, setValueCents] = useState<number | undefined>(initialValue)
 
   return (
     <CurrencyInput
       aria-label="Valor"
+      allowNegative={allowNegative}
       valueCents={valueCents}
       onValueCentsChange={setValueCents}
     />
@@ -129,5 +136,82 @@ describe('CurrencyInput', () => {
     expect(screen.getByRole('textbox', { name: 'Valor' })).toHaveValue(
       formatCurrencyFromCents(123456)
     )
+  })
+
+  it('ignora sinal negativo quando allowNegative é false', async () => {
+    const user = userEvent.setup()
+    render(<CurrencyInputHarness />)
+    const input = screen.getByRole('textbox', { name: 'Valor' })
+
+    await user.click(input)
+    await user.keyboard('-123')
+
+    expect(input).toHaveValue(formatCurrencyFromCents(123))
+  })
+
+  it('suporta digitação de -, + e dígitos negativos quando allowNegative é true', async () => {
+    const user = userEvent.setup()
+    render(<CurrencyInputHarness allowNegative />)
+    const input = screen.getByRole('textbox', { name: 'Valor' })
+
+    await user.click(input)
+    await user.keyboard('-')
+    expect(input).toHaveValue('-')
+
+    await user.keyboard('150')
+    expect(input).toHaveValue(formatCurrencyFromCents(-150))
+
+    await user.keyboard('+')
+    expect(input).toHaveValue(formatCurrencyFromCents(150))
+
+    await user.keyboard('-')
+    expect(input).toHaveValue(formatCurrencyFromCents(-150))
+  })
+
+  it('remove dígitos negativos com Backspace até limpar e evita -0', async () => {
+    const user = userEvent.setup()
+    const onValueCentsChange = vi.fn()
+    render(
+      <CurrencyInput
+        aria-label="Valor"
+        allowNegative
+        valueCents={undefined}
+        onValueCentsChange={onValueCentsChange}
+      />
+    )
+    const input = screen.getByRole('textbox', { name: 'Valor' })
+
+    await user.click(input)
+    await user.keyboard('-0')
+    expect(onValueCentsChange).toHaveBeenCalledWith(0)
+    expect(Object.is(onValueCentsChange.mock.calls[0]?.[0], -0)).toBe(false)
+  })
+
+  it('preserva sinal negativo no Backspace e limpa ao apagar último dígito', async () => {
+    const user = userEvent.setup()
+    render(<CurrencyInputHarness allowNegative initialValue={-12} />)
+    const input = screen.getByRole('textbox', { name: 'Valor' })
+
+    expect(input).toHaveValue(formatCurrencyFromCents(-12))
+
+    await user.click(input)
+    await user.keyboard('{Backspace}')
+    expect(input).toHaveValue(formatCurrencyFromCents(-1))
+
+    await user.keyboard('{Backspace}')
+    expect(input).toHaveValue('')
+  })
+
+  it('interpreta paste com sinal negativo quando allowNegative é true', async () => {
+    const user = userEvent.setup()
+    render(<CurrencyInputHarness allowNegative />)
+    const input = screen.getByRole('textbox', { name: 'Valor' })
+
+    await user.click(input)
+    await user.paste('-R$ 150,00')
+    expect(input).toHaveValue(formatCurrencyFromCents(-15000))
+
+    await user.paste('-250,50')
+    expect(input).toHaveValue(formatCurrencyFromCents(-25050))
   })
 })
