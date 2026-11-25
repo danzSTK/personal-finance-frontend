@@ -71,6 +71,7 @@ interface AccountCardProps {
   selectedPeriod: AccountYearMonth
   projectedBalanceLabel: string
   onEdit: () => void
+  onAdjustBalance: () => void
   onArchive: () => void
   onUnarchive: () => void
   onSetDefault: () => void
@@ -86,6 +87,7 @@ export function AccountCard({
   selectedPeriod,
   projectedBalanceLabel,
   onEdit,
+  onAdjustBalance,
   onArchive,
   onUnarchive,
   onSetDefault,
@@ -177,6 +179,7 @@ export function AccountCard({
             canDefault={canDefault}
             isArchived={account.isArchived}
             isMutating={isMutating}
+            onAdjustBalance={onAdjustBalance}
             onArchive={handleArchiveSelect}
             onEdit={handleEditSelect}
             onSetDefault={handleSetDefaultSelect}
@@ -214,6 +217,10 @@ export function AccountCard({
             periodSummaryError={periodSummaryError}
             onRetryPeriodSummary={() => void refetchPeriodSummary()}
             onViewPeriodTransactions={onViewPeriodTransactions}
+            onAdjustBalance={() => {
+              setIsDetailsOpen(false)
+              onAdjustBalance()
+            }}
             periodLabel={periodLabel}
             projectedBalanceLabel={projectedBalanceLabel}
           />
@@ -242,6 +249,10 @@ export function AccountCard({
             periodSummaryError={periodSummaryError}
             onRetryPeriodSummary={() => void refetchPeriodSummary()}
             onViewPeriodTransactions={onViewPeriodTransactions}
+            onAdjustBalance={() => {
+              setIsDetailsOpen(false)
+              onAdjustBalance()
+            }}
             periodLabel={periodLabel}
             projectedBalanceLabel={projectedBalanceLabel}
             onEdit={() => {
@@ -302,6 +313,7 @@ interface AccountDetailsPanelProps {
   onViewPeriodTransactions: (
     view: Extract<TransactionView, 'INCOME' | 'EXPENSE'>
   ) => void
+  onAdjustBalance: () => void
   periodLabel: string
   projectedBalanceLabel: string
   onEdit?: () => void
@@ -317,6 +329,7 @@ function AccountDetailsPanel({
   periodSummaryError,
   onRetryPeriodSummary,
   onViewPeriodTransactions,
+  onAdjustBalance,
   periodLabel,
   projectedBalanceLabel,
   onEdit,
@@ -351,15 +364,28 @@ function AccountDetailsPanel({
         </p>
       </div>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="h-11 w-full rounded-xl border-border bg-secondary text-muted-foreground"
-        disabled
-      >
-        <SlidersHorizontal className="h-4 w-4" />
-        Reajustar saldo
-      </Button>
+      <div className="space-y-2">
+        <Button
+          type="button"
+          variant="outline"
+          className={cn(
+            'h-11 w-full rounded-xl border-border bg-secondary',
+            account.isArchived
+              ? 'text-muted-foreground'
+              : 'text-foreground hover:bg-accent hover:text-foreground'
+          )}
+          disabled={account.isArchived}
+          onClick={onAdjustBalance}
+        >
+          <SlidersHorizontal className="h-4 w-4" />
+          Reajustar saldo
+        </Button>
+        {account.isArchived ? (
+          <p className="text-xs text-muted-foreground">
+            Restaure a conta para reajustar o saldo.
+          </p>
+        ) : null}
+      </div>
 
       {showEditAction && onEdit ? (
         <Button
@@ -559,6 +585,7 @@ interface AccountActionsMenuProps {
   isArchived: boolean
   isMutating: boolean
   onEdit: () => void
+  onAdjustBalance: () => void
   onArchive: () => void
   onUnarchive: () => void
   onSetDefault: () => void
@@ -572,6 +599,7 @@ function AccountActionsMenu({
   isArchived,
   isMutating,
   onEdit,
+  onAdjustBalance,
   onArchive,
   onUnarchive,
   onSetDefault,
@@ -632,13 +660,16 @@ function AccountActionsMenu({
             <ReceiptText className="h-4 w-4" />
             Ver transações
           </DropdownMenuItem>
-          <DropdownMenuItem disabled>
-            <SlidersHorizontal className="h-4 w-4" />
-            Reajuste de saldo
-            <span className="ml-auto text-xs text-muted-foreground">
-              Planejado
-            </span>
-          </DropdownMenuItem>
+          {!isArchived ? (
+            <DropdownMenuItem
+              className="focus:bg-accent focus:text-foreground"
+              disabled={isMutating}
+              onSelect={onAdjustBalance}
+            >
+              <SlidersHorizontal className="h-4 w-4" />
+              Reajustar saldo
+            </DropdownMenuItem>
+          ) : null}
 
           <DropdownMenuSeparator className="bg-border" />
 
