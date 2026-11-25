@@ -83,6 +83,12 @@ describe('TransactionsKpiGrid', () => {
       'Transferências efetivadas',
       'Total movimentado',
     ],
+    [
+      'ADJUSTMENT',
+      'Ajustes pendentes',
+      'Ajustes efetivados',
+      'Total ajustado',
+    ],
   ] as const)(
     'renderiza os 3 cards do resumo de %s em trilha horizontal limitada',
     (view, pendingLabel, effectiveLabel, totalLabel) => {

@@ -1,5 +1,12 @@
 import type { CSSProperties, ReactNode } from 'react'
-import { ArrowLeftRight, Edit3, Trash2 } from 'lucide-react'
+import {
+  ArrowLeftRight,
+  Edit3,
+  SlidersHorizontal,
+  Trash2,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
 import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
@@ -33,6 +40,7 @@ import {
   getTransactionDateLabel,
   getTransactionDerivedStatus,
   getTransactionDescription,
+  getTransactionDirectionLabel,
   getTransactionTypeLabel,
   getTransactionTypeIcon,
 } from '../../utils/transaction.utils'
@@ -86,7 +94,10 @@ export function TransactionDetailsSheet({
                 <p
                   className={cn(
                     'numeric text-2xl font-semibold',
-                    getTransactionAmountClassName(transaction.type)
+                    getTransactionAmountClassName(
+                      transaction.type,
+                      transaction.direction
+                    )
                   )}
                 >
                   {formatSignedTransactionAmount(
@@ -103,6 +114,34 @@ export function TransactionDetailsSheet({
                 <DetailItem label="Situação">
                   <TransactionStatusPill status={derivedStatus} />
                 </DetailItem>
+                {transaction.type === 'ADJUSTMENT' ? (
+                  <DetailItem label="Direção">
+                    <span className="inline-flex min-w-0 items-center gap-2">
+                      <span
+                        className={cn(
+                          'inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg',
+                          transaction.direction === 'INCREASE'
+                            ? 'bg-state-income/10 text-state-income'
+                            : transaction.direction === 'DECREASE'
+                              ? 'bg-state-expense/10 text-state-expense'
+                              : 'bg-state-info/10 text-state-info'
+                        )}
+                      >
+                        {transaction.direction === 'DECREASE' ? (
+                          <TrendingDown className="h-4 w-4" />
+                        ) : (
+                          <TrendingUp className="h-4 w-4" />
+                        )}
+                      </span>
+                      <span className="truncate">
+                        {getTransactionDirectionLabel(
+                          transaction.direction,
+                          'full'
+                        )}
+                      </span>
+                    </span>
+                  </DetailItem>
+                ) : null}
                 <DetailItem label={getTransactionDateLabel(transaction.type)}>
                   <span className="numeric">
                     {formatTransactionDate(transaction.date)}
@@ -245,6 +284,19 @@ function TransactionCategoryDetail({
           <ArrowLeftRight className="h-4 w-4" />
         </span>
         <span className="truncate">Transferência</span>
+      </span>
+    )
+  }
+
+  if (transaction.type === 'ADJUSTMENT') {
+    return (
+      <span className="inline-flex min-w-0 items-center gap-2">
+        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
+          <SlidersHorizontal className="h-4 w-4" />
+        </span>
+        <span className="truncate">
+          {getCategoryName(categories, transaction)}
+        </span>
       </span>
     )
   }

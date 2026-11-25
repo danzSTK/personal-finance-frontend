@@ -8,6 +8,10 @@ import {
   EllipsisVertical,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
+import {
+  BalanceAdjustmentSheet,
+  type BalanceAdjustmentSheetState,
+} from '@/features/transactions'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
@@ -67,6 +71,8 @@ export function AccountsPage() {
   const [includeArchived, setIncludeArchived] = useState(false)
   const [selectedPeriod, setSelectedPeriod] = useState(getCurrentYearMonth)
   const [sheetState, setSheetState] = useState<AccountSheetState>(null)
+  const [adjustmentSheetState, setAdjustmentSheetState] =
+    useState<BalanceAdjustmentSheetState>(null)
   const [archiveTarget, setArchiveTarget] = useState<Account | null>(null)
   const [defaultProvisionAttempts, setDefaultProvisionAttempts] = useState(0)
   const projectedUntil = useMemo(
@@ -345,6 +351,7 @@ export function AccountsPage() {
                       )
                     }
                     onEdit={() => setSheetState({ mode: 'edit', account })}
+                    onAdjustBalance={() => setAdjustmentSheetState({ account })}
                     onArchive={() => setArchiveTarget(account)}
                     onUnarchive={() => unarchiveMutation.mutate(account.id)}
                     onSetDefault={() => setDefaultMutation.mutate(account.id)}
@@ -365,6 +372,16 @@ export function AccountsPage() {
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setSheetState(null)
+          }
+        }}
+      />
+
+      <BalanceAdjustmentSheet
+        state={adjustmentSheetState}
+        accounts={accounts}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setAdjustmentSheetState(null)
           }
         }}
       />

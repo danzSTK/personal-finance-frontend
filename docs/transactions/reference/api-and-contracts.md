@@ -2,13 +2,14 @@
 area: transactions
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-25
 related:
   - ../README.md
   - ../concepts/transaction-model-and-types.md
   - ../concepts/transaction-attachments-model.md
   - ../flows/list-filter-and-kpis.md
   - ../flows/create-edit-and-transfer.md
+  - ../flows/balance-adjustment.md
   - ../flows/confirm-and-delete-transaction.md
   - ../flows/manage-attachments.md
   - ../../architecture/api-error-handling.md
@@ -23,7 +24,7 @@ Fonte de verdade dos endpoints consumidos, chaves de cache, parâmetros de URL, 
 
 | Rota | Página | Query Params Suportados (`transactionUrl.utils.ts`) |
 | --- | --- | --- |
-| `/transactions` | `TransactionsPage` | `view` (`ALL` \| `INCOME` \| `EXPENSE` \| `TRANSFER`), `status` (`PENDING` \| `EFFECTIVE`), `accountId`, `categoryId`, `search`, `dateFrom` (`YYYY-MM-DD`), `dateTo` (`YYYY-MM-DD`), `sort`, `page`, `limit`, `create` (`INCOME` \| `EXPENSE` \| `TRANSFER`) |
+| `/transactions` | `TransactionsPage` | `view` (`ALL` \| `INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT`), `status` (`PENDING` \| `EFFECTIVE`), `accountId`, `categoryId`, `search`, `dateFrom` (`YYYY-MM-DD`), `dateTo` (`YYYY-MM-DD`), `sort`, `page`, `limit`, `create` (`INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT`) |
 
 ## Endpoints Próprios Consumidos (`src/features/transactions/api/`)
 
@@ -33,8 +34,9 @@ Referência do contrato backend: `personal-finance-backend:docs/transactions/ref
 | --- | --- | --- | --- |
 | `GET` | `/transactions` | `getTransactions` / `useTransactions`, `usePendingTransactionRange` | Query key `TRANSACTION_QUERY_KEYS.list(params)` (`['transactions', 'list', params]`) |
 | `GET` | `/transactions/:id` | `getTransaction` / `useTransaction` *(sem consumidor atual na UI)* | Query key `TRANSACTION_QUERY_KEYS.detail(id)` (`['transactions', 'detail', id]`) |
-| `POST` | `/transactions` | `createTransaction` / `useCreateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
-| `PATCH` | `/transactions/:id` | `updateTransaction` / `useUpdateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
+| `POST` | `/transactions` | `createTransaction` / `useCreateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
+| `POST` | `/transactions/balance-adjustments` | `useCreateBalanceAdjustment` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
+| `PATCH` | `/transactions/:id` | `updateTransaction` / `useUpdateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
 | `PATCH` | `/transactions/:id/confirm` | `confirmTransaction` / `useConfirmTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
 | `DELETE` | `/transactions/:id` | `deleteTransaction` / `useDeleteTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
 | `GET` | `/transactions/:id/attachments` | `getTransactionAttachments` / `useTransactionAttachments` | Query key `TRANSACTION_QUERY_KEYS.attachments(id)` (`['transactions', 'attachments', id]`), `staleTime: 240_000` (4 min) |
@@ -48,22 +50,25 @@ Referência do contrato backend: `personal-finance-backend:docs/transactions/ref
 - `GET /accounts/summary` (`useAccountSummary` de `accounts`) — resumo patrimonial auxiliar no contexto da tela.
 - `GET /categories` (`useCategories` de `categories`, 2 consultas para `INCOME` e `EXPENSE`) — seleção e filtro de categorias.
 
-## Schemas de Validação Local (`src/features/transactions/schemas/transaction.schema.ts`)
+## Schemas de Validação Local (`src/features/transactions/schemas/`)
 
-- **`transactionFormSchema`:** valida `type`, `description`, `amountCents` (`> 0`), `date` (`DateOnly` `YYYY-MM-DD`), `status`, `accountId`, `destinationAccountId` (obrigatório e diferente de `accountId` quando `TRANSFER`), `categoryId` (obrigatório quando `INCOME` ou `EXPENSE`), `notes`.
-- **`transactionConfirmSchema`:** valida `effectiveDate` (`DateOnly` `YYYY-MM-DD`) na efetivação de lançamentos `PENDING`.
+- **`transactionFormSchema` (`transaction.schema.ts`):** valida `type`, `description` (até 500 caracteres; obrigatória quando `ADJUSTMENT`), `amountCents` (`> 0`), `date` (`DateOnly` `YYYY-MM-DD`), `status`, `accountId`, `destinationAccountId` (obrigatório e diferente de `accountId` quando `TRANSFER`), `categoryId` (obrigatório quando `INCOME` ou `EXPENSE`), `direction` (obrigatória quando `ADJUSTMENT`).
+- **`transactionConfirmSchema` (`transaction.schema.ts`):** valida `amountCents`, `date` (`DateOnly` `YYYY-MM-DD`), `accountId` e `destinationAccountId` na efetivação de lançamentos `PENDING`.
+- **`targetBalanceAdjustmentSchema` (`balanceAdjustment.schema.ts`):** valida `accountId`, `targetBalanceCents` (inteiro seguro negativo, `0` ou positivo) e `description` opcional até 500 caracteres (`date` é preenchido automaticamente no submit via `getTodayDateOnly()`).
+- **`manualBalanceAdjustmentSchema` (`balanceAdjustment.schema.ts`):** valida `accountId`, `direction` (`INCREASE` \| `DECREASE`), `amountCents` (`> 0`), `status` (`PENDING` \| `EFFECTIVE`), `date` (`DateOnly`) e `description` obrigatória (1 a 500 caracteres).
 
 ## Códigos de Erro do Domínio (`src/shared/errors/apiErrorCodes.ts`)
 
-### Transações (9 códigos)
+### Transações e Reajuste de Saldo (10 códigos)
 | Código | Significado / Tratamento Esperado |
 | --- | --- |
+| `BALANCE_ADJUSTMENT_NO_DIFFERENCE` | `409` no contexto `transactions.balance-adjustment`: informa que o saldo atual já corresponde ao informado e invalida `ACCOUNT_QUERY_KEYS.accounts` para sincronizar a UI. |
 | `INVALID_TRANSACTION` | Dados inválidos no lançamento; exibido inline no formulário ou via `ApiErrorAlert`. |
 | `TRANSACTION_ACCOUNT_UNAVAILABLE` | Conta arquivada, inexistente ou inacessível para o lançamento. |
 | `TRANSACTION_ALREADY_EFFECTIVE` | Tentativa de confirmar transação que já está `EFFECTIVE`. |
 | `TRANSACTION_CANNOT_DELETE_TRANSFER` | Tentativa de excluir lançamento do tipo `TRANSFER` (também prevenido na UI por [`DEC-TRX-005`](../decisions/transfer-cannot-be-deleted.md)). |
 | `TRANSACTION_CATEGORY_INCOMPATIBLE` | Categoria cujo tipo (`INCOME`/`EXPENSE`) não corresponde ao tipo da transação. |
-| `TRANSACTION_CATEGORY_UNAVAILABLE` | Categoria arquivada ou inexistente. |
+| `TRANSACTION_CATEGORY_UNAVAILABLE` | Categoria arquivada/inexistente; no contexto `transactions.balance-adjustment`, exibe copy específica sobre configuração técnica de ajuste indisponível. |
 | `TRANSACTION_INVALID_STATE_TRANSITION` | Transição de status inválida para a operação solicitada. |
 | `TRANSACTION_NOT_FOUND` | Transação não encontrada ou já removida. |
 | `TRANSACTION_UPDATE_EMPTY` | Payload `PATCH` enviado sem campos alterados (prevenido na UI por envio diff-only). |
@@ -88,4 +93,4 @@ Registrados explicitamente para evitar documentar comportamento inexistente e gu
 3. **Exclusão de anexo sem confirmação:** a ação **Excluir** no menu `...` de `TransactionAttachmentThumbnail` dispara `DELETE` imediatamente, sem modal de confirmação.
 4. **Dupla superfície de erro na exclusão de transação:** `useDeleteTransaction` dispara `showApiErrorToast` em `onError` enquanto `TransactionDeleteDialog` também renderiza `ApiErrorAlert` (pode duplicar feedback visual no erro).
 5. **Símbolo/prop ociosos:** `useTransaction(id)` está implementado em `api/queries.ts` sem uso ativo na UI; `TransactionsPage` repassa `isMutating = false` fixo para `TransactionsTable`.
-6. **Ausência de `index.ts` público:** `src/features/transactions/` ainda não possui barrel público oficial (`DT-03` em [module-boundaries.md](../../architecture/module-boundaries.md)).
+6. **Cobertura parcial do barrel `index.ts`:** `src/features/transactions/index.ts` já expõe `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode`, mas consumidores legados ainda importam `queries` e `transactionUrl.utils` por caminhos internos (`DT-03` em [module-boundaries.md](../../architecture/module-boundaries.md)).

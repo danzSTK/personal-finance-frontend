@@ -17,6 +17,7 @@ import type {
   ConfirmTransactionDto,
   CreateTransactionDto,
   Transaction,
+  TransactionDirection,
   TransactionStatus,
   TransactionType,
   UpdateTransactionDto,
@@ -88,22 +89,57 @@ export const getTransactionStatusLabel = (
   return 'Pendente'
 }
 
-export const getTransactionAmountSign = (type: TransactionType): string => {
+export const getTransactionDirectionLabel = (
+  direction: TransactionDirection | null | undefined,
+  variant: 'short' | 'full' = 'short'
+): string => {
+  if (direction === 'INCREASE') {
+    return variant === 'full' ? 'Acréscimo no saldo' : 'Acréscimo'
+  }
+
+  if (direction === 'DECREASE') {
+    return variant === 'full' ? 'Redução no saldo' : 'Redução'
+  }
+
+  return 'Não informada'
+}
+
+export const getTransactionAmountSign = (
+  type: TransactionType,
+  direction?: TransactionDirection | null
+): string => {
   if (type === 'INCOME') return '+'
+
+  if (type === 'ADJUSTMENT') {
+    if (direction === 'INCREASE') return '+'
+    if (direction === 'DECREASE') return '−'
+  }
+
   return ''
 }
 
-export const getTransactionAmountClassName = (type: TransactionType): string => {
+export const getTransactionAmountClassName = (
+  type: TransactionType,
+  direction?: TransactionDirection | null
+): string => {
   if (type === 'INCOME') return 'text-state-income'
   if (type === 'EXPENSE') return 'text-state-expense'
+
+  if (type === 'ADJUSTMENT') {
+    if (direction === 'INCREASE') return 'text-state-income'
+    if (direction === 'DECREASE') return 'text-state-expense'
+  }
+
   return 'text-foreground'
 }
 
 export const formatSignedTransactionAmount = (
-  transaction: Pick<Transaction, 'type' | 'amountCents'>,
+  transaction: Pick<Transaction, 'type' | 'amountCents'> & {
+    direction?: TransactionDirection | null
+  },
   formatter: (cents: number) => string
 ): string => {
-  const sign = getTransactionAmountSign(transaction.type)
+  const sign = getTransactionAmountSign(transaction.type, transaction.direction)
   const amount = formatter(transaction.amountCents)
 
   return sign ? `${sign} ${amount}` : amount
@@ -124,10 +160,17 @@ export const getAccountName = (
 
 export const getCategoryName = (
   categories: Category[],
-  transaction: Pick<Transaction, 'categoryId' | 'type'>
+  transaction: Pick<Transaction, 'categoryId' | 'type'> & {
+    direction?: TransactionDirection | null
+  }
 ): string => {
   if (transaction.type === 'TRANSFER') return 'Transferência'
-  if (transaction.type === 'ADJUSTMENT') return 'Ajuste'
+
+  if (transaction.type === 'ADJUSTMENT') {
+    return transaction.direction
+      ? `Ajuste · ${getTransactionDirectionLabel(transaction.direction)}`
+      : 'Ajuste'
+  }
 
   return (
     categories.find((category) => category.id === transaction.categoryId)

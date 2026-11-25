@@ -2,7 +2,7 @@
 area: accounts
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-25
 related:
   - ../README.md
   - ../flows/list-and-filter-accounts.md
@@ -56,6 +56,5 @@ related:
 
 1. **Período e arquivadas fora da URL:** `AccountsPage` guarda `selectedPeriod` e `includeArchived` em `useState` local, sem persistência na query string.
 2. **Duplicação de utilitários de data:** `accountPeriod.utils.ts` duplica `getCurrentYearMonth`, `getMonthStartDateOnly` e `getMonthEndDateOnly` de `src/shared/utils/dateOnly.ts`, e `AccountsPage` define `shiftAccountPeriod` local em vez de usar `shiftYearMonth`.
-3. **Placeholders desabilitados:** `Reajustar saldo` / `Reajuste de saldo` estão renderizados desabilitados sem endpoint integrado.
-4. **Símbolos não utilizados:** `AccountStatusPill.tsx`, `USER_CREATABLE_ACCOUNT_TYPES`, `mergeAccountIconMetadata`, `createInstitutionalAccountSchema`, `createCustomAccountSchema` e `updateAccountSchema`.
-5. **Divergência histórica de spec:** a spec histórica `account-sheet-metadata-cents` mencionava reusar `GET /categories/metadata` e toggle `isDefault` na criação; o código vigente usa `GET /account-templates` + constantes locais e não oferece toggle `isDefault` no `AccountFormSheet`.
+3. **Símbolos não utilizados:** `AccountStatusPill.tsx`, `USER_CREATABLE_ACCOUNT_TYPES`, `mergeAccountIconMetadata`, `createInstitutionalAccountSchema`, `createCustomAccountSchema` e `updateAccountSchema`.
+4. **Divergência histórica de spec:** a spec histórica `account-sheet-metadata-cents` mencionava reusar `GET /categories/metadata` e toggle `isDefault` na criação; o código vigente usa `GET /account-templates` + constantes locais e não oferece toggle `isDefault` no `AccountFormSheet`.

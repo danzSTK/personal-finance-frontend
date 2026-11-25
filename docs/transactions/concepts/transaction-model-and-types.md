@@ -21,10 +21,10 @@ Uma transação representa um lançamento financeiro vinculado a uma conta (`acc
 | `EXPENSE` | `Despesa` | Sim (view `EXPENSE` e formulário) | Exige `categoryId` ativa do tipo `EXPENSE` |
 | `INCOME` | `Receita` | Sim (view `INCOME` e formulário) | Exige `categoryId` ativa do tipo `INCOME` |
 | `TRANSFER` | `Transferência` | Sim (view `TRANSFER` e formulário) | Omite `categoryId`; exige `destinationAccountId !== accountId` e ao menos 2 contas ativas; não deletável; não aceita anexos |
-| `ADJUSTMENT` | `Ajuste` | Modelado em tipos/schemas (`direction: 'INCREASE' \| 'DECREASE'`), fora do seletor de formulário e abas de visão | — |
+| `ADJUSTMENT` | `Ajuste` | Sim (view `ADJUSTMENT`, `BalanceAdjustmentSheet` e edição em `TransactionFormSheet`) | Categoria técnica gerenciada pelo backend; exige `direction` (`INCREASE` \| `DECREASE`) e `description` não vazia no ajuste manual e na edição; não aceita anexos |
 
 - Na visão `ALL`, o frontend omite `type` em `GET /transactions` e recebe `summary.object === 'transaction_summary.overview'` (receitas e despesas).
-- Nas visões específicas (`EXPENSE`, `INCOME`, `TRANSFER`), envia `type` e recebe `summary.object === 'transaction_summary.type'`.
+- Nas visões específicas (`EXPENSE`, `INCOME`, `TRANSFER`, `ADJUSTMENT`), envia `type` e recebe `summary.object === 'transaction_summary.type'`.
 
 ## Status Persistido vs. Derivado
 
@@ -36,14 +36,14 @@ Uma transação representa um lançamento financeiro vinculado a uma conta (`acc
 
 - `PATCH /transactions/:id` **nunca** altera `status`; somente `PATCH /transactions/:id/confirm` promove `PENDING` → `EFFECTIVE`.
 
-## Valor Monetário (`amountCents`)
+## Valor Monetário (`amountCents` e `targetBalanceCents`)
 
-- Sempre inteiro seguro estritamente positivo (`> 0`, `<= Number.MAX_SAFE_INTEGER`), validado por `positiveAmountCentsSchema` e digitado via `CurrencyInput` cent-first (`123` → `R$ 1,23`).
-- A direção financeira é dada pelo `type` (e `direction` em `ADJUSTMENT`), nunca por valor negativo no payload.
-- Exibição: `.numeric` obrigatório; `INCOME` usa `text-state-income` com prefixo `+`, `EXPENSE` usa `text-state-expense` (sem sinal `-` em `getTransactionAmountSign`), e `TRANSFER`/`ADJUSTMENT` usam `text-foreground`.
+- Em transações (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), `amountCents` é sempre inteiro seguro estritamente positivo (`> 0`, `<= Number.MAX_SAFE_INTEGER`), editado via `CurrencyInput` cent-first (`123` → `R$ 1,23`). A direção financeira é dada pelo `type` (e `direction` em `ADJUSTMENT`), nunca por valor negativo no payload.
+- Em `POST /transactions/balance-adjustments`, `targetBalanceCents` aceita inteiros seguros **negativos, zero (`0`) ou positivos** via `CurrencyInput` com `allowNegative` e controle explícito de sinal `+`/`−`.
+- Exibição: `.numeric` obrigatório; `INCOME` usa `text-state-income` com prefixo `+`, `EXPENSE` usa `text-state-expense`, `TRANSFER` usa `text-foreground`, e `ADJUSTMENT` usa `direction`: `INCREASE` (`+`, `text-state-income`, `Acréscimo`) ou `DECREASE` (`−`, `text-state-expense`, `Redução`).
 
 ## Contrato Temporal (`DateOnly` vs. `Instant`)
 
 - **Datas civis (`DateOnly`, `YYYY-MM-DD`):** `transaction.date`, `dateFrom` e `dateTo`. Validadas por `isValidDateOnly` (respeitando dias do mês e ano bissexto) e exibidas via `formatDateOnlyForDisplay` (`dd/MM/yyyy`), sem jamais passar por `new Date(...).toISOString()`.
 - **Instantes UTC (`Instant`):** `createdAt`, `updatedAt` e `effectiveAt`, formatados para exibição local por `formatTransactionTimestamp` (`formatDateTime`).
-- **Descrição:** opcional, máximo de 120 caracteres, normalizada para `null` quando vazia (`normalizeOptionalText`), com fallback visual `Sem descrição`.
+- **Descrição / Motivo:** máximo de 500 caracteres. Opcional em receitas, despesas, transferências e no reajuste por saldo alvo (normalizada para `null`, com fallback `"Reajuste de saldo"` no backend); obrigatória para ajuste manual (`BalanceAdjustmentSheet`) e edição de `ADJUSTMENT` (`TransactionFormSheet`). Fallback visual na listagem: `Sem descrição`.

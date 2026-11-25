@@ -3,7 +3,9 @@ import {
   useImperativeHandle,
   useLayoutEffect,
   useRef,
+  useState,
   type ClipboardEvent,
+  type FocusEvent,
   type InputHTMLAttributes,
   type KeyboardEvent,
 } from 'react'
@@ -17,14 +19,20 @@ interface CurrencyInputProps
   > {
   valueCents: number | null | undefined
   onValueCentsChange: (value: number | undefined) => void
+  allowNegative?: boolean
 }
+
+const hasLeadingNegativeSign = (rawValue: string): boolean =>
+  /^\s*(?:R\$\s*)?-/.test(rawValue)
 
 export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
   (
     {
       valueCents,
       onValueCentsChange,
+      allowNegative = false,
       className,
+      onBlur,
       onFocus,
       onKeyDown,
       onPaste,
@@ -34,9 +42,14 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
     forwardedRef
   ) => {
     const inputRef = useRef<HTMLInputElement>(null)
+    const [pendingNegative, setPendingNegative] = useState(false)
+    const isPendingNegative = allowNegative && pendingNegative
+
     const displayValue =
       valueCents === null || valueCents === undefined
-        ? ''
+        ? isPendingNegative
+          ? '-'
+          : ''
         : formatCurrencyFromCents(valueCents)
 
     useImperativeHandle(forwardedRef, () => inputRef.current!, [])
@@ -52,15 +65,21 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       input.setSelectionRange(end, end)
     }, [displayValue])
 
-    const emitDigitSequence = (digits: string) => {
+    const emitDigitSequence = (digits: string, isNegative = false) => {
       if (digits === '') {
+        setPendingNegative(false)
         onValueCentsChange(undefined)
         return
       }
 
-      const nextValue = Number(digits)
+      const magnitude = Number(digits)
+      const nextValue =
+        allowNegative && isNegative && magnitude > 0 ? -magnitude : magnitude
 
       if (Number.isSafeInteger(nextValue)) {
+        if (magnitude > 0) {
+          setPendingNegative(false)
+        }
         onValueCentsChange(nextValue)
       }
     }
@@ -72,15 +91,52 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         return
       }
 
+      if (allowNegative && event.key === '-') {
+        event.preventDefault()
+
+        if (valueCents !== null && valueCents !== undefined && valueCents > 0) {
+          setPendingNegative(false)
+          onValueCentsChange(-valueCents)
+          return
+        }
+
+        if (valueCents === null || valueCents === undefined || valueCents === 0) {
+          setPendingNegative(true)
+        }
+
+        return
+      }
+
+      if (allowNegative && event.key === '+') {
+        event.preventDefault()
+        setPendingNegative(false)
+
+        if (valueCents !== null && valueCents !== undefined && valueCents < 0) {
+          onValueCentsChange(Math.abs(valueCents))
+        }
+
+        return
+      }
+
       if (/^\d$/.test(event.key)) {
         event.preventDefault()
         const selectedAll =
           event.currentTarget.selectionStart === 0 &&
-          event.currentTarget.selectionEnd === event.currentTarget.value.length
-        const currentValue = selectedAll ? 0 : (valueCents ?? 0)
-        const nextValue = currentValue * 10 + Number(event.key)
+          event.currentTarget.selectionEnd === event.currentTarget.value.length &&
+          event.currentTarget.value.length > 0
+        const currentMagnitude = selectedAll ? 0 : Math.abs(valueCents ?? 0)
+        const nextMagnitude = currentMagnitude * 10 + Number(event.key)
+        const shouldBeNegative =
+          allowNegative &&
+          !selectedAll &&
+          (isPendingNegative || (valueCents ?? 0) < 0)
+        const nextValue =
+          shouldBeNegative && nextMagnitude > 0 ? -nextMagnitude : nextMagnitude
 
         if (Number.isSafeInteger(nextValue)) {
+          if (nextMagnitude > 0) {
+            setPendingNegative(false)
+          }
           onValueCentsChange(nextValue)
         }
 
@@ -90,12 +146,24 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       if (event.key === 'Backspace' || event.key === 'Delete') {
         event.preventDefault()
 
-        if (valueCents === null || valueCents === undefined || valueCents <= 9) {
+        if (valueCents === null || valueCents === undefined) {
+          setPendingNegative(false)
           onValueCentsChange(undefined)
           return
         }
 
-        onValueCentsChange(Math.floor(valueCents / 10))
+        const magnitude = Math.abs(valueCents)
+
+        if (magnitude <= 9) {
+          setPendingNegative(false)
+          onValueCentsChange(undefined)
+          return
+        }
+
+        const nextMagnitude = Math.floor(magnitude / 10)
+        const nextValue =
+          allowNegative && valueCents < 0 ? -nextMagnitude : nextMagnitude
+        onValueCentsChange(nextValue)
       }
     }
 
@@ -107,7 +175,18 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
       }
 
       event.preventDefault()
-      emitDigitSequence(event.clipboardData.getData('text').replace(/\D/g, ''))
+      const pastedText = event.clipboardData.getData('text')
+      emitDigitSequence(
+        pastedText.replace(/\D/g, ''),
+        allowNegative && hasLeadingNegativeSign(pastedText)
+      )
+    }
+
+    const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
+      if (valueCents === null || valueCents === undefined) {
+        setPendingNegative(false)
+      }
+      onBlur?.(event)
     }
 
     return (
@@ -118,9 +197,20 @@ export const CurrencyInput = forwardRef<HTMLInputElement, CurrencyInputProps>(
         inputMode="numeric"
         value={displayValue}
         placeholder={placeholder}
-        onChange={(event) =>
-          emitDigitSequence(event.currentTarget.value.replace(/\D/g, ''))
-        }
+        onChange={(event) => {
+          const rawValue = event.currentTarget.value
+          const digits = rawValue.replace(/\D/g, '')
+          const hasMinus = allowNegative && hasLeadingNegativeSign(rawValue)
+
+          if (digits === '' && hasMinus) {
+            setPendingNegative(true)
+            onValueCentsChange(undefined)
+            return
+          }
+
+          emitDigitSequence(digits, hasMinus)
+        }}
+        onBlur={handleBlur}
         onFocus={(event) => {
           const end = event.currentTarget.value.length
           event.currentTarget.setSelectionRange(end, end)

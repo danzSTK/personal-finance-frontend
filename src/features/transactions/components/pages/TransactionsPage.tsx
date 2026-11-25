@@ -50,6 +50,7 @@ import {
 } from '../../constants/transaction.constants'
 import type { Transaction } from '../../types/transaction.types'
 import type {
+  BalanceAdjustmentSheetState,
   TransactionAdvancedFilters,
   TransactionConfirmSheetState,
   TransactionDeleteDialogState,
@@ -64,6 +65,7 @@ import {
   parseTransactionCreateIntent,
   type TransactionUrlPatch,
 } from '../../utils/transactionUrl.utils'
+import { BalanceAdjustmentSheet } from '../organisms/BalanceAdjustmentSheet'
 import { TransactionConfirmSheet } from '../organisms/TransactionConfirmSheet'
 import { TransactionCreateButton } from '../molecules/TransactionCreateButton'
 import { TransactionDeleteDialog } from '../organisms/TransactionDeleteDialog'
@@ -96,6 +98,8 @@ export function TransactionsPage() {
   const [isFiltersOpen, setIsFiltersOpen] = useState(false)
   const [formSheetState, setFormSheetState] =
     useState<TransactionFormSheetState>(null)
+  const [balanceAdjustmentSheetState, setBalanceAdjustmentSheetState] =
+    useState<BalanceAdjustmentSheetState>(null)
   const [confirmSheetState, setConfirmSheetState] =
     useState<TransactionConfirmSheetState>(null)
   const [detailsSheetState, setDetailsSheetState] =
@@ -119,12 +123,18 @@ export function TransactionsPage() {
       return
     }
 
-    setFormSheetState({ mode: 'create', type: createIntent })
+    if (createIntent === 'ADJUSTMENT') {
+      setBalanceAdjustmentSheetState({
+        initialAccountId: filters.accountId,
+      })
+    } else {
+      setFormSheetState({ mode: 'create', type: createIntent })
+    }
 
     const nextSearchParams = new URLSearchParams(searchParams)
     nextSearchParams.delete(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
     setSearchParams(nextSearchParams, { replace: true })
-  }, [createIntent, searchParams, setSearchParams])
+  }, [createIntent, filters.accountId, searchParams, setSearchParams])
 
   useEffect(() => {
     setSearchDraft(search)
@@ -165,7 +175,10 @@ export function TransactionsPage() {
       type: viewToTransactionType(view),
       status: filters.status ?? undefined,
       accountId: filters.accountId ?? undefined,
-      categoryId: view === 'TRANSFER' ? undefined : (filters.categoryId ?? undefined),
+      categoryId:
+        view === 'TRANSFER' || view === 'ADJUSTMENT'
+          ? undefined
+          : (filters.categoryId ?? undefined),
     }),
     [filters, limit, page, view]
   )
@@ -247,12 +260,22 @@ export function TransactionsPage() {
   const changeView = (nextView: TransactionView) => {
     updateUrlState({
       view: nextView,
-      categoryId: nextView === 'TRANSFER' ? null : filters.categoryId,
+      categoryId:
+        nextView === 'TRANSFER' || nextView === 'ADJUSTMENT'
+          ? null
+          : filters.categoryId,
       page: TRANSACTION_DEFAULT_PAGE,
     })
   }
 
   const openCreateSheet = () => {
+    if (view === 'ADJUSTMENT') {
+      setBalanceAdjustmentSheetState({
+        initialAccountId: filters.accountId,
+      })
+      return
+    }
+
     if (view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER') {
       setFormSheetState({ mode: 'create', type: view })
     }
@@ -363,7 +386,10 @@ export function TransactionsPage() {
                 className="hidden md:flex"
               />
 
-              {view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER' ? (
+              {view === 'EXPENSE' ||
+              view === 'INCOME' ||
+              view === 'TRANSFER' ||
+              view === 'ADJUSTMENT' ? (
                 <TransactionCreateButton view={view} onClick={openCreateSheet} />
               ) : null}
 
@@ -495,7 +521,10 @@ export function TransactionsPage() {
                 hasFilters={hasFilters}
                 onClearFilters={clearFilters}
                 onCreate={
-                  view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER'
+                  view === 'EXPENSE' ||
+                  view === 'INCOME' ||
+                  view === 'TRANSFER' ||
+                  view === 'ADJUSTMENT'
                     ? openCreateSheet
                     : undefined
                 }
@@ -531,6 +560,16 @@ export function TransactionsPage() {
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setFormSheetState(null)
+          }
+        }}
+      />
+
+      <BalanceAdjustmentSheet
+        state={balanceAdjustmentSheetState}
+        accounts={accounts}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setBalanceAdjustmentSheetState(null)
           }
         }}
       />

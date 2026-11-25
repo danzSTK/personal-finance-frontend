@@ -68,6 +68,7 @@ export const API_ERROR_CODES = {
   technicalCategoryCannotBeCreated: 'TECHNICAL_CATEGORY_CANNOT_BE_CREATED',
 
   invalidTransaction: 'INVALID_TRANSACTION',
+  balanceAdjustmentNoDifference: 'BALANCE_ADJUSTMENT_NO_DIFFERENCE',
   transactionAccountUnavailable: 'TRANSACTION_ACCOUNT_UNAVAILABLE',
   transactionAlreadyEffective: 'TRANSACTION_ALREADY_EFFECTIVE',
   transactionCannotDeleteTransfer: 'TRANSACTION_CANNOT_DELETE_TRANSFER',

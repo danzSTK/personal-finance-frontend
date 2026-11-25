@@ -34,7 +34,9 @@ flowchart LR
 
 1. **Dados exibidos no detalhe:**
    - Cabeçalho com `AccountIdentity (size="lg")`, nome da conta e nome do template institucional (ou rótulo do tipo).
-   - `Saldo atual`, `projectedBalanceLabel` + valor projetado e botão `Reajustar saldo` (placeholder desabilitado).
+   - `Saldo atual`, `projectedBalanceLabel` + valor projetado e botão `Reajustar saldo`:
+     - Em contas ativas (`!account.isArchived`), fecha o painel de detalhes (`setIsDetailsOpen(false)`) antes de abrir o `BalanceAdjustmentSheet` (via `onAdjustBalance` em `AccountsPage`), evitando conflito de foco entre `Dialog`/`Sheet`. O item `Reajustar saldo` também fica habilitado no `AccountActionsMenu`.
+     - Em contas arquivadas (`account.isArchived`), o botão permanece desabilitado no detalhe com o aviso `"Restaure a conta para reajustar o saldo."` e a ação é omitida do `AccountActionsMenu`.
    - Grade 2×3: `Nome`, `Saldo inicial`, `Receitas`, `Despesas`, `Tipo da conta` e `Total geral` (`includeInTotal`).
    - Em desktop, o `Dialog` inclui o botão `Editar conta` (fecha detalhe e abre `AccountFormSheet` em modo `edit`).
 2. **Resumo lazy do período:**

@@ -112,6 +112,7 @@ describe('AccountCard details', () => {
         selectedPeriod={{ year: 2026, month: 7 }}
         projectedBalanceLabel="Saldo no fim do período"
         onEdit={vi.fn()}
+        onAdjustBalance={vi.fn()}
         onArchive={vi.fn()}
         onUnarchive={vi.fn()}
         onSetDefault={vi.fn()}
@@ -162,6 +163,7 @@ describe('AccountCard details', () => {
         selectedPeriod={{ year: 2026, month: 7 }}
         projectedBalanceLabel="Saldo no fim do período"
         onEdit={vi.fn()}
+        onAdjustBalance={vi.fn()}
         onArchive={vi.fn()}
         onUnarchive={vi.fn()}
         onSetDefault={vi.fn()}
@@ -176,5 +178,93 @@ describe('AccountCard details', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Ver transações' }))
 
     expect(onViewTransactions).toHaveBeenCalledOnce()
+  })
+
+  it('habilita Reajustar saldo no menu e no detalhe para conta ativa e fecha o detalhe ao acionar', async () => {
+    const user = userEvent.setup()
+    const onAdjustBalance = vi.fn()
+
+    render(
+      <AccountCard
+        account={account}
+        isMutating={false}
+        selectedPeriod={{ year: 2026, month: 7 }}
+        projectedBalanceLabel="Saldo no fim do período"
+        onEdit={vi.fn()}
+        onAdjustBalance={onAdjustBalance}
+        onArchive={vi.fn()}
+        onUnarchive={vi.fn()}
+        onSetDefault={vi.fn()}
+        onViewTransactions={vi.fn()}
+        onViewPeriodTransactions={vi.fn()}
+      />
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: 'Abrir ações de Conta principal' })
+    )
+    expect(screen.queryByText('Planejado')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('menuitem', { name: 'Reajustar saldo' }))
+    expect(onAdjustBalance).toHaveBeenCalledTimes(1)
+
+    const card = screen
+      .getByText('Conta principal', { selector: 'h3' })
+      .closest('article')
+    await user.click(card as HTMLElement)
+
+    const detailsButton = await screen.findByRole('button', {
+      name: 'Reajustar saldo',
+    })
+    expect(detailsButton).toBeEnabled()
+    await user.click(detailsButton)
+
+    expect(onAdjustBalance).toHaveBeenCalledTimes(2)
+  })
+
+  it('oculta Reajustar saldo no menu e desabilita com aviso no detalhe quando a conta está arquivada', async () => {
+    const user = userEvent.setup()
+    const archivedAccount: Account = {
+      ...account,
+      isDefault: false,
+      isArchived: true,
+    }
+
+    render(
+      <AccountCard
+        account={archivedAccount}
+        isMutating={false}
+        selectedPeriod={{ year: 2026, month: 7 }}
+        projectedBalanceLabel="Saldo no fim do período"
+        onEdit={vi.fn()}
+        onAdjustBalance={vi.fn()}
+        onArchive={vi.fn()}
+        onUnarchive={vi.fn()}
+        onSetDefault={vi.fn()}
+        onViewTransactions={vi.fn()}
+        onViewPeriodTransactions={vi.fn()}
+      />
+    )
+
+    await user.click(
+      screen.getByRole('button', { name: 'Abrir ações de Conta principal' })
+    )
+    expect(
+      screen.queryByRole('menuitem', { name: 'Reajustar saldo' })
+    ).not.toBeInTheDocument()
+    await user.keyboard('{Escape}')
+
+    const card = screen
+      .getByText('Conta principal', { selector: 'h3' })
+      .closest('article')
+    await user.click(card as HTMLElement)
+
+    const detailsButton = await screen.findByRole('button', {
+      name: 'Reajustar saldo',
+    })
+    expect(detailsButton).toBeDisabled()
+    expect(
+      screen.getByText('Restaure a conta para reajustar o saldo.')
+    ).toBeInTheDocument()
   })
 })

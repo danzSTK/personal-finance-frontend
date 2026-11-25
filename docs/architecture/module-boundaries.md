@@ -2,7 +2,7 @@
 area: architecture
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-25
 related:
   - ../README.md
   - ./api-error-handling.md
@@ -65,9 +65,9 @@ Os acoplamentos abaixo existem hoje no código-fonte e estão registrados explic
 - **Por que é dívida:** Mistura segurança/identidade com layout global da aplicação e agregação financeira do dashboard.
 - **Direção futura:** Extrair shell/rotas globais para `src/app/` ou `src/shared/` e promover `dashboard` (e eventualmente `users`/`settings`) para módulos próprios quando houver ciclo de refatoração dedicado.
 
-### DT-03 — Ausência de API pública (`index.ts`) em `auth`, `categories` e `transactions`
-- **Onde ocorre:** Apenas `src/features/accounts/index.ts` existe atualmente (exportando `AccountIdentity` e tipos `Account*`). Mesmo assim, `transactions` e `auth` ainda importam caminhos internos como `@/features/accounts/api/queries`, `@/features/categories/api/queries`, `@/features/categories/utils/category.utils`, `@/features/transactions/api/queries` e `@/features/transactions/utils/transactionUrl.utils`.
-- **Direção futura:** Criar `index.ts` enxutos nos módulos com apenas as APIs públicas intencionais e migrar imports cross-feature para consumir exclusivamente esses entrypoints.
+### DT-03 — Ausência parcial de API pública (`index.ts`) em `auth`, `categories` e `transactions`
+- **Onde ocorre:** `src/features/accounts/index.ts` (exportando `AccountIdentity` e tipos `Account*`) e `src/features/transactions/index.ts` (exportando `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode`, consumidos exclusivamente via `@/features/transactions` por `AccountsPage`) já existem, mas `auth` e `categories` ainda não têm `index.ts` e diversos consumidores (`transactions`, `auth`, `AccountCard`) ainda importam caminhos internos como `@/features/accounts/api/queries`, `@/features/categories/api/queries`, `@/features/categories/utils/category.utils`, `@/features/transactions/api/queries` e `@/features/transactions/utils/transactionUrl.utils`.
+- **Direção futura:** Criar `index.ts` enxutos nos módulos restantes com apenas as APIs públicas intencionais e migrar os imports cross-feature legados para consumir exclusivamente esses entrypoints.
 
 ### DT-04 — Páginas dentro de `components/templates/` em `auth`
 - **Onde ocorre:** `DashboardPage.tsx`, `LoginPage.tsx`, `AuthCallbackPage.tsx` e `LinkProviderCallbackPage.tsx` vivem em `src/features/auth/components/templates/` em vez de `components/pages/`.

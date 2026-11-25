@@ -298,6 +298,12 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
       'Alguma informação não combina com as regras financeiras. Corrija os campos e tente novamente.',
     recovery: 'correct-fields',
   },
+  [API_ERROR_CODES.balanceAdjustmentNoDifference]: {
+    title: 'O saldo já está atualizado',
+    description:
+      'O saldo atual da conta já corresponde ao valor informado. Confira o saldo atualizado ou informe outro valor.',
+    recovery: 'correct-fields',
+  },
   [API_ERROR_CODES.transactionAccountUnavailable]: {
     title: 'Conta indisponível',
     description: 'Escolha uma conta ativa para continuar.',
@@ -473,6 +479,12 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
   'transactions.list': loadFailure('as transações'),
   'transactions.detail': loadFailure('os detalhes da transação'),
   'transactions.create': saveFailure('criar a transação'),
+  'transactions.balance-adjustment': {
+    title: 'Não foi possível aplicar o reajuste',
+    description:
+      'Seus dados continuam nesta tela. Revise as informações e tente novamente.',
+    recovery: 'retry',
+  },
   'transactions.update': saveFailure('salvar as alterações da transação'),
   'transactions.confirm': actionFailure('efetivar esta transação'),
   'transactions.delete': actionFailure('excluir esta transação'),
@@ -526,6 +538,18 @@ const resolveCopy = (
     (code === API_ERROR_CODES.unauthorized || statusCode === 401)
   ) {
     return contextFallbacks[context]
+  }
+
+  if (
+    context === 'transactions.balance-adjustment' &&
+    code === API_ERROR_CODES.transactionCategoryUnavailable
+  ) {
+    return {
+      title: 'Não foi possível registrar o reajuste',
+      description:
+        'A configuração técnica de ajuste não está disponível para sua conta no momento.',
+      recovery: 'retry',
+    }
   }
 
   return (
