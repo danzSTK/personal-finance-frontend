@@ -221,7 +221,7 @@ function TransactionRow({
       <TableCell
         className={cn(
           'numeric text-right font-semibold',
-          getTransactionAmountClassName(transaction.type)
+          getTransactionAmountClassName(transaction.type, transaction.direction)
         )}
       >
         {formatSignedTransactionAmount(transaction, formatCurrencyFromCents)}
@@ -288,7 +288,7 @@ function TransactionMobileItem({
         <span
           className={cn(
             'numeric text-sm font-semibold whitespace-nowrap',
-            getTransactionAmountClassName(transaction.type)
+            getTransactionAmountClassName(transaction.type, transaction.direction)
           )}
         >
           {formatSignedTransactionAmount(transaction, formatCurrencyFromCents)}

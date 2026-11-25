@@ -94,6 +94,13 @@ export interface CreateTransactionDto {
   direction?: TransactionDirection
 }
 
+export interface CreateBalanceAdjustmentDto {
+  accountId: string
+  targetBalanceCents: number
+  date: string
+  description?: string | null
+}
+
 export interface UpdateTransactionDto {
   accountId?: string
   destinationAccountId?: string | null

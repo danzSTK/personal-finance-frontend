@@ -5,7 +5,7 @@ import { TRANSACTION_VIEW_CREATE_LABELS } from '../../constants/transaction.cons
 import type { TransactionView } from '../../types/transaction-ui.types'
 
 interface TransactionCreateButtonProps {
-  view: Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER'>
+  view: Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER' | 'ADJUSTMENT'>
   onClick: () => void
   className?: string
 }

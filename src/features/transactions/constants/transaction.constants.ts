@@ -1,9 +1,9 @@
 import {
   ArrowLeftRight,
-  CircleDollarSign,
   HandCoins,
   ListChecks,
   ReceiptText,
+  SlidersHorizontal,
   WalletCards,
   type LucideIcon,
 } from 'lucide-react'
@@ -18,6 +18,7 @@ export const TRANSACTION_CREATE_INTENT_QUERY_PARAM = 'create'
 
 export const TRANSACTION_API_ENDPOINTS = {
   transactions: '/transactions',
+  balanceAdjustments: '/transactions/balance-adjustments',
   attachments: (transactionId: string) =>
     `/transactions/${transactionId}/attachments`,
   attachmentPositions: (transactionId: string) =>
@@ -79,22 +80,29 @@ export const TRANSACTION_VIEW_OPTIONS: Array<{
     icon: ArrowLeftRight,
     tone: 'info',
   },
+  {
+    value: 'ADJUSTMENT',
+    label: 'Ajustes',
+    icon: SlidersHorizontal,
+    tone: 'info',
+  },
 ]
 
 export const TRANSACTION_TYPE_ICONS: Record<TransactionType, LucideIcon> = {
   INCOME: HandCoins,
   EXPENSE: ReceiptText,
   TRANSFER: ArrowLeftRight,
-  ADJUSTMENT: CircleDollarSign,
+  ADJUSTMENT: SlidersHorizontal,
 }
 
 export const TRANSACTION_VIEW_CREATE_LABELS: Record<
-  Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER'>,
+  Extract<TransactionView, 'EXPENSE' | 'INCOME' | 'TRANSFER' | 'ADJUSTMENT'>,
   string
 > = {
   EXPENSE: 'Nova despesa',
   INCOME: 'Nova receita',
   TRANSFER: 'Nova transferência',
+  ADJUSTMENT: 'Novo ajuste',
 }
 
 export const TRANSACTION_ACCOUNT_FALLBACK_ICON = WalletCards

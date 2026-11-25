@@ -3,7 +3,13 @@ import type { CSSProperties, ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm, type UseFormReturn } from 'react-hook-form'
-import { CheckCircle2, CircleDashed, Clock3 } from 'lucide-react'
+import {
+  CheckCircle2,
+  CircleDashed,
+  Clock3,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react'
 import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
@@ -175,15 +181,24 @@ export function TransactionFormSheet({
   }, [errorPresentation, form.setError, form.setFocus])
 
   const selectedType = form.watch('type')
+  const isEditingAdjustment =
+    state?.mode === 'edit' && state.transaction.type === 'ADJUSTMENT'
+  const effectiveType: TransactionFormValues['type'] = isEditingAdjustment
+    ? 'ADJUSTMENT'
+    : state?.mode === 'edit' && selectedType === 'ADJUSTMENT'
+      ? state.transaction.type
+      : state?.mode === 'create' && selectedType === 'ADJUSTMENT'
+        ? state.type
+        : selectedType
   const selectedDate = form.watch('date')
   const selectedStatus = form.watch('status')
   const supportsAttachments =
-    selectedType === 'INCOME' || selectedType === 'EXPENSE'
+    effectiveType === 'INCOME' || effectiveType === 'EXPENSE'
   const availableCategories = categories.filter(
     (category) =>
       !category.isArchived &&
-      (selectedType === 'INCOME' || selectedType === 'EXPENSE') &&
-      category.type === selectedType
+      (effectiveType === 'INCOME' || effectiveType === 'EXPENSE') &&
+      category.type === effectiveType
   )
   const activeAccounts = accounts.filter((account) => !account.isArchived)
   const destinationAccounts = activeAccounts.filter(
@@ -203,28 +218,28 @@ export function TransactionFormSheet({
   const todayDate = getTodayDateOnly()
   const yesterdayDate = getYesterdayDateOnly()
   const effectiveStatusLabel =
-    selectedType === 'INCOME'
+    effectiveType === 'INCOME'
       ? 'Foi recebida'
-      : selectedType === 'EXPENSE'
+      : effectiveType === 'EXPENSE'
         ? 'Foi paga'
-        : selectedType === 'TRANSFER'
+        : effectiveType === 'TRANSFER'
           ? 'Foi transferida'
           : 'Foi efetivada'
   const submitLabel = isEditing
     ? 'Salvar alterações'
-    : selectedType === 'INCOME'
+    : effectiveType === 'INCOME'
       ? 'Salvar receita'
-      : selectedType === 'EXPENSE'
+      : effectiveType === 'EXPENSE'
         ? 'Salvar despesa'
-        : selectedType === 'TRANSFER'
+        : effectiveType === 'TRANSFER'
           ? 'Salvar transferência'
           : 'Salvar transação'
   const submitClassName = cn(
     'h-10 rounded-xl px-4 text-primary-foreground',
-    selectedType === 'INCOME' && 'bg-state-income hover:bg-state-income/90',
-    selectedType === 'EXPENSE' && 'bg-state-expense hover:bg-state-expense/90',
-    selectedType !== 'INCOME' &&
-      selectedType !== 'EXPENSE' &&
+    effectiveType === 'INCOME' && 'bg-state-income hover:bg-state-income/90',
+    effectiveType === 'EXPENSE' && 'bg-state-expense hover:bg-state-expense/90',
+    effectiveType !== 'INCOME' &&
+      effectiveType !== 'EXPENSE' &&
       'bg-primary text-primary-foreground hover:bg-primary/90'
   )
 
@@ -338,17 +353,21 @@ export function TransactionFormSheet({
         <SheetHeader className="pr-8 text-left">
           <SheetTitle className="text-foreground">
             {isEditing
-              ? selectedType === 'TRANSFER'
+              ? effectiveType === 'TRANSFER'
                 ? 'Editar transferência'
-                : 'Editar transação'
+                : effectiveType === 'ADJUSTMENT'
+                  ? 'Editar ajuste'
+                  : 'Editar transação'
               : `Nova ${getTransactionTypeLabel(initialType).toLowerCase()}`}
           </SheetTitle>
           <SheetDescription className="text-muted-foreground">
-            {selectedType === 'TRANSFER'
+            {effectiveType === 'TRANSFER'
               ? 'Mova dinheiro entre suas contas sem registrar receita ou despesa.'
-              : isEditing
-                ? 'Atualize os dados permitidos pelo lançamento.'
-                : 'Registre valor, data, categoria e conta do lançamento.'}
+              : effectiveType === 'ADJUSTMENT'
+                ? 'Atualize valor, direção, data, conta ou motivo do ajuste.'
+                : isEditing
+                  ? 'Atualize os dados permitidos pelo lançamento.'
+                  : 'Registre valor, data, categoria e conta do lançamento.'}
           </SheetDescription>
         </SheetHeader>
 
@@ -358,32 +377,54 @@ export function TransactionFormSheet({
               label="Tipo"
               error={form.formState.errors.type?.message}
             >
-              <Select
-                value={selectedType}
-                onValueChange={(value) =>
-                  form.setValue(
-                    'type',
-                    value as TransactionFormValues['type'],
-                    { shouldDirty: true, shouldValidate: true }
-                  )
-                }
-              >
-                <SelectTrigger className={inputClassName}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card text-foreground">
-                  {(['EXPENSE', 'INCOME', 'TRANSFER'] as const).map((type) => (
+              {isEditingAdjustment ? (
+                <Select key="adjustment-type" value="ADJUSTMENT" disabled>
+                  <SelectTrigger className={inputClassName}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-card text-foreground">
                     <SelectItem
-                      key={type}
-                      value={type}
+                      value="ADJUSTMENT"
                       hideIndicator
                       className="focus:bg-accent focus:text-foreground"
                     >
-                      {getTransactionTypeLabel(type)}
+                      {getTransactionTypeLabel('ADJUSTMENT')}
                     </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Select
+                  key="standard-type"
+                  value={effectiveType}
+                  onValueChange={(value) => {
+                    if (!value) return
+
+                    form.setValue(
+                      'type',
+                      value as TransactionFormValues['type'],
+                      { shouldDirty: true, shouldValidate: true }
+                    )
+                  }}
+                >
+                  <SelectTrigger className={inputClassName}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="border-border bg-card text-foreground">
+                    {(['EXPENSE', 'INCOME', 'TRANSFER'] as const).map(
+                      (type) => (
+                        <SelectItem
+                          key={type}
+                          value={type}
+                          hideIndicator
+                          className="focus:bg-accent focus:text-foreground"
+                        >
+                          {getTransactionTypeLabel(type)}
+                        </SelectItem>
+                      )
+                    )}
+                  </SelectContent>
+                </Select>
+              )}
             </TransactionFormField>
           ) : null}
 
@@ -404,6 +445,59 @@ export function TransactionFormSheet({
               aria-invalid={Boolean(form.formState.errors.amountCents)}
             />
           </TransactionFormField>
+
+          {effectiveType === 'ADJUSTMENT' ? (
+            <div className="space-y-2">
+              <span className="block text-sm font-medium text-foreground">
+                Direção
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-pressed={form.watch('direction') === 'INCREASE'}
+                  className={cn(
+                    'min-h-11 gap-2 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground',
+                    form.watch('direction') === 'INCREASE' &&
+                      'border-state-income/50 bg-state-income/10 text-state-income hover:bg-state-income/15 hover:text-state-income'
+                  )}
+                  onClick={() =>
+                    form.setValue('direction', 'INCREASE', {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  <span>Acréscimo (+)</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  aria-pressed={form.watch('direction') === 'DECREASE'}
+                  className={cn(
+                    'min-h-11 gap-2 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground',
+                    form.watch('direction') === 'DECREASE' &&
+                      'border-state-expense/50 bg-state-expense/10 text-state-expense hover:bg-state-expense/15 hover:text-state-expense'
+                  )}
+                  onClick={() =>
+                    form.setValue('direction', 'DECREASE', {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <TrendingDown className="h-4 w-4" />
+                  <span>Redução (−)</span>
+                </Button>
+              </div>
+              {form.formState.errors.direction?.message ? (
+                <span className="block text-xs font-medium text-destructive">
+                  {form.formState.errors.direction.message}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
 
           {!isEditing ? (
             <TransactionFormField
@@ -428,9 +522,9 @@ export function TransactionFormSheet({
                     <CheckCircle2
                       className={cn(
                         'h-4 w-4',
-                        selectedType === 'EXPENSE'
+                        effectiveType === 'EXPENSE'
                           ? 'text-state-expense'
-                          : selectedType === 'TRANSFER'
+                          : effectiveType === 'TRANSFER'
                             ? 'text-state-info'
                             : 'text-state-income'
                       )}
@@ -444,9 +538,9 @@ export function TransactionFormSheet({
                   className={cn(
                     'relative h-5 w-9 rounded-full transition',
                     selectedStatus === 'EFFECTIVE'
-                      ? selectedType === 'EXPENSE'
+                      ? effectiveType === 'EXPENSE'
                         ? 'bg-state-expense'
-                        : selectedType === 'TRANSFER'
+                        : effectiveType === 'TRANSFER'
                           ? 'bg-state-info'
                           : 'bg-state-income'
                       : 'bg-accent'
@@ -501,12 +595,21 @@ export function TransactionFormSheet({
             </div>
           </TransactionFormField>
 
-          {selectedType !== 'TRANSFER' ? (
-            <TransactionDescriptionField form={form} />
+          {effectiveType !== 'TRANSFER' ? (
+            <TransactionDescriptionField
+              form={form}
+              label={effectiveType === 'ADJUSTMENT' ? 'Motivo' : 'Descrição'}
+              placeholder={
+                effectiveType === 'ADJUSTMENT'
+                  ? 'Ex.: Conferência com extrato bancário'
+                  : undefined
+              }
+              maxLength={500}
+            />
           ) : null}
 
           <TransactionFormField
-            label={selectedType === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
+            label={effectiveType === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             error={form.formState.errors.accountId?.message}
           >
             <Select
@@ -517,7 +620,7 @@ export function TransactionFormSheet({
                 <AccountSelectLabel
                   account={selectedAccount}
                   fallback={
-                    selectedType === 'TRANSFER'
+                    effectiveType === 'TRANSFER'
                       ? 'Escolha a origem'
                       : 'Escolha uma conta'
                   }
@@ -538,7 +641,7 @@ export function TransactionFormSheet({
             </Select>
           </TransactionFormField>
 
-          {selectedType === 'TRANSFER' ? (
+          {effectiveType === 'TRANSFER' ? (
             <TransactionFormField
               label="Conta de destino"
               error={form.formState.errors.destinationAccountId?.message}
@@ -574,7 +677,7 @@ export function TransactionFormSheet({
             </TransactionFormField>
           ) : null}
 
-          {selectedType === 'TRANSFER' ? (
+          {effectiveType === 'TRANSFER' ? (
             <>
               {activeAccounts.length < 2 ? (
                 <div
@@ -592,7 +695,7 @@ export function TransactionFormSheet({
             </>
           ) : null}
 
-          {selectedType === 'INCOME' || selectedType === 'EXPENSE' ? (
+          {effectiveType === 'INCOME' || effectiveType === 'EXPENSE' ? (
             <TransactionFormField
               label="Categoria"
               error={form.formState.errors.categoryId?.message}
@@ -643,7 +746,7 @@ export function TransactionFormSheet({
                 <TransactionAttachmentsGallery
                   transaction={{
                     ...state.transaction,
-                    type: selectedType,
+                    type: effectiveType,
                   }}
                 />
               ) : (
@@ -677,7 +780,7 @@ export function TransactionFormSheet({
               className={submitClassName}
               disabled={
                 isPending ||
-                (selectedType === 'TRANSFER' && activeAccounts.length < 2)
+                (effectiveType === 'TRANSFER' && activeAccounts.length < 2)
               }
             >
               {isUploadingStaged
@@ -695,20 +798,25 @@ export function TransactionFormSheet({
 
 interface TransactionDescriptionFieldProps {
   form: UseFormReturn<TransactionFormValues>
+  label?: string
   placeholder?: string
+  maxLength?: number
 }
 
 function TransactionDescriptionField({
   form,
+  label = 'Descrição',
   placeholder = 'Ex.: Mercado, salário, pix',
+  maxLength = 500,
 }: TransactionDescriptionFieldProps) {
   return (
     <TransactionFormField
-      label="Descrição"
+      label={label}
       error={form.formState.errors.description?.message}
     >
       <Input
         className={inputClassName}
+        maxLength={maxLength}
         placeholder={placeholder}
         {...form.register('description')}
         value={form.watch('description') ?? ''}

@@ -85,7 +85,10 @@ export function TransactionsEmptyState({
           </Button>
         ) : null}
         {onCreate &&
-        (view === 'EXPENSE' || view === 'INCOME' || view === 'TRANSFER') ? (
+        (view === 'EXPENSE' ||
+          view === 'INCOME' ||
+          view === 'TRANSFER' ||
+          view === 'ADJUSTMENT') ? (
           <TransactionCreateButton view={view} onClick={onCreate} />
         ) : null}
       </div>
@@ -97,12 +100,17 @@ const getEmptyTitle = (view: TransactionView): string => {
   if (view === 'EXPENSE') return 'Nenhuma despesa no período'
   if (view === 'INCOME') return 'Nenhuma receita no período'
   if (view === 'TRANSFER') return 'Nenhuma transferência no período'
+  if (view === 'ADJUSTMENT') return 'Nenhum ajuste de saldo no período'
   return 'Nenhuma transação no período'
 }
 
 const getEmptyDescription = (view: TransactionView): string => {
   if (view === 'TRANSFER') {
     return 'Transferências entre suas contas aparecem aqui quando forem cadastradas.'
+  }
+
+  if (view === 'ADJUSTMENT') {
+    return 'Reajustes de saldo aplicados nas contas aparecem aqui para consulta e auditoria.'
   }
 
   if (view === 'EXPENSE') {

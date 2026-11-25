@@ -1,10 +1,26 @@
+import type { Account } from '@/features/accounts'
 import type {
   Transaction,
   TransactionStatus,
   TransactionType,
 } from './transaction.types'
 
-export type TransactionView = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER'
+export type TransactionView =
+  | 'ALL'
+  | 'EXPENSE'
+  | 'INCOME'
+  | 'TRANSFER'
+  | 'ADJUSTMENT'
+
+export type BalanceAdjustmentMode = 'target' | 'manual'
+
+export type BalanceAdjustmentSheetState =
+  | {
+      account?: Account
+      initialAccountId?: string | null
+      initialMode?: BalanceAdjustmentMode
+    }
+  | null
 
 export interface TransactionAdvancedFilters {
   accountId: string | null

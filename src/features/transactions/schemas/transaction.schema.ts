@@ -18,7 +18,7 @@ export const transactionFormSchema = z
     date: z
       .string()
       .refine(isValidDateOnly, 'Informe uma data válida.'),
-    description: z.string().max(120, 'Use até 120 caracteres.').nullable(),
+    description: z.string().max(500, 'Use até 500 caracteres.').nullable(),
     accountId: z.string().min(1, 'Escolha uma conta.'),
     destinationAccountId: z.string().nullable(),
     categoryId: z.string().nullable(),
@@ -62,12 +62,22 @@ export const transactionFormSchema = z
       }
     }
 
-    if (values.type === 'ADJUSTMENT' && !values.direction) {
-      context.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ['direction'],
-        message: 'Escolha a direção do ajuste.',
-      })
+    if (values.type === 'ADJUSTMENT') {
+      if (!values.direction) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['direction'],
+          message: 'Escolha a direção do ajuste.',
+        })
+      }
+
+      if (!values.description?.trim()) {
+        context.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ['description'],
+          message: 'Informe o motivo do ajuste.',
+        })
+      }
     }
   })
 

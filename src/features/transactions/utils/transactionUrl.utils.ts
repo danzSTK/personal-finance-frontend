@@ -16,7 +16,7 @@ import {
 
 export type TransactionCreateIntent = Extract<
   TransactionView,
-  'INCOME' | 'EXPENSE' | 'TRANSFER'
+  'INCOME' | 'EXPENSE' | 'TRANSFER' | 'ADJUSTMENT'
 >
 
 export interface TransactionUrlState {
@@ -52,6 +52,7 @@ const TRANSACTION_VIEW_VALUES: TransactionView[] = [
   'EXPENSE',
   'INCOME',
   'TRANSFER',
+  'ADJUSTMENT',
 ]
 
 const TRANSACTION_STATUS_VALUES: TransactionStatus[] = ['PENDING', 'EFFECTIVE']
@@ -61,7 +62,10 @@ export const parseTransactionCreateIntent = (
 ): TransactionCreateIntent | null => {
   const value = searchParams.get(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
 
-  return value === 'INCOME' || value === 'EXPENSE' || value === 'TRANSFER'
+  return value === 'INCOME' ||
+    value === 'EXPENSE' ||
+    value === 'TRANSFER' ||
+    value === 'ADJUSTMENT'
     ? value
     : null
 }
@@ -85,7 +89,7 @@ export const parseTransactionUrlState = (
     filters: {
       accountId: parseNullableString(searchParams.get('accountId')),
       categoryId:
-        view === 'TRANSFER'
+        view === 'TRANSFER' || view === 'ADJUSTMENT'
           ? null
           : parseNullableString(searchParams.get('categoryId')),
       status: parseStatus(searchParams.get('status')),
@@ -152,7 +156,9 @@ export const buildTransactionSearchParams = (
   setStringParam(
     params,
     'categoryId',
-    nextView === 'TRANSFER' ? null : nextCategoryId
+    nextView === 'TRANSFER' || nextView === 'ADJUSTMENT'
+      ? null
+      : nextCategoryId
   )
   setStringParam(params, 'status', nextStatus)
   setStringParam(

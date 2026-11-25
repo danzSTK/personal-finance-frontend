@@ -70,7 +70,7 @@ export function TransactionFiltersSheet({
 
   const availableCategories = categories.filter((category) => {
     if (category.isArchived) return false
-    if (view === 'TRANSFER') return false
+    if (view === 'TRANSFER' || view === 'ADJUSTMENT') return false
     if (view === 'INCOME') return category.type === 'INCOME'
     if (view === 'EXPENSE') return category.type === 'EXPENSE'
     return category.type === 'INCOME' || category.type === 'EXPENSE'
@@ -154,7 +154,7 @@ export function TransactionFiltersSheet({
             </Select>
           </FilterField>
 
-          {view !== 'TRANSFER' ? (
+          {view !== 'TRANSFER' && view !== 'ADJUSTMENT' ? (
             <FilterField label="Categoria">
               <Select
                 value={draft.categoryId ?? ALL_VALUE}
@@ -203,8 +203,9 @@ export function TransactionFiltersSheet({
             </FilterField>
           ) : (
             <div className="rounded-2xl border border-border bg-secondary p-4 text-sm text-muted-foreground">
-              Transferências usam categoria técnica e não podem ser filtradas por
-              categoria nesta versão.
+              {view === 'ADJUSTMENT'
+                ? 'Ajustes de saldo usam categoria técnica e não podem ser filtrados por categoria nesta versão.'
+                : 'Transferências usam categoria técnica e não podem ser filtradas por categoria nesta versão.'}
             </div>
           )}
 

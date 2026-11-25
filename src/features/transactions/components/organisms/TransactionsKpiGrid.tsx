@@ -7,6 +7,7 @@ import {
   HandCoins,
   ReceiptText,
   Scale,
+  SlidersHorizontal,
   WalletCards,
 } from 'lucide-react'
 import { Button } from '@/shared/lib/button'
@@ -233,6 +234,16 @@ const getTypeSummaryLabels = (view: TransactionView) => {
       total: 'Total',
       tone: 'expense' as const,
       Icon: ReceiptText,
+    }
+  }
+
+  if (view === 'ADJUSTMENT') {
+    return {
+      pending: 'Ajustes pendentes',
+      effective: 'Ajustes efetivados',
+      total: 'Total ajustado',
+      tone: 'info' as const,
+      Icon: SlidersHorizontal,
     }
   }
 

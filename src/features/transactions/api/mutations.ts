@@ -9,6 +9,7 @@ import {
 } from '../constants/transaction.constants'
 import type {
   ConfirmTransactionDto,
+  CreateBalanceAdjustmentDto,
   CreateTransactionDto,
   Transaction,
   UpdateTransactionDto,
@@ -46,6 +47,15 @@ export const useCreateTransaction = () => {
     },
     onSuccess: (transaction) => {
       invalidateTransactionData()
+
+      if (transaction.type === 'ADJUSTMENT') {
+        toast({
+          title: 'Ajuste registrado',
+          description: 'O lançamento de ajuste foi salvo com sucesso.',
+        })
+        return
+      }
+
       toast({
         title:
           transaction.type === 'TRANSFER'
@@ -55,6 +65,28 @@ export const useCreateTransaction = () => {
           transaction.type === 'TRANSFER'
             ? 'A movimentação entre suas contas foi salva.'
             : `${getTransactionTypeLabel(transaction.type)} registrada com sucesso.`,
+      })
+    },
+  })
+}
+
+export const useCreateBalanceAdjustment = () => {
+  const invalidateTransactionData = useInvalidateTransactionData()
+
+  return useMutation({
+    mutationFn: async (dto: CreateBalanceAdjustmentDto) => {
+      const { data } = await api.post<Transaction>(
+        TRANSACTION_API_ENDPOINTS.balanceAdjustments,
+        dto
+      )
+      return data
+    },
+    onSuccess: () => {
+      invalidateTransactionData()
+      toast({
+        title: 'Saldo reajustado',
+        description:
+          'O ajuste foi registrado e o saldo da conta foi atualizado.',
       })
     },
   })
