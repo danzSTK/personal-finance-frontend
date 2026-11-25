@@ -2,7 +2,7 @@
 area: accounts
 type: index
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-25
 related:
   - ../README.md
   - ../architecture/module-boundaries.md
@@ -53,7 +53,7 @@ Todo o código proprietário reside em `src/features/accounts/`, com instruçõe
 - **Código proprietário:** `src/features/accounts/`
 - **API pública (`src/features/accounts/index.ts`):** exporta `AccountIdentity` e os tipos `Account`, `AccountTemplate` e `AccountTemplateInput`.
 - **Consumidores cross-feature atuais:** `DashboardPage` (`useAccountSummary`), `TransactionsPage` (`useAccounts`, `useAccountSummary`), `transactions/api/mutations.ts` (`ACCOUNT_QUERY_KEYS.accounts`) e sheets de transações (`AccountIdentity` e tipo `Account`).
-- **Dependências de entrada:** `api` (`DT-01`), `AuthAppShell` (`DT-02`), e `useTransactions` + `buildTransactionsUrl` de `transactions` (`DT-03`).
+- **Dependências de entrada:** `api` (`DT-01`), `AuthAppShell` (`DT-02`), `BalanceAdjustmentSheet` e `BalanceAdjustmentSheetState` via `@/features/transactions`, e `useTransactions` + `buildTransactionsUrl` de `transactions` (`DT-03`).
 
 ## Estado Atual de Implementação
 
@@ -63,9 +63,9 @@ Todo o código proprietário reside em `src/features/accounts/`, com instruçõe
 - [x] Criação em duas etapas (template institucional ou personalizada) e edição preservando classe visual e `initialBalanceCents` somente leitura.
 - [x] Detalhe responsivo (bottom Sheet mobile / Dialog desktop) com resumo lazy de receitas/despesas efetivadas e deep links para `/transactions`.
 - [x] Arquivamento com confirmação, restauração e troca de conta padrão.
+- [x] Reajuste de saldo (`Reajustar saldo`) no menu `...` e no detalhe de contas ativas via `BalanceAdjustmentSheet` (`@/features/transactions`), bloqueado/oculto para contas arquivadas.
 
 ### Gaps Conhecidos / Pendente
 - [ ] `AccountsPage` ainda mantém `selectedPeriod` e `includeArchived` apenas em `useState` (sem sincronização com a URL query string).
-- [ ] `Reajustar saldo` / `Reajuste de saldo` estão presentes como placeholders desabilitados na UI (sem endpoint conectado).
 - [ ] `DELETE /accounts/:id` não é suportado pelo módulo.
 - [ ] `accountPeriod.utils.ts` duplica helpers já existentes em `src/shared/utils/dateOnly.ts` (`getCurrentYearMonth`, `getMonthStartDateOnly`, `getMonthEndDateOnly`).

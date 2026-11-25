@@ -2,7 +2,7 @@
 area: transactions
 type: index
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-25
 related:
   - ../README.md
   - ../architecture/module-boundaries.md
@@ -11,6 +11,7 @@ related:
   - ./flows/list-filter-and-kpis.md
   - ./flows/dashboard-pending-navigation.md
   - ./flows/create-edit-and-transfer.md
+  - ./flows/balance-adjustment.md
   - ./flows/confirm-and-delete-transaction.md
   - ./flows/manage-attachments.md
   - ./decisions/pending-range-includes-future.md
@@ -38,6 +39,7 @@ Todo o código proprietário reside em `src/features/transactions/`, com instru�
 - [Listagem, Filtros em URL, KPIs e Agrupamento por Dia](./flows/list-filter-and-kpis.md) — Tela `/transactions`, `transactionUrl.utils.ts`, KPIs overview vs. tipo e deep link `?create=`.
 - [Navegação das Pendências da Dashboard](./flows/dashboard-pending-navigation.md) — Consultas `usePendingTransactionRange` e deep link completo de pendências passadas e futuras.
 - [Criar, Editar e Transferir Lançamentos](./flows/create-edit-and-transfer.md) — `TransactionFormSheet`, entrada cent-first, diff-only `PATCH` e regras de `TRANSFER`.
+- [Reajuste de Saldo (Saldo Alvo e Ajuste Manual)](./flows/balance-adjustment.md) — `BalanceAdjustmentSheet`, modos `target` e `manual`, prévia em `BigInt` e visão `ADJUSTMENT`.
 - [Confirmar Pendência e Excluir Transação](./flows/confirm-and-delete-transaction.md) — `TransactionConfirmSheet`, `TransactionDeleteDialog` e bloqueio de exclusão para `TRANSFER`.
 - [Gerenciamento de Anexos e Comprovantes](./flows/manage-attachments.md) — Galeria, upload (criação/edição/detalhes), reordenação dual e visualizador fullscreen.
 
@@ -58,20 +60,21 @@ Todo o código proprietário reside em `src/features/transactions/`, com instru�
 ## Fronteiras e Dependências
 
 - **Código proprietário:** `src/features/transactions/`
-- **API pública:** sem `index.ts` dedicado atualmente (`DT-03` em [module-boundaries.md](../architecture/module-boundaries.md)).
+- **API pública (`src/features/transactions/index.ts`):** exporta `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode`.
 - **Dependências de entrada:** `api` e `AuthAppShell` de `auth` (`DT-01`, `DT-02`); `useAccounts`, `useAccountSummary`, `ACCOUNT_QUERY_KEYS`, `AccountIdentity` e `Account` de `accounts`; `useCategories`, `Category` e utilitários visuais de `categories`.
-- **Consumidores cross-feature:** `DashboardPage` (em `auth`) e `AccountCard` (em `accounts`).
+- **Consumidores cross-feature:** `AccountsPage` (`BalanceAdjustmentSheet` via `@/features/transactions`), `AccountCard` (`useTransactions` e `TransactionView`) e `DashboardPage` (em `auth`).
 
 ## Estado Atual de Implementação
 
 ### Implementado e Documentado
 - [x] Listagem paginada com filtros sincronizados na URL, agrupamento por dia (`dd/MM/yyyy`), tabela desktop e cards mobile.
 - [x] KPIs adaptativos (`transaction_summary.overview` com 4 cards; `transaction_summary.type` com 3 cards) e trilha com scroll horizontal responsivo.
-- [x] Criação e edição (`INCOME`, `EXPENSE`, `TRANSFER`), confirmação de `PENDING` e exclusão de lançamentos elegíveis com invalidação conjunta de `transactions` e `accounts`.
+- [x] Criação e edição (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), confirmação de `PENDING` e exclusão de lançamentos elegíveis com invalidação conjunta de `transactions` e `accounts`.
+- [x] Reajuste de saldo completo (`BalanceAdjustmentSheet` com modo por saldo alvo `POST /transactions/balance-adjustments` e ajuste manual `POST /transactions` `type=ADJUSTMENT`) e visão `ADJUSTMENT` (`?view=ADJUSTMENT`, `?create=ADJUSTMENT`).
 - [x] Galeria de anexos em detalhes e edição, staging em criação, reordenação otimista dual e lightbox com zoom/pan/teclado.
 
 ### Gaps Conhecidos / Pendente
 - [ ] `TransactionAttachmentsGallery` usa `enabled: isEligible` em vez de condicionar também a `attachmentsCount > 0` em detalhes, e ainda não exibe `ApiErrorAlert` para falhas da query de listagem de anexos.
 - [ ] Exclusão de anexo no menu `...` executa imediatamente sem modal de confirmação prévia.
 - [ ] `useTransaction(id)` está exportado em `api/queries.ts` sem consumidor ativo na UI; `TransactionsPage` passa `isMutating = false` fixo para `TransactionsTable`.
-- [ ] Não há `index.ts` público em `src/features/transactions/` (`DT-03`).
+- [ ] Exports públicos de `queries`/`urlUtils` ainda são importados por caminho interno em consumidores legados (`DT-03`).
