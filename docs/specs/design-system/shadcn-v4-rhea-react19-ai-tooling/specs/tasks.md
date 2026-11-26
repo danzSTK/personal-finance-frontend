@@ -27,11 +27,11 @@ Execução **fase a fase** ("uma por uma"), com implementação delegada a worke
 - [x] 1.5 **[QA Supervisor — Consumo Real]** Executar handshake MCP real + `tools/list` + chamadas reais (`get_project_registries`, `search_items_in_registries`, `view_items_in_registries`), validar TOML/JSON e testar `npx shadcn@latest info --json` e `npx shadcn@latest docs button`.
 
 ## Fase 2 — Plataforma: React 19 + `lucide-react` v1 + `radix-ui` + `cn` + `components.json` (`radix-rhea`)
-- [ ] 2.1 Atualizar `react`, `react-dom`, `@types/react`, `@types/react-dom` para React 19 (`19.3.x`) e `lucide-react` para `^1.81.0`, corrigindo eventuais ícones renomeados ou ajustes de tipagem React 19.
-- [ ] 2.2 Instalar `shadcn` em `devDependencies`, atualizar `components.json` para `style: "radix-rhea"`, `iconLibrary: "lucide"` e aliases explícitos (`ui`, `lib`, `hooks`), e integrar `@import 'shadcn/tailwind.css';` em `src/index.css` preservando 100% dos tokens Danfy Dark.
-- [ ] 2.3 Executar migração para pacote unificado `radix-ui` (`shadcn migrate radix`) removendo os 27 `@radix-ui/react-*` individuais órfãos.
-- [ ] 2.4 Executar migração para o pacote `cn` (`shadcn migrate cn`), mantendo `export { cn } from 'cn'` em `src/shared/lib/utils.ts` e removendo `clsx`/`tailwind-merge` se não houver mais referências diretas.
-- [ ] 2.5 **[QA Supervisor]** Validar `npx shadcn@latest info --json` (`radix-rhea`, `radix`, `lucide`), `npm run lint`, `npm test` (182+ testes) e `npm run build`.
+- [x] 2.1 Atualizar `react`, `react-dom`, `@types/react`, `@types/react-dom` para React 19 (`19.3.x`) e `lucide-react` para `^1.81.0`, corrigindo eventuais ícones renomeados ou ajustes de tipagem React 19.
+- [x] 2.2 Instalar `shadcn` em `devDependencies`, atualizar `components.json` para `style: "radix-rhea"`, `iconLibrary: "lucide"` e aliases explícitos (`ui`, `lib`, `hooks`), e integrar `@import 'shadcn/tailwind.css';` em `src/index.css` preservando 100% dos tokens Danfy Dark.
+- [x] 2.3 Executar migração para pacote unificado `radix-ui` (`shadcn migrate radix`) removendo os 27 `@radix-ui/react-*` individuais órfãos.
+- [x] 2.4 Executar migração para o pacote `cn` (`shadcn migrate cn`), mantendo `export { cn } from 'cn'` em `src/shared/lib/utils.ts` e removendo `clsx`/`tailwind-merge` se não houver mais referências diretas.
+- [x] 2.5 **[QA Supervisor]** Validar `npx shadcn@latest info --json` (`radix-rhea`, `radix`, `lucide`), `npm run lint`, `npm test` (182+ testes) e `npm run build`.
 
 ## Fase 3 — Consolidação dos Primitivos Legados (`src/shared/lib/*`)
 - [ ] 3.1 Migrar todos os imports de `@/shared/lib/{button,card,input,label,toast}` em `src/shared/` e `src/features/` para `@/shared/components/ui/{button,card,input,label,toast}` (incluindo `Toaster.tsx`).

@@ -7,7 +7,7 @@ import { cn } from '@/shared/lib/utils'
 interface ExpandableSearchProps {
   isOpen: boolean
   value: string
-  inputRef: RefObject<HTMLInputElement>
+  inputRef: RefObject<HTMLInputElement | null>
   placeholder: string
   closedLabel: string
   activeLabel: string

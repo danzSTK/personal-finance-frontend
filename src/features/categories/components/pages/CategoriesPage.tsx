@@ -372,7 +372,7 @@ export function CategoriesPage() {
 interface CategorySearchProps {
   isOpen: boolean
   value: string
-  inputRef: RefObject<HTMLInputElement>
+  inputRef: RefObject<HTMLInputElement | null>
   onOpen: () => void
   onChange: (value: string) => void
   onClear: () => void

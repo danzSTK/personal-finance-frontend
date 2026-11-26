@@ -429,11 +429,13 @@ describe('BalanceAdjustmentSheet', () => {
       .spyOn(window, 'getComputedStyle')
       .mockImplementation((element, pseudoElt) => {
         const computed = originalGetComputedStyle(element, pseudoElt)
-        const stateAttr =
-          element instanceof Element ? element.getAttribute('data-state') : null
         return new Proxy(computed, {
           get(target, prop) {
             if (prop === 'animationName') {
+              const stateAttr =
+                element instanceof Element
+                  ? element.getAttribute('data-state')
+                  : null
               return stateAttr === 'closed' ? 'sheet-exit' : 'sheet-enter'
             }
             const value = Reflect.get(target, prop)

@@ -655,7 +655,7 @@ function PeriodButton({ label, onClick, children }: PeriodButtonProps) {
 interface MobileTransactionsSearchHeaderProps {
   isSearchOpen: boolean
   searchDraft: string
-  searchInputRef: RefObject<HTMLInputElement>
+  searchInputRef: RefObject<HTMLInputElement | null>
   onOpenSearch: () => void
   onSearchChange: (value: string) => void
   onClearSearch: () => void

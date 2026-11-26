@@ -1,5 +1,5 @@
 import { useEffect, useRef, type ReactNode, type Ref } from 'react'
-import * as PopoverPrimitive from '@radix-ui/react-popover'
+import { Popover as PopoverPrimitive } from 'radix-ui'
 import {
   ArrowLeftRight,
   HandCoins,
