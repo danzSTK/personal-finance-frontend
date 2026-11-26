@@ -81,7 +81,7 @@ export function TransactionDetailsSheet({
         {transaction ? (
           <>
             <div className="overflow-y-auto p-6">
-              <SheetHeader className="pr-8 text-left">
+              <SheetHeader className="p-0 pr-8 text-left">
                 <SheetTitle className="text-foreground">
                   {getTransactionDescription(transaction)}
                 </SheetTitle>

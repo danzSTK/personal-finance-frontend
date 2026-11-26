@@ -2,7 +2,7 @@
 area: design-system
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-26
 related:
   - ../README.md
   - ./material-3-reference.md
@@ -169,6 +169,16 @@ New product colors must be added first to `src/index.css`, then exposed through 
 ## Components
 
 Before creating a component, check `docs/design-system/material-3-reference.md` and identify the closest M3 component family. Use M3 for structure, variants, states, and interaction behavior; use Danfy tokens for visual identity.
+
+### Plataforma UI e Implementação (`shadcn/ui v4` + `radix-rhea`)
+
+- **Base tecnológica vigente:** **React 19**, **Tailwind CSS v4** (`@import 'tw-animate-css';` + `@import 'shadcn/tailwind.css';` em `src/index.css`), pacote unificado **`radix-ui`**, pacote **`cn`** (reexportado em `src/shared/lib/utils.ts`) e **`lucide-react` v1**.
+- **Estilo e fonte única de verdade:** `components.json` utiliza `style: "radix-rhea"`, `iconLibrary: "lucide"` e `ui: "@/shared/components/ui"`. Todos os **55 primitivos UI** vivem exclusivamente em `src/shared/components/ui/` (sem duplicatas em `src/shared/lib/`).
+- **Precedência Danfy Dark:** os tokens semânticos de `src/index.css` (`app-*`, `brand*`, `state-*`, `account-*`, `sidebar-*`, `destructive`) e as regras deste guia (WCAG 2.2 AA, Apple HIG, `.numeric`, contraste e hierarquia de superfícies) têm precedência absoluta sobre defaults genéricos do registry `shadcn`.
+- **Contratos preservados:**
+  - `DialogContent` mantém suporte a `closeDisabled`, `hideCloseButton`, `showCloseButton` e botão de fechar acessível em português (`"Fechar"`).
+  - `CardTitle` renderiza `<h3>` e `CardDescription` renderiza `<p>` para preservar semântica de headings.
+  - `toast.tsx` (`src/shared/components/ui/toast.tsx`) e `Toaster.tsx` (`src/shared/components/organisms/Toaster.tsx`) permanecem harmonizados com a estética `radix-rhea`, `use-toast.ts` e `showApiErrorToast.ts` (DEC-005).
 
 ### Cards and Panels
 

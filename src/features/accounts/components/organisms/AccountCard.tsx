@@ -202,7 +202,7 @@ export function AccountCard({
             visualTone.gradientClass
           )}
         >
-          <SheetHeader className="pr-8 text-left">
+          <SheetHeader className="p-0 pr-8 text-left">
             <SheetTitle>{account.name}</SheetTitle>
             <SheetDescription className="sr-only">
               Detalhes desta conta.

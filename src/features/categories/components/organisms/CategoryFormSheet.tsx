@@ -186,8 +186,8 @@ export function CategoryFormSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl">
-        <SheetHeader className="pr-8 text-left">
+      <SheetContent className="w-full overflow-y-auto border-border bg-card p-6 text-foreground sm:max-w-xl">
+        <SheetHeader className="p-0 pr-8 text-left">
           <SheetTitle className="text-foreground">
             {isEditing ? 'Editar categoria' : 'Nova categoria'}
           </SheetTitle>
@@ -428,7 +428,7 @@ export function CategoryFormSheet({
             <ApiErrorAlert error={errorPresentation} />
           ) : null}
 
-          <SheetFooter className="gap-2 pt-2">
+          <SheetFooter className="gap-2 px-0 pb-0 pt-2">
             <Button
               type="button"
               variant="outline"

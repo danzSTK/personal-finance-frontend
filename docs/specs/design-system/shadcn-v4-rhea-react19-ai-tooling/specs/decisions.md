@@ -2,7 +2,7 @@
 area: design-system
 feature: shadcn-v4-rhea-react19-ai-tooling
 type: spec-decisions
-status: draft
+status: current
 last_reviewed: 2026-11-26
 related:
   - ./requirements.md

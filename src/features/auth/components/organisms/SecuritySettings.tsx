@@ -117,14 +117,14 @@ export const SecuritySettings = () => {
 
   return (
     <>
-      <Card className="min-w-0 overflow-hidden border-0 bg-transparent shadow-none sm:border sm:border-border sm:bg-card sm:shadow-xs">
-        <CardHeader className="px-0 pt-0 sm:p-6">
+      <Card className="min-w-0 gap-4 overflow-hidden border-0 bg-transparent py-0 shadow-none ring-0 sm:gap-5 sm:border sm:border-border sm:bg-card sm:py-5 sm:shadow-xs sm:ring-1">
+        <CardHeader className="px-0 sm:px-6">
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
             Métodos de login
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 px-0 pb-0 sm:p-6 sm:pt-0">
+        <CardContent className="space-y-4 px-0 sm:px-6">
           {isLoadingUser ? (
             <p className="text-sm text-muted-foreground">
               Sincronizando métodos...
@@ -186,14 +186,14 @@ export const SecuritySettings = () => {
         </CardContent>
       </Card>
 
-      <Card className="min-w-0 border-0 bg-transparent shadow-none sm:border sm:border-border sm:bg-card sm:shadow-xs">
-        <CardHeader className="px-0 pt-0 sm:p-6">
+      <Card className="min-w-0 gap-4 border-0 bg-transparent py-0 shadow-none ring-0 sm:gap-5 sm:border sm:border-border sm:bg-card sm:py-5 sm:shadow-xs sm:ring-1">
+        <CardHeader className="px-0 sm:px-6">
           <CardTitle className="flex items-center gap-2 text-base text-foreground">
             <ShieldCheck className="h-4 w-4 text-primary" />
             Sessões ativas
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 px-0 pb-0 sm:p-6 sm:pt-0">
+        <CardContent className="space-y-3 px-0 sm:px-6">
           {sessionsErrorPresentation ? (
             <ApiErrorAlert
               error={sessionsErrorPresentation}

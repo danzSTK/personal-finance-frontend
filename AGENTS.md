@@ -6,14 +6,14 @@ This repository is the React + TypeScript frontend for **Danfy Finance** (person
 
 ## Stack
 
-- Vite 8, React 18, TypeScript 5.
+- Vite 8, React 19, TypeScript 5.
 - React Router 6 for routing.
 - TanStack Query for server state.
 - Zustand for focused global client state.
 - React Hook Form + Zod for forms and validation.
 - Axios for HTTP (HttpOnly cookie session).
-- Tailwind CSS v4, Shadcn/UI, Radix UI, CVA, and `cn()` for UI composition.
-- Lucide React for icons.
+- Tailwind CSS v4 (`@import 'shadcn/tailwind.css'`), shadcn/ui v4 (`radix-rhea`, 55 primitivos em `src/shared/components/ui/`, sem duplicatas em `src/shared/lib/`), pacote unificado `radix-ui`, CVA e pacote `cn` (reexportado em `src/shared/lib/utils.ts`).
+- `lucide-react` v1 for icons.
 - IMask / react-imask for input masks.
 - Vitest + Testing Library for automated tests.
 

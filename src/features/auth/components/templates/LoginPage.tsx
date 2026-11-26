@@ -42,7 +42,7 @@ export function LoginPage({ mode = 'sign-in' }: LoginPageProps) {
   return (
     <div className="dark min-h-screen bg-linear-to-br from-background via-card to-secondary text-foreground">
       <div className="mx-auto flex min-h-screen w-full max-w-6xl items-center p-4 sm:p-6 lg:p-8">
-        <Card className="w-full overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-background/60">
+        <Card className="w-full gap-0 overflow-hidden rounded-2xl border border-border bg-card py-0 shadow-2xl shadow-background/60">
           <div className="grid lg:grid-cols-[1fr_minmax(0,30rem)]">
             <section className="hidden bg-secondary/60 p-8 lg:flex lg:flex-col lg:justify-between xl:p-10">
               <div className="space-y-5">

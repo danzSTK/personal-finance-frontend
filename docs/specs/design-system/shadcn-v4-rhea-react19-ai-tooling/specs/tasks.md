@@ -2,7 +2,7 @@
 area: design-system
 feature: shadcn-v4-rhea-react19-ai-tooling
 type: spec-tasks
-status: draft
+status: current
 last_reviewed: 2026-11-26
 related:
   - ./requirements.md
@@ -45,8 +45,8 @@ Execução **fase a fase** ("uma por uma"), com implementação delegada a worke
 - [x] 4.4 **[QA Supervisor]** Auditar diff completo de `src/shared/components/ui/` (zero cores hardcoded, zero regressões em `DialogContent`/`Sheet`/`AlertDialog`), rodar `npm run lint`, `npm test`, `npm run build` e inspecionar renderização real.
 
 ## Fase 5 — Refino Consumidor, QA Real no Navegador e Documentação Viva
-- [ ] 5.1 Auditar e refinar componentes compartilhados (`CurrencyInput`, `DateOnlyPicker`, `MonthYearPicker`, `ExpandableSearch`, `ApiErrorAlert`, `ErrorState`, `Toaster`) e telas consumidoras (`auth`, `accounts`, `categories`, `transactions`) para harmonia total com `radix-rhea` e Danfy Dark.
-- [ ] 5.2 Atualizar testes afetados e adicionar cobertura para customizações preservadas (ex.: `DialogContent` com `closeDisabled` e `hideCloseButton`).
-- [ ] 5.3 Atualizar documentação viva (`docs/design-system/danfy-finance-design-system.md`, `docs/design-system/material-3-reference.md`, `docs/README.md`, `src/shared/AGENTS.md`, `AGENTS.md`, `CLAUDE.md`) e marcar os 4 arquivos desta spec com `status: current`.
-- [ ] 5.4 **[QA Supervisor — Consumo Real no Navegador]** Subir `npm run dev`, inspecionar no navegador Orca em desktop e mobile (snapshots, screenshots, interação real com botões/inputs/menus/dialogs/sheets, console limpo) e validar `npm run lint`, `npm test` e `npm run build`.
-- [ ] 5.5 Atualizar a Draft PR no GitHub com resumo final, evidências de testes e checklist completo.
+- [x] 5.1 Auditar e refinar componentes compartilhados (`CurrencyInput`, `DateOnlyPicker`, `MonthYearPicker`, `ExpandableSearch`, `ApiErrorAlert`, `ErrorState`, `Toaster`) e telas consumidoras (`auth`, `accounts`, `categories`, `transactions`) para harmonia total com `radix-rhea` e Danfy Dark.
+- [x] 5.2 Atualizar testes afetados e adicionar cobertura para customizações preservadas (ex.: `DialogContent` com `closeDisabled` e `hideCloseButton`).
+- [x] 5.3 Atualizar documentação viva (`docs/design-system/danfy-finance-design-system.md`, `docs/design-system/material-3-reference.md`, `docs/README.md`, `src/shared/AGENTS.md`, `AGENTS.md`, `CLAUDE.md`) e marcar os 4 arquivos desta spec com `status: current`.
+- [x] 5.4 **[QA Supervisor — Consumo Real no Navegador]** Subir `npm run dev`, inspecionar no navegador Orca em desktop e mobile (snapshots, screenshots, interação real com botões/inputs/menus/dialogs/sheets, console limpo) e validar `npm run lint`, `npm test` e `npm run build`.
+- [x] 5.5 Atualizar a Draft PR no GitHub com resumo final, evidências de testes e checklist completo.

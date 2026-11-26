@@ -62,7 +62,7 @@ export function ExpandableSearch({
   return (
     <div
       className={cn(
-        'flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border bg-secondary px-3 opacity-100 transition-[width,opacity] duration-300 ease-out animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72',
+        'flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border bg-secondary px-3 opacity-100 transition-[width,opacity] duration-300 ease-out focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72',
         className,
         openClassName
       )}

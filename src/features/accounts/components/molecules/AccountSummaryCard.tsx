@@ -42,7 +42,7 @@ export function AccountSummaryCard({
   const classes = summaryToneClasses[tone]
 
   return (
-    <Card className="min-w-0 border-border bg-card shadow-none">
+    <Card className="min-w-0 gap-0 border-border bg-card py-0 shadow-none">
       <CardContent className="relative p-5">
         <div className="min-w-0">
           <p className="pr-12 text-sm font-medium text-muted-foreground">{label}</p>

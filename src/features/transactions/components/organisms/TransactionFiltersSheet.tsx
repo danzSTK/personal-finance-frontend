@@ -96,9 +96,9 @@ export function TransactionFiltersSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
         side={isMobile ? 'bottom' : 'right'}
-        className="max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-3xl border-border bg-card text-foreground md:h-full md:max-h-none md:rounded-none md:sm:max-w-md"
+        className="max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-3xl border-border bg-card p-6 text-foreground md:h-full md:max-h-none md:rounded-none md:sm:max-w-md"
       >
-        <SheetHeader className="pr-8 text-left">
+        <SheetHeader className="p-0 pr-8 text-left">
           <SheetTitle className="text-foreground">Filtros</SheetTitle>
           <SheetDescription className="text-muted-foreground">
             Conta, categoria, situação e período.
@@ -274,7 +274,7 @@ export function TransactionFiltersSheet({
           ) : null}
         </div>
 
-        <SheetFooter className="mt-6 flex-row justify-end gap-2 space-x-0">
+        <SheetFooter className="mt-6 flex-row justify-end gap-2 space-x-0 p-0">
           <Button
             type="button"
             variant="outline"

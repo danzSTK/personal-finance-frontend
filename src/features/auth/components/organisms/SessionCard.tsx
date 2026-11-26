@@ -87,7 +87,7 @@ export const SessionCard = ({
           side="bottom"
           className="max-h-[82vh] overflow-y-auto rounded-t-3xl border-border bg-card px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-5 lg:hidden"
         >
-          <SheetHeader className="pr-8 text-left">
+          <SheetHeader className="p-0 pr-8 text-left">
             <SheetTitle>{session.device}</SheetTitle>
             <SheetDescription>
               Detalhes desta sessão de acesso.
@@ -173,6 +173,8 @@ const FullSessionCard = ({
             size="sm"
             onClick={() => onRevoke(session.jti)}
             disabled={isRevoking}
+            aria-label="Encerrar sessão"
+            title="Encerrar sessão"
             className="text-destructive hover:bg-destructive/10 hover:text-destructive"
           >
             <Trash2 className="h-4 w-4" />

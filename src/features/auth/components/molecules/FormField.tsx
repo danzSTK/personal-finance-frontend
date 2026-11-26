@@ -71,6 +71,7 @@ export const FormField = forwardRef<HTMLInputElement, FormFieldProps>(
             type={isPasswordField && isPasswordVisible ? 'text' : type}
             disabled={disabled}
             className={cn(
+              'h-11 rounded-xl',
               prefixIcon ? 'pl-10' : '',
               isPasswordField ? 'pr-12' : '',
               error ? 'border-destructive focus-visible:ring-destructive' : '',

@@ -569,7 +569,7 @@ function MetricCard({ metric }: MetricCardProps) {
   const tone = metricToneClasses[metric.tone]
   const content = (
     <>
-      <CardHeader className="space-y-0 pb-3">
+      <CardHeader className="space-y-0">
         <div className="flex items-start justify-between gap-3">
           <CardTitle className="text-sm font-medium text-muted-foreground">
             {metric.title}
@@ -618,10 +618,10 @@ function MetricCard({ metric }: MetricCardProps) {
 
   if (metric.to) {
     return (
-      <Card className="min-w-0 border-border bg-card transition-colors hover:bg-accent/60">
+      <Card className="min-w-0 gap-3 border-border bg-card transition-colors hover:bg-accent/60">
         <Link
           to={metric.to}
-          className="block rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          className="flex flex-col gap-3 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           aria-label={`Abrir ${metric.title.toLowerCase()} em transações`}
         >
           {content}
@@ -630,7 +630,7 @@ function MetricCard({ metric }: MetricCardProps) {
     )
   }
 
-  return <Card className="min-w-0 border-border bg-card">{content}</Card>
+  return <Card className="min-w-0 gap-3 border-border bg-card">{content}</Card>
 }
 
 interface FinancialPanelProps {

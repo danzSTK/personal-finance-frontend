@@ -227,7 +227,7 @@ export function AccountFormSheet({
               )}
               aria-hidden={step !== 'picker'}
             >
-              <SheetHeader className="shrink-0 pr-9 text-left">
+              <SheetHeader className="shrink-0 p-0 pr-9 text-left">
                 <SheetTitle ref={pickerTitleRef} tabIndex={-1}>
                   Escolha como criar
                 </SheetTitle>
@@ -253,7 +253,7 @@ export function AccountFormSheet({
             )}
             aria-hidden={!showForm}
           >
-            <SheetHeader className="shrink-0 pr-9 text-left">
+            <SheetHeader className="shrink-0 p-0 pr-9 text-left">
               <div className="flex items-center gap-2">
                 {!isEditing ? (
                   <Button
@@ -384,7 +384,7 @@ export function AccountFormSheet({
                 ) : null}
               </div>
 
-              <SheetFooter className="mt-4 shrink-0 gap-2 border-t border-app-border pt-4">
+              <SheetFooter className="mt-4 shrink-0 gap-2 border-t border-app-border px-0 pb-0 pt-4">
                 <Button
                   type="button"
                   variant="outline"

@@ -74,7 +74,7 @@ export const AvatarCropDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
-        <DialogHeader>
+        <DialogHeader className="pr-10">
           <DialogTitle>Ajustar foto de perfil</DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Posicione seu rosto no centro. A prévia será enviada em formato

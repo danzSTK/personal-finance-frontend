@@ -20,7 +20,7 @@ export function ErrorState({
   onRetry,
 }: ErrorStateProps) {
   return (
-    <Card className="border-destructive">
+    <Card className="border border-destructive/60 ring-0">
       <CardHeader>
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-destructive" />
