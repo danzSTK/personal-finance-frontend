@@ -17,7 +17,7 @@ import {
   getCategoryIconOption,
 } from '@/features/categories/utils/category.utils'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {

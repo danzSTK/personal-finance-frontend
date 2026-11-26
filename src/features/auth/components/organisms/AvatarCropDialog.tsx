@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import Cropper, { type Area, type Point } from 'react-easy-crop'
 import 'react-easy-crop/react-easy-crop.css'
 import { Camera, ZoomIn } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
   DialogContent,

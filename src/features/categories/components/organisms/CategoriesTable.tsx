@@ -8,7 +8,7 @@ import {
   RotateCcw,
   Trash2,
 } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import {
   DropdownMenu,

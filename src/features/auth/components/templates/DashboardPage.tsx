@@ -40,8 +40,8 @@ import { buildPendingDashboardTransactionsUrl } from '@/features/auth/utils/dash
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
-import { Button } from '@/shared/lib/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/lib/card'
+import { Button } from '@/shared/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/components/ui/card'
 import { cn } from '@/shared/lib/utils'
 import {
   formatMonthYearLabel,

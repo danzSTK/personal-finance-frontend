@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { resolveApiError } from '@/shared/errors'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {

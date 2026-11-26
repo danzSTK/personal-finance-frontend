@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { BrandLogo } from '@/shared/components/atoms/BrandLogo'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import type { ApiErrorPresentation } from '@/shared/errors'
 
 interface EmailVerificationConfirmPanelProps {

@@ -9,7 +9,7 @@ import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { applyApiFieldErrors, resolveApiError } from '@/shared/errors'
 import {

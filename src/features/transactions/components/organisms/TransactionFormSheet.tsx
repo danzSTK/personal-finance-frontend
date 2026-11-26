@@ -23,8 +23,8 @@ import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 import {
   applyApiFieldErrors,

@@ -34,9 +34,9 @@ Execução **fase a fase** ("uma por uma"), com implementação delegada a worke
 - [x] 2.5 **[QA Supervisor]** Validar `npx shadcn@latest info --json` (`radix-rhea`, `radix`, `lucide`), `npm run lint`, `npm test` (182+ testes) e `npm run build`.
 
 ## Fase 3 — Consolidação dos Primitivos Legados (`src/shared/lib/*`)
-- [ ] 3.1 Migrar todos os imports de `@/shared/lib/{button,card,input,label,toast}` em `src/shared/` e `src/features/` para `@/shared/components/ui/{button,card,input,label,toast}` (incluindo `Toaster.tsx`).
-- [ ] 3.2 Remover os 5 arquivos duplicados `src/shared/lib/{button,card,input,label,toast}.tsx`, preservando `src/shared/lib/utils.ts`.
-- [ ] 3.3 **[QA Supervisor]** Confirmar zero referências legadas via grep e validar `npm run lint`, `npm test` e `npm run build`.
+- [x] 3.1 Migrar todos os imports de `@/shared/lib/{button,card,input,label,toast}` em `src/shared/` e `src/features/` para `@/shared/components/ui/{button,card,input,label,toast}` (incluindo `Toaster.tsx`).
+- [x] 3.2 Remover os 5 arquivos duplicados `src/shared/lib/{button,card,input,label,toast}.tsx`, preservando `src/shared/lib/utils.ts`.
+- [x] 3.3 **[QA Supervisor]** Confirmar zero referências legadas via grep e validar `npm run lint`, `npm test` e `npm run build`.
 
 ## Fase 4 — Atualização dos Componentes UI para shadcn v4 `radix-rhea`
 - [ ] 4.1 **Lote 4A (Ações e Formulários):** atualizar `button`, `input`, `textarea`, `label`, `field`, `select`, `checkbox`, `radio-group`, `switch`, `slider`, `toggle`, `toggle-group`, `input-group`, `button-group`, `input-otp`, `form` para `radix-rhea` (`--diff` prévio), preservando tokens Danfy Dark e contratos de props/testes.

@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { CATEGORY_MANAGEMENT_TABS } from '../../constants/category.constants'
 import type { CategoryManagementType } from '../../types/category.types'

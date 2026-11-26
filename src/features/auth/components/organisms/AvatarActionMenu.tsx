@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react'
 import { Camera, ImagePlus, Pencil, Trash2 } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Drawer,
   DrawerClose,

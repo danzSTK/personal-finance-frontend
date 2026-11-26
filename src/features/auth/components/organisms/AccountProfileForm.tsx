@@ -10,8 +10,8 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { AtSign, CheckCircle2, Loader2, Mail, Pencil, XCircle } from 'lucide-react'
-import { Card, CardContent } from '@/shared/lib/card'
-import { Button } from '@/shared/lib/button'
+import { Card, CardContent } from '@/shared/components/ui/card'
+import { Button } from '@/shared/components/ui/button'
 import {
   AlertDialog,
   AlertDialogAction,

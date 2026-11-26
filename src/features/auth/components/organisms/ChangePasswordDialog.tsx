@@ -20,7 +20,7 @@ import {
   resolveApiError,
 } from '@/shared/errors'
 import { toast } from '@/shared/hooks/use-toast'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { formatDateTime } from '@/shared/utils/formatters'
 import { useChangePassword } from '../../api/mutations'
 import { usePasswordChangeStatus } from '../../api/queries'

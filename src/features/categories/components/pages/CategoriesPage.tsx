@@ -12,8 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 import {
   DropdownMenu,

@@ -4,7 +4,7 @@ import type { AccountTemplate } from '../../types/account.types'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { Skeleton } from '@/shared/components/ui/skeleton'
 import { resolveApiError } from '@/shared/errors'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { AccountTemplateOption } from '../molecules/AccountTemplateOption'
 
 interface AccountTemplatePickerProps {

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Camera, ImagePlus, RefreshCw, Video, X } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
   DialogContent,

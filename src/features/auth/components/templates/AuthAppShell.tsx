@@ -17,7 +17,7 @@ import { APP_BRAND } from '@/shared/config/brand'
 import { BrandLogo } from '@/shared/components/atoms/BrandLogo'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { MobileQuickActions } from '../organisms/MobileQuickActions'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Avatar,
   AvatarFallback,

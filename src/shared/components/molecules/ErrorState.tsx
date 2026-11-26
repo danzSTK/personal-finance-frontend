@@ -1,12 +1,12 @@
 import { AlertCircle } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/shared/lib/card'
+} from '@/shared/components/ui/card'
 
 interface ErrorStateProps {
   title?: string
