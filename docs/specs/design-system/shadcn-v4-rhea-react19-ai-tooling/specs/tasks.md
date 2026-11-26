@@ -17,14 +17,14 @@ Execução **fase a fase** ("uma por uma"), com implementação delegada a worke
 ## Fase 0 — Spec & Draft PR (Supervisor)
 - [x] 0.1 Auditar estado atual (`components.json`, `package.json`, peerDependencies React 19, duplicatas `src/shared/lib/*`, customizações em `src/shared/components/ui/*`, baseline `lint`/`test`/`build`).
 - [x] 0.2 Escrever spec completa em `docs/specs/design-system/shadcn-v4-rhea-react19-ai-tooling/specs/{requirements,design,tasks,decisions}.md`.
-- [ ] 0.3 Comitar a spec na branch `style/atualizar-shadcn-consumer-ai`, fazer push e abrir Draft PR no GitHub apontando para `develop`.
+- [x] 0.3 Comitar a spec na branch `style/atualizar-shadcn-consumer-ai`, fazer push e abrir Draft PR no GitHub apontando para `develop`.
 
 ## Fase 1 — AI Tooling: MCP + Skill `shadcn` + CLI v4 Docs
-- [ ] 1.1 Configurar `.mcp.json` na raiz do repositório para Claude Code com o servidor oficial `shadcn` (`npx shadcn@latest mcp`).
-- [ ] 1.2 Configurar `[mcp_servers.shadcn]` em `~/.codex/config.toml` para Codex preservando todas as configurações existentes.
-- [ ] 1.3 Instalar a skill oficial `shadcn` em `.agents/skills/shadcn/` (espelhada via symlink `.claude/skills -> ../.agents/skills`) e revisar integração com as skills Danfy.
-- [ ] 1.4 Atualizar `AGENTS.md`, `CLAUDE.md` e `src/shared/AGENTS.md` documentando MCP, skill `shadcn`, precedência do Danfy Dark e comandos da CLI v4 (`info --json`, `docs`, `search`, `list`, `view`, `add --dry-run / --diff / --view`).
-- [ ] 1.5 **[QA Supervisor — Consumo Real]** Executar handshake MCP real + `tools/list` + chamadas reais (`get_project_registries`, `search_items_in_registries`, `view_items_in_registries`), validar TOML/JSON e testar `npx shadcn@latest info --json` e `npx shadcn@latest docs button`.
+- [x] 1.1 Configurar `.mcp.json` na raiz do repositório para Claude Code com o servidor oficial `shadcn` (`npx shadcn@latest mcp`).
+- [x] 1.2 Configurar `[mcp_servers.shadcn]` em `~/.codex/config.toml` para Codex preservando todas as configurações existentes.
+- [x] 1.3 Instalar a skill oficial `shadcn` em `.agents/skills/shadcn/` (espelhada via symlink `.claude/skills -> ../.agents/skills`) e revisar integração com as skills Danfy.
+- [x] 1.4 Atualizar `AGENTS.md`, `CLAUDE.md` e `src/shared/AGENTS.md` documentando MCP, skill `shadcn`, precedência do Danfy Dark e comandos da CLI v4 (`info --json`, `docs`, `search`, `list`, `view`, `add --dry-run / --diff / --view`).
+- [x] 1.5 **[QA Supervisor — Consumo Real]** Executar handshake MCP real + `tools/list` + chamadas reais (`get_project_registries`, `search_items_in_registries`, `view_items_in_registries`), validar TOML/JSON e testar `npx shadcn@latest info --json` e `npx shadcn@latest docs button`.
 
 ## Fase 2 — Plataforma: React 19 + `lucide-react` v1 + `radix-ui` + `cn` + `components.json` (`radix-rhea`)
 - [ ] 2.1 Atualizar `react`, `react-dom`, `@types/react`, `@types/react-dom` para React 19 (`19.3.x`) e `lucide-react` para `^1.81.0`, corrigindo eventuais ícones renomeados ou ajustes de tipagem React 19.

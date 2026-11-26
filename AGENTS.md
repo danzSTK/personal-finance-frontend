@@ -53,6 +53,7 @@ As skills canônicas ficam em `.agents/skills/` (espelhadas via symlink `.claude
 - `frontend-design`: construir ou refinar telas e fluxos React + TypeScript respeitando Atomic Design, tokens Danfy, UX e TypeScript safety.
 - `danfy-finance-design-system`: aplicar tokens Danfy Dark, semântica financeira, tipografia Inter, hierarquia de dashboard e acessibilidade WCAG 2.2.
 - `material-3-ui-guidance`: auditar variantes, estados, espaçamento e comportamento de componentes comuns com base em Material 3 mapeado para tokens Danfy.
+- `shadcn`: descobrir, inspecionar e atualizar primitivos via MCP e CLI v4 (`info --json`, `docs`, `search`, `list`, `view`, `add --dry-run/--diff`) e orientar composição Radix; as skills Danfy mantêm precedência sobre defaults genéricos.
 
 ## Architecture Rules
 
@@ -127,6 +128,18 @@ Lower levels must not import higher levels.
 - Do not hardcode `#...`, `rgb(...)`, `rgba(...)`, inline `hsl(...)`, or raw Tailwind palette utilities (`text-slate-*`, `bg-violet-*`, `border-red-*`, etc.) in product UI.
 - Use semantic Tailwind v4 tokens from `src/index.css`: `app-*`, `brand*`, `state-income`, `state-expense`, `state-warning`, `state-info`, and `destructive` (use `destructive` for errors and risky actions, never `state-expense`).
 - Never depend on color alone for financial meaning; pair color with signs (`+`/`-`), labels, or icons.
+
+### Tooling shadcn/ui v4 (MCP + CLI)
+
+- **Servidores MCP configurados:**
+  - **Claude Code:** `.mcp.json` na raiz do repositório (`npx shadcn@latest mcp`).
+  - **Codex:** bloco `[mcp_servers.shadcn]` em `~/.codex/config.toml` (`command = "npx"`, `args = ["shadcn@latest", "mcp"]`).
+- **Comandos críticos da CLI v4 (`4.23.1+`):**
+  - `npx shadcn@latest info --json` — diagnóstico do projeto (framework, Tailwind, base, aliases e componentes instalados).
+  - `npx shadcn@latest docs <componente>` — documentação, árvore de composição e exemplos oficiais.
+  - `npx shadcn@latest search` / `list` / `view` — busca e inspeção de itens no registry antes de adicionar ou implementar manualmente.
+  - `npx shadcn@latest add <componente> --dry-run` / `--diff` / `--view` — **obrigatório** antes de atualizar componentes customizados para preservar tokens Danfy Dark e acessibilidade.
+- **Precedência:** a skill `shadcn` e o MCP orientam descoberta, CLI v4 e composição Radix; `danfy-finance-design-system`, `frontend-design` e `material-3-ui-guidance` prevalecem para tokens **Danfy Dark**, governança de cores, **Atomic Design**, Apple HIG e WCAG 2.2.
 
 ## File, Naming, and Commit Conventions
 
