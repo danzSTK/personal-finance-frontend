@@ -112,11 +112,11 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
   - Atualizar `useImportFiscalNote`, `useLinkFiscalNote`, `useUnlinkFiscalNote` e `useDeleteTransaction` (em `transactions/api/mutations.ts`) para manter `lists()` e `details()` consistentes, exportar no `index.ts` e cobrir com testes.
 
 ### Bloco B — Componentes de UI e Página `/fiscal-notes`
-- [ ] **B1. Adaptar `FiscalNoteDetailsSheet` para detalhe direto lazy (`GET /fiscal-notes/:id`) e deep-link**
+- [x] **B1. Adaptar `FiscalNoteDetailsSheet` para detalhe direto lazy (`GET /fiscal-notes/:id`) e deep-link**
   - Suportar carregamento por `fiscalNoteId` (loading/skeleton, `ApiErrorAlert` com retry) além do objeto já carregado, e ação **Ver despesa vinculada** + **Desvincular**.
-- [ ] **B2. Criar componentes Atomic Design da listagem de notas fiscais**
+- [x] **B2. Criar componentes Atomic Design da listagem de notas fiscais**
   - KPIs do recorte (`summary`), barra de busca (`120` chars, debounce ~350 ms) + ordenação (6 opções), drawer de filtros (`issuedFrom`/`issuedTo` + presets, faixa de valor, `issuerCnpj` mascarado, `sourceUf`, validação local), chips removíveis, tabela desktop + cards mobile com `itemsCount`, paginação (`10/20/50`) e estados (skeleton, empty sem filtros, empty com filtros, erro com retry).
-- [ ] **B3. Criar `FiscalNotesPage` em `src/features/fiscal-notes/` (sem imports cross-feature)**
+- [x] **B3. Criar `FiscalNotesPage` em `src/features/fiscal-notes/` (sem imports cross-feature)**
   - Orquestrar URL state, listagem, abertura do `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog` e slot/callback para **Ler NFC-e** inline e **Ver despesa vinculada**.
   - Cobrir componentes e fluxos críticos com testes Vitest + Testing Library.
 

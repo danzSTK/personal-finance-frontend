@@ -1,5 +1,7 @@
 export { FiscalNoteBadge } from './components/atoms/FiscalNoteBadge'
 export type { FiscalNoteBadgeProps } from './components/atoms/FiscalNoteBadge'
+export { FiscalNotesPage } from './components/pages/FiscalNotesPage'
+export type { FiscalNotesPageProps } from './components/pages/FiscalNotesPage'
 export { FiscalNoteDetailsSheet } from './components/organisms/FiscalNoteDetailsSheet'
 export type { FiscalNoteDetailsSheetProps } from './components/organisms/FiscalNoteDetailsSheet'
 export { FiscalNoteItemsList } from './components/organisms/FiscalNoteItemsList'

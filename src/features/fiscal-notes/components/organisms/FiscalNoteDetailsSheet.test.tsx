@@ -174,4 +174,62 @@ describe('FiscalNoteDetailsSheet', () => {
     await user.click(screen.getByRole('button', { name: 'Desvincular NFC-e' }))
     expect(onRequestUnlink).toHaveBeenCalledTimes(1)
   })
+
+  it('exibe skeleton acessível quando isLoading é verdadeiro sem nota carregada', () => {
+    render(
+      <FiscalNoteDetailsSheet
+        open
+        fiscalNote={null}
+        isLoading
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    const statusRegion = screen.getByRole('status', {
+      name: 'Carregando detalhes da nota fiscal',
+    })
+    expect(statusRegion).toHaveAttribute('aria-busy', 'true')
+    expect(
+      screen.getAllByRole('button', { name: 'Fechar' }).length
+    ).toBeGreaterThanOrEqual(1)
+  })
+
+  it('exibe ApiErrorAlert com Tentar novamente quando há erro e dispara onRetry', async () => {
+    const user = userEvent.setup()
+    const onRetry = vi.fn()
+
+    render(
+      <FiscalNoteDetailsSheet
+        open
+        fiscalNote={null}
+        error={new Error('Network error')}
+        onRetry={onRetry}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByRole('alert')).toBeInTheDocument()
+    const retryButton = screen.getByRole('button', {
+      name: 'Tentar novamente',
+    })
+    await user.click(retryButton)
+    expect(onRetry).toHaveBeenCalledTimes(1)
+  })
+
+  it('exibe botão Ver despesa quando onViewTransaction é fornecido e dispara com transactionId', async () => {
+    const user = userEvent.setup()
+    const onViewTransaction = vi.fn()
+
+    render(
+      <FiscalNoteDetailsSheet
+        open
+        fiscalNote={mockFiscalNote}
+        onOpenChange={vi.fn()}
+        onViewTransaction={onViewTransaction}
+      />
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Ver despesa' }))
+    expect(onViewTransaction).toHaveBeenCalledWith('tx-1')
+  })
 })

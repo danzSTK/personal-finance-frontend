@@ -1,4 +1,5 @@
-import { Unlink } from 'lucide-react'
+import { ReceiptText, Unlink } from 'lucide-react'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { Button } from '@/shared/components/ui/button'
 import {
   Sheet,
@@ -8,6 +9,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { resolveApiError } from '@/shared/errors'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { formatCurrencyFromCents, formatDateTime } from '@/shared/utils/formatters'
 import type { FiscalNoteDetail } from '../../types/fiscal-note.types'
@@ -24,7 +27,11 @@ import { FiscalNoteItemsList } from './FiscalNoteItemsList'
 export interface FiscalNoteDetailsSheetProps {
   open: boolean
   fiscalNote: FiscalNoteDetail | null
+  isLoading?: boolean
+  error?: unknown
+  onRetry?: () => void
   onOpenChange: (open: boolean) => void
+  onViewTransaction?: (transactionId: string) => void
   onRequestUnlink?: () => void
   isUnlinking?: boolean
 }
@@ -35,19 +42,106 @@ export interface FiscalNoteDetailsSheetProps {
 export function FiscalNoteDetailsSheet({
   open,
   fiscalNote,
+  isLoading = false,
+  error,
+  onRetry,
   onOpenChange,
+  onViewTransaction,
   onRequestUnlink,
   isUnlinking = false,
 }: FiscalNoteDetailsSheetProps) {
   const isMobile = useIsMobile()
+  const showLoading = isLoading && !fiscalNote
+  const showError = !isLoading && !fiscalNote && Boolean(error)
 
   return (
-    <Sheet open={open && fiscalNote !== null} onOpenChange={onOpenChange}>
+    <Sheet
+      open={open && (fiscalNote !== null || showLoading || showError)}
+      onOpenChange={onOpenChange}
+    >
       <SheetContent
         side={isMobile ? 'bottom' : 'right'}
         className="flex max-h-[calc(100dvh-1rem)] w-full flex-col overflow-hidden rounded-t-3xl border-border bg-card p-0 text-foreground md:h-full md:max-h-none md:rounded-none md:sm:max-w-lg"
       >
-        {fiscalNote ? (
+        {showLoading ? (
+          <>
+            <div
+              role="status"
+              aria-busy="true"
+              aria-label="Carregando detalhes da nota fiscal"
+              className="flex-1 overflow-y-auto p-6"
+            >
+              <SheetHeader className="p-0 pr-8 text-left">
+                <SheetTitle className="sr-only">
+                  Carregando nota fiscal
+                </SheetTitle>
+                <SheetDescription className="sr-only">
+                  Aguarde enquanto os itens e dados fiscais da NFC-e são carregados.
+                </SheetDescription>
+                <div className="mb-2 flex items-center gap-2">
+                  <Skeleton className="h-5 w-16 rounded-full bg-secondary" />
+                  <Skeleton className="h-4 w-28 rounded-lg bg-secondary" />
+                </div>
+                <Skeleton className="h-6 w-3/4 rounded-lg bg-secondary" />
+                <Skeleton className="mt-2 h-4 w-2/3 rounded-lg bg-secondary" />
+              </SheetHeader>
+
+              <Skeleton className="mt-5 h-16 w-full rounded-2xl bg-secondary" />
+
+              <div className="mt-6 space-y-3">
+                <Skeleton className="h-4 w-40 rounded-lg bg-secondary" />
+                <Skeleton className="h-10 w-full rounded-xl bg-secondary" />
+                <Skeleton className="h-16 w-full rounded-2xl bg-secondary" />
+                <Skeleton className="h-16 w-full rounded-2xl bg-secondary" />
+                <Skeleton className="h-16 w-full rounded-2xl bg-secondary" />
+              </div>
+
+              <Skeleton className="mt-6 h-32 w-full rounded-2xl bg-secondary" />
+            </div>
+
+            <SheetFooter className="mt-auto flex-row items-center justify-end gap-2 border-t border-border bg-card p-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
+                onClick={() => onOpenChange(false)}
+              >
+                Fechar
+              </Button>
+            </SheetFooter>
+          </>
+        ) : showError ? (
+          <>
+            <div className="flex-1 overflow-y-auto p-6">
+              <SheetHeader className="p-0 pr-8 text-left">
+                <SheetTitle className="text-foreground">
+                  Detalhes da NFC-e
+                </SheetTitle>
+                <SheetDescription className="text-muted-foreground">
+                  Não foi possível carregar os itens e dados desta nota fiscal.
+                </SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-5">
+                <ApiErrorAlert
+                  error={resolveApiError(error, 'fiscal-notes.get')}
+                  onRetry={onRetry}
+                />
+              </div>
+            </div>
+
+            <SheetFooter className="mt-auto flex-row items-center justify-end gap-2 border-t border-border bg-card p-4">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-10 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
+                onClick={() => onOpenChange(false)}
+              >
+                Fechar
+              </Button>
+            </SheetFooter>
+          </>
+        ) : fiscalNote ? (
           <>
             <div className="overflow-y-auto p-6">
               <SheetHeader className="p-0 pr-8 text-left">
@@ -106,6 +200,18 @@ export function FiscalNoteDetailsSheet({
                 >
                   <Unlink className="h-4 w-4" />
                   Desvincular NFC-e
+                </Button>
+              ) : null}
+
+              {onViewTransaction ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-xl border-border bg-secondary text-foreground hover:bg-accent hover:text-foreground"
+                  onClick={() => onViewTransaction(fiscalNote.transactionId)}
+                >
+                  <ReceiptText className="h-4 w-4" />
+                  Ver despesa
                 </Button>
               ) : null}
 
