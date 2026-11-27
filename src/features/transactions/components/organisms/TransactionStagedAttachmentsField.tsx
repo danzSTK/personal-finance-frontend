@@ -7,7 +7,7 @@ import {
   type DragEvent,
 } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import {
   ATTACHMENT_MAX_FILES,

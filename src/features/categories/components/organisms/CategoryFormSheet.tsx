@@ -2,8 +2,8 @@ import { useEffect, useMemo } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { Check, Ellipsis } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 import { Textarea } from '@/shared/components/ui/textarea'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
@@ -186,8 +186,8 @@ export function CategoryFormSheet({
 
   return (
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full overflow-y-auto border-border bg-card text-foreground sm:max-w-xl">
-        <SheetHeader className="pr-8 text-left">
+      <SheetContent className="w-full overflow-y-auto border-border bg-card p-6 text-foreground sm:max-w-xl">
+        <SheetHeader className="p-0 pr-8 text-left">
           <SheetTitle className="text-foreground">
             {isEditing ? 'Editar categoria' : 'Nova categoria'}
           </SheetTitle>
@@ -231,7 +231,7 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex h-12 items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
+                      'flex h-12 w-full items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
                         ? 'border-primary bg-primary/15'
                         : 'border-border bg-secondary hover:border-primary/60 hover:bg-accent'
@@ -323,7 +323,7 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex min-h-11 items-center gap-2 rounded-2xl border px-3 py-2 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
+                      'flex h-11 w-full min-w-0 items-center gap-2 rounded-2xl border px-3 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
                         ? 'border-primary bg-primary/15 text-foreground'
                         : 'border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground'
@@ -332,8 +332,8 @@ export function CategoryFormSheet({
                     aria-pressed={isSelected}
                     title={option.label}
                   >
-                    <Icon className="h-4 w-4" />
-                    {option.label}
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 truncate">{option.label}</span>
                   </button>
                 )
               })}
@@ -345,14 +345,14 @@ export function CategoryFormSheet({
                       type="button"
                       variant="outline"
                       className={cn(
-                        'flex min-h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 py-2 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
+                        'h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
                         isSelectedIconInOverflow &&
                           'border-primary bg-primary/15 text-foreground'
                       )}
                       aria-label="Mais ícones"
                       title="Mais ícones"
                     >
-                      <Ellipsis className="h-4 w-4" />
+                      <Ellipsis className="h-4 w-4 shrink-0" aria-hidden />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -375,7 +375,7 @@ export function CategoryFormSheet({
                             onSelect={() => setIcon(option.value)}
                             title={option.label}
                           >
-                            <Icon className="h-4 w-4" />
+                            <Icon className="h-4 w-4 shrink-0" aria-hidden />
                             <span className="min-w-0 truncate">
                               {option.label}
                             </span>
@@ -428,7 +428,7 @@ export function CategoryFormSheet({
             <ApiErrorAlert error={errorPresentation} />
           ) : null}
 
-          <SheetFooter className="gap-2 pt-2">
+          <SheetFooter className="gap-2 px-0 pb-0 pt-2">
             <Button
               type="button"
               variant="outline"

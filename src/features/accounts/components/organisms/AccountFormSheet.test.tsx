@@ -117,6 +117,9 @@ describe('AccountFormSheet create', () => {
     )
 
     const dialog = screen.getByRole('dialog')
+    expect(dialog).toHaveAttribute('data-side', 'bottom')
+    expect(dialog).toHaveClass('h-[92dvh]', 'rounded-t-3xl')
+    expect(dialog).not.toHaveClass('h-auto')
     expect(within(dialog).getByText('Escolha como criar')).toBeInTheDocument()
 
     await user.click(

@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { TRANSACTION_VIEW_CREATE_LABELS } from '../../constants/transaction.constants'
 import type { TransactionView } from '../../types/transaction-ui.types'

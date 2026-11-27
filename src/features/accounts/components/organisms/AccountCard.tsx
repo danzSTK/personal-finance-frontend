@@ -25,7 +25,7 @@ import {
 } from '@/shared/components/ui/tooltip'
 import { resolveApiError } from '@/shared/errors'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {
@@ -202,7 +202,7 @@ export function AccountCard({
             visualTone.gradientClass
           )}
         >
-          <SheetHeader className="pr-8 text-left">
+          <SheetHeader className="p-0 pr-8 text-left">
             <SheetTitle>{account.name}</SheetTitle>
             <SheetDescription className="sr-only">
               Detalhes desta conta.

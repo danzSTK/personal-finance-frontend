@@ -1,6 +1,6 @@
 import { RotateCcw } from 'lucide-react'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { resolveApiError } from '@/shared/errors'
 import { TransactionCreateButton } from '../molecules/TransactionCreateButton'

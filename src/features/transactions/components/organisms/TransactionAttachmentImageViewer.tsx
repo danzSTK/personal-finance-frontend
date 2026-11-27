@@ -19,7 +19,7 @@ import {
   DialogDescription,
   DialogTitle,
 } from '@/shared/components/ui/dialog'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import type { TransactionAttachment } from '../../types/transaction-attachment.types'
 
 interface TransactionAttachmentImageViewerProps {

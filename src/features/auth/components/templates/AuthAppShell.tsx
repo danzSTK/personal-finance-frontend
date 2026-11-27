@@ -17,7 +17,7 @@ import { APP_BRAND } from '@/shared/config/brand'
 import { BrandLogo } from '@/shared/components/atoms/BrandLogo'
 import { Toaster } from '@/shared/components/organisms/Toaster'
 import { MobileQuickActions } from '../organisms/MobileQuickActions'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Avatar,
   AvatarFallback,
@@ -602,7 +602,7 @@ const MobileBottomNavigation = ({
           side="bottom"
           className="max-h-[82vh] overflow-y-auto rounded-t-3xl border-border bg-card px-4 pb-[max(env(safe-area-inset-bottom),1rem)] pt-5 lg:hidden"
         >
-          <SheetHeader className="pr-8 text-left">
+          <SheetHeader className="p-0 pr-8 text-left">
             <SheetTitle>Mais</SheetTitle>
             <SheetDescription>
               Acesse outras áreas e configurações da sua conta.

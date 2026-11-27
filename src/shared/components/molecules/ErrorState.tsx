@@ -1,12 +1,12 @@
 import { AlertCircle } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/shared/lib/card'
+} from '@/shared/components/ui/card'
 
 interface ErrorStateProps {
   title?: string
@@ -20,7 +20,7 @@ export function ErrorState({
   onRetry,
 }: ErrorStateProps) {
   return (
-    <Card className="border-destructive">
+    <Card className="border border-destructive/60 ring-0">
       <CardHeader>
         <div className="flex items-center gap-2">
           <AlertCircle className="h-5 w-5 text-destructive" />

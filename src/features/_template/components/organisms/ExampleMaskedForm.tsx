@@ -1,9 +1,9 @@
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
-import { Label } from '@/shared/lib/label'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
+import { Label } from '@/shared/components/ui/label'
 import { MaskedInput } from '@/shared/components/atoms/MaskedInput'
 import { CPF_MASK, PHONE_MASK, CURRENCY_MASK } from '@/shared/utils/masks'
 

@@ -15,7 +15,7 @@ import {
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
 import { resolveApiError } from '@/shared/errors'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {

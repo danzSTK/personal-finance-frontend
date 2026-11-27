@@ -1,5 +1,5 @@
 import { Plus } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 
 interface AddAccountButtonProps {
   onClick: () => void

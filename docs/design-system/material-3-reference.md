@@ -2,7 +2,7 @@
 area: design-system
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-26
 related:
   - ../README.md
   - ./danfy-finance-design-system.md
@@ -16,7 +16,7 @@ Material 3 is the component and foundation reference for Danfy Finance UI decisi
 
 - Before creating or changing a screen, identify the Material component family involved.
 - Check the M3 component page for purpose, variants, states, anatomy, and interaction expectations.
-- Apply the behavior through this repo's React, Tailwind, Radix/Shadcn, CVA, and `cn()` patterns.
+- Apply the behavior through this repo's React 19, Tailwind CSS v4, unified `radix-ui`, shadcn/ui v4 (`radix-rhea`), `lucide-react` v1, CVA, and `cn` (`@/shared/lib/utils`) patterns.
 - Do not copy Material colors directly. Map M3 intent to Danfy tokens.
 - M3 Expressive can inform flexibility and motion, but Danfy Finance must remain calm, readable, and financial.
 
@@ -74,7 +74,7 @@ Material 3 is the component and foundation reference for Danfy Finance UI decisi
 - [Material Web text fields](https://material-web.dev/components/text-field/)
 - [Material Web progress indicators](https://material-web.dev/components/progress/)
 
-Use Material Web as implementation guidance only. This repo still uses React components, Radix/Shadcn primitives, Tailwind, and Danfy tokens.
+Use Material Web as implementation guidance only. This repo uses React 19 components, unified `radix-ui` / shadcn/ui v4 (`radix-rhea`) primitives, `lucide-react` v1, `cn`, Tailwind CSS v4, and Danfy tokens.
 
 ## Component Mapping for Danfy Finance
 

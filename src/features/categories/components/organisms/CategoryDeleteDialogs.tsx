@@ -6,7 +6,7 @@ import {
   isApiErrorCode,
   resolveApiError,
 } from '@/shared/errors'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import {
   AlertDialog,
@@ -170,7 +170,7 @@ export function CategoryDeleteDialogs({
         }}
       >
         <DialogContent className="border-border bg-card text-foreground sm:max-w-xl">
-          <DialogHeader>
+          <DialogHeader className="pr-10">
             <DialogTitle>Mover lançamentos antes de excluir</DialogTitle>
             <DialogDescription className="text-muted-foreground">
               Escolha uma categoria ativa de {getCategoryTypeLabel(targetType)}

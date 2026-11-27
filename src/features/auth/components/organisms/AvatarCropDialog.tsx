@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import Cropper, { type Area, type Point } from 'react-easy-crop'
 import 'react-easy-crop/react-easy-crop.css'
 import { Camera, ZoomIn } from 'lucide-react'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import {
   Dialog,
   DialogContent,
@@ -74,7 +74,7 @@ export const AvatarCropDialog = ({
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="border-border bg-card text-foreground sm:max-w-2xl">
-        <DialogHeader>
+        <DialogHeader className="pr-10">
           <DialogTitle>Ajustar foto de perfil</DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Posicione seu rosto no centro. A prévia será enviada em formato

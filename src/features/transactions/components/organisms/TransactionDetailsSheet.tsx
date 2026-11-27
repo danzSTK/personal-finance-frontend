@@ -17,7 +17,7 @@ import {
   getCategoryIconOption,
 } from '@/features/categories/utils/category.utils'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
+import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {
@@ -81,7 +81,7 @@ export function TransactionDetailsSheet({
         {transaction ? (
           <>
             <div className="overflow-y-auto p-6">
-              <SheetHeader className="pr-8 text-left">
+              <SheetHeader className="p-0 pr-8 text-left">
                 <SheetTitle className="text-foreground">
                   {getTransactionDescription(transaction)}
                 </SheetTitle>

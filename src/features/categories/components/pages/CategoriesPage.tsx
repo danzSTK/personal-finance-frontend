@@ -12,8 +12,8 @@ import {
   X,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 import {
   DropdownMenu,
@@ -372,7 +372,7 @@ export function CategoriesPage() {
 interface CategorySearchProps {
   isOpen: boolean
   value: string
-  inputRef: RefObject<HTMLInputElement>
+  inputRef: RefObject<HTMLInputElement | null>
   onOpen: () => void
   onChange: (value: string) => void
   onClear: () => void
@@ -416,7 +416,7 @@ function CategorySearch({
 
   return (
     <div
-      className="flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border bg-secondary px-3 opacity-100 transition-[width,opacity] duration-300 ease-out animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72"
+      className="flex h-11 w-full min-w-0 items-center gap-2 rounded-xl border border-border bg-secondary px-3 opacity-100 transition-[width,opacity] duration-300 ease-out focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/30 animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none sm:w-72"
       onBlur={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) {
           onBlur()

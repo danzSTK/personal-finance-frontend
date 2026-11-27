@@ -2,7 +2,7 @@
 area: documentation
 type: index
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-26
 related:
   - ./architecture/module-boundaries.md
   - ./architecture/api-error-handling.md

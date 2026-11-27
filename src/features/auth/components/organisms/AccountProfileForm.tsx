@@ -10,8 +10,8 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { AtSign, CheckCircle2, Loader2, Mail, Pencil, XCircle } from 'lucide-react'
-import { Card, CardContent } from '@/shared/lib/card'
-import { Button } from '@/shared/lib/button'
+import { Card, CardContent } from '@/shared/components/ui/card'
+import { Button } from '@/shared/components/ui/button'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -469,8 +469,8 @@ export const AccountProfileForm = () => {
 
   return (
     <>
-      <Card className="border-0 bg-transparent shadow-none sm:border sm:bg-card sm:shadow-xs">
-        <CardContent className="px-0 pb-0 sm:p-6">
+      <Card className="border-0 bg-transparent py-0 shadow-none ring-0 sm:border sm:bg-card sm:py-5 sm:shadow-xs sm:ring-1">
+        <CardContent className="px-0 sm:px-6">
           {isLoading && !user ? (
             <ProfileSkeleton />
           ) : (
@@ -610,7 +610,7 @@ export const AccountProfileForm = () => {
         onOpenChange={handleUsernameDialogOpenChange}
       >
         <DialogContent className="w-[calc(100vw-2rem)] rounded-2xl sm:max-w-md">
-          <DialogHeader>
+          <DialogHeader className="pr-10">
             <DialogTitle>Editar usuário</DialogTitle>
             <DialogDescription>
               Escolha um nome único para sua conta.

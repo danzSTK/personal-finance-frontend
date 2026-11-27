@@ -23,8 +23,8 @@ import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { useIsMobile } from '@/shared/hooks/use-mobile'
-import { Button } from '@/shared/lib/button'
-import { Input } from '@/shared/lib/input'
+import { Button } from '@/shared/components/ui/button'
+import { Input } from '@/shared/components/ui/input'
 import { cn } from '@/shared/lib/utils'
 import {
   applyApiFieldErrors,
@@ -348,9 +348,9 @@ export function TransactionFormSheet({
     <Sheet open={isOpen} onOpenChange={onOpenChange}>
       <SheetContent
         side={isMobile ? 'bottom' : 'right'}
-        className="max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-3xl border-border bg-card text-foreground md:h-full md:max-h-none md:rounded-none md:sm:max-w-xl"
+        className="max-h-[calc(100dvh-1rem)] w-full overflow-y-auto rounded-t-3xl border-border bg-card p-6 text-foreground md:h-full md:max-h-none md:rounded-none md:sm:max-w-xl"
       >
-        <SheetHeader className="pr-8 text-left">
+        <SheetHeader className="p-0 pr-8 text-left">
           <SheetTitle className="text-foreground">
             {isEditing
               ? effectiveType === 'TRANSFER'
@@ -766,7 +766,7 @@ export function TransactionFormSheet({
             <ApiErrorAlert error={errorPresentation} />
           ) : null}
 
-          <SheetFooter className="gap-2 pt-2">
+          <SheetFooter className="gap-2 px-0 pb-0 pt-2">
             <Button
               type="button"
               variant="outline"
