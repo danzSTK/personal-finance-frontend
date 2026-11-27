@@ -3,7 +3,7 @@ area: design-system
 feature: shadcn-v4-rhea-react19-ai-tooling
 type: spec-decisions
 status: current
-last_reviewed: 2026-11-26
+last_reviewed: 2026-11-27
 related:
   - ./requirements.md
   - ./design.md
@@ -99,3 +99,18 @@ Executar fase a fase com um supervisor (spec, GitHub/PR, revisão e testes reais
 
 Consequences:
 Cada fase gera diff auditável, validação automatizada (`lint`, `test`, `build`) e teste real de cliente (protocolo MCP na Fase 1; navegador Orca nas Fases 4–5) antes de avançar.
+
+---
+
+## DEC-007 — Evitar seletores `data-[...]:` para dimensões em `SheetContent` e `AlertDialogContent`
+
+Status: accepted
+
+Problem:
+Os templates `radix-rhea` do shadcn v4 passaram a aplicar dimensões em `SheetContent` (`data-[side=bottom]:h-auto`, `data-[side=right]:w-3/4`, `data-[side=right]:sm:max-w-sm`) e `AlertDialogContent` (`data-[size=default]:max-w-xs`, `data-[size=default]:sm:max-w-md`) usando atributos `data-*`. No Tailwind CSS v4, esses seletores compilam com especificidade `(0, 2, 0)` e não são mesclados pelo `tailwind-merge` (`cn()`) quando consumidores passam utilitários simples `(0, 1, 0)` como `h-[92dvh]`, `w-full` ou `sm:max-w-xl` — causando colapso de altura (`0px`) no bottom sheet mobile de `/accounts` e esmagamento de largura em `/categories` e demais sheets.
+
+Decision:
+Usar `cva` (`sheetVariants({ side })`) em `src/shared/components/ui/sheet.tsx` e condicional JS (`size === "sm" ? "max-w-xs" : "max-w-xs sm:max-w-md"`) em `src/shared/components/ui/alert-dialog.tsx`, mantendo os atributos `data-side={side}` e `data-size={size}` para semântica, seletores de descendentes e testes.
+
+Consequences:
+Garante que `className` passado por consumidores sobrescreva dimensões de forma previsível via `cn()` tanto em mobile quanto em desktop, com cobertura dedicada em `src/shared/components/ui/sheet.test.tsx`, `CategoryFormSheet.test.tsx` e `AccountFormSheet.test.tsx`. Atualizações futuras via `shadcn add --diff` devem preservar esse padrão.
