@@ -73,7 +73,7 @@ flowchart TD
 
 ## KPIs, Tabela, Paginação e Inspeção Lazy (`GET /fiscal-notes/:id`)
 
-1. **Indicadores (`FiscalNotesKpiGrid`):** 4 cards do recorte filtrado (`data.summary`): *Total pago* (`totalPayableAmountCents`), *Notas fiscais* (`totalNotes`), *Descontos* (`totalDiscountAmountCents`) e *Tributos aprox.* (`totalTaxAmountCents`).
+1. **Indicadores (`FiscalNotesKpiGrid`):** 4 cards do recorte filtrado (`data.summary`) em carrossel horizontal no mobile/tablet (`snap-x`) e grid de 4 colunas em `xl+`: *Total pago* (`totalPayableAmountCents`), *Notas fiscais* (`totalNotes`), *Descontos* (`totalDiscountAmountCents`) e *Tributos aprox.* (`totalTaxAmountCents`).
 2. **Listagem (`FiscalNotesTable` + `FiscalNotesPagination`):**
    - **Desktop (`md+`):** tabela com estabelecimento (nome, CNPJ, nº/série), emissão (`formatDateTime`), badge de contagem de itens (`itemsCount`), desconto (`.numeric` em `state-income` quando `> 0`), total pago e menu `...`.
    - **Mobile (`< md`):** cards clicáveis com menu `...` isolado.

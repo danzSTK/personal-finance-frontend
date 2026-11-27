@@ -36,9 +36,9 @@ Pages (orquestração de URL, queries e sheets do domínio — sem imports cross
     ├── [callback onImportFiscalNote] -> delegado ao compositor FiscalNotesRoutePage (src/app/pages/)
     ├── [callback onOpenTransaction] -> navega para /transactions?openTransaction=<id>
     ├── FiscalNotesActiveFiltersBar (molecule — chips removíveis + limpar filtros)
-    ├── FiscalNotesSkeleton (molecule — 4 KPIs + 5 linhas placeholder)
+    ├── FiscalNotesSkeleton (molecule — 4 KPIs em faixa horizontal no mobile / grid xl+ e 5 linhas placeholder)
     ├── ApiErrorAlert (shared — contexto 'fiscal-notes.list' + retry)
-    ├── FiscalNotesKpiGrid (molecule — 4 cards do recorte: Total pago, Notas fiscais, Descontos, Tributos aprox.)
+    ├── FiscalNotesKpiGrid (molecule — carrossel horizontal snap no mobile / grid 4 colunas em xl+: Total pago, Notas fiscais, Descontos, Tributos aprox.)
     ├── FiscalNotesEmptyState (molecule — diferenciado entre conta sem notas e busca/filtros sem resultado)
     ├── FiscalNotesTable (organism — tabela desktop md+ e cards mobile <md com itemsCount e menu ...)
     ├── FiscalNotesPagination (molecule — resumo de página/total, seletor 10/20/50, Anterior/Próxima)

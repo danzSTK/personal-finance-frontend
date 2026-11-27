@@ -11,11 +11,11 @@ export function FiscalNotesSkeleton() {
       aria-label="Carregando notas fiscais"
       className="space-y-4"
     >
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="flex w-full min-w-0 max-w-full flex-nowrap gap-3 overflow-hidden pb-1 xl:grid xl:grid-cols-4 xl:pb-0">
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className="rounded-2xl border border-border bg-card p-4"
+            className="w-[224px] shrink-0 rounded-2xl border border-border bg-card p-4 xl:w-auto xl:min-w-0 xl:shrink"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex-1 space-y-2">

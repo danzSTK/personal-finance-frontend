@@ -217,9 +217,19 @@ describe('FiscalNotesPage', () => {
       within(table).getByText('SUPERMERCADO CENTRAL LTDA')
     ).toBeInTheDocument()
 
+    expect(
+      screen.getByRole('heading', { name: 'Notas fiscais' })
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Consulte suas NFC-e importadas/i)
+    ).not.toBeInTheDocument()
+
     const kpiSection = screen.getByRole('region', {
       name: 'Indicadores de notas fiscais',
     })
+    const kpiTrack = within(kpiSection).getByTestId('fiscal-notes-kpi-track')
+    expect(kpiTrack).toHaveClass('overflow-x-auto', 'snap-x', 'xl:grid-cols-4')
+
     expect(within(kpiSection).getByText('Total pago')).toBeInTheDocument()
     expect(within(kpiSection).getByText('R$ 40,90')).toBeInTheDocument()
     expect(within(kpiSection).getByText('Notas fiscais')).toBeInTheDocument()
