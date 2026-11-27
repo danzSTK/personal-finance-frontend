@@ -14,6 +14,7 @@ export const AUTH_ROUTES = {
   accounts: '/accounts',
   categories: '/categories',
   transactions: '/transactions',
+  fiscalNotes: '/fiscal-notes',
   emailVerification: '/verification-email',
   emailVerificationPending: '/email-verification-pending',
   settings: SETTINGS_BASE_ROUTE,

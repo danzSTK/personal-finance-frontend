@@ -121,11 +121,11 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
   - Cobrir componentes e fluxos críticos com testes Vitest + Testing Library.
 
 ### Bloco C — Navegação, Compositor Fino (`src/app/`) e Deep-Link em `TransactionsPage`
-- [ ] **C1. Atualizar navegação em `AuthAppShell` e `AUTH_ROUTES`**
+- [x] **C1. Atualizar navegação em `AuthAppShell` e `AUTH_ROUTES`**
   - Adicionar item `Notas fiscais` (`NFC-e e compras`) abaixo de *Transações* na sidebar desktop e no topo do sheet *Mais* no mobile (mantendo 5 slots na barra inferior).
-- [ ] **C2. Criar compositor fino em `src/app/` e registrar rota `/fiscal-notes`**
+- [x] **C2. Criar compositor fino em `src/app/` e registrar rota `/fiscal-notes`**
   - Conectar `FiscalNotesPage` ao `FiscalNoteReaderSheet` inline com contas, categorias, staging de anexos e abertura da despesa existente sem criar ciclos entre features.
-- [ ] **C3. Suportar `?openTransaction=<id>` em `TransactionsPage`**
+- [x] **C3. Suportar `?openTransaction=<id>` em `TransactionsPage`**
   - Ler `openTransaction` da URL, buscar via `GET /transactions/:id`, abrir `TransactionDetailsSheet` e limpar o query param via `{ replace: true }`.
 
 ### Bloco D — Documentação Viva e QA Final

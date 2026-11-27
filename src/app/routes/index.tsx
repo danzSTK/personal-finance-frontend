@@ -31,6 +31,7 @@ import { PendingEmailVerificationPage } from '@/features/auth/components/pages/P
 import { AccountsPage } from '@/features/accounts/components/pages/AccountsPage'
 import { CategoriesPage } from '@/features/categories/components/pages/CategoriesPage'
 import { TransactionsPage } from '@/features/transactions/components/pages/TransactionsPage'
+import { FiscalNotesRoutePage } from '@/app/pages/FiscalNotesRoutePage'
 import { AuthCallbackPage } from '@/features/auth/components/templates/AuthCallbackPage'
 import { LinkProviderCallbackPage } from '@/features/auth/components/templates/LinkProviderCallbackPage'
 
@@ -43,6 +44,7 @@ const DOCUMENT_TITLE_ROUTES = [
   { path: AUTH_ROUTES.accounts, title: 'Contas' },
   { path: AUTH_ROUTES.categories, title: 'Categorias' },
   { path: AUTH_ROUTES.transactions, title: 'Transações' },
+  { path: AUTH_ROUTES.fiscalNotes, title: 'Notas fiscais' },
   { path: AUTH_ROUTES.emailVerification, title: 'Confirmar email' },
   { path: AUTH_ROUTES.emailVerificationPending, title: 'Verificação pendente' },
   { path: AUTH_ROUTES.settings, title: 'Configurações' },
@@ -296,6 +298,15 @@ export function AppRoutes() {
         element={
           <PrivateRoute isBootstrappingAuth={isBootstrappingAuth}>
             <TransactionsPage />
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path={AUTH_ROUTES.fiscalNotes}
+        element={
+          <PrivateRoute isBootstrappingAuth={isBootstrappingAuth}>
+            <FiscalNotesRoutePage />
           </PrivateRoute>
         }
       />

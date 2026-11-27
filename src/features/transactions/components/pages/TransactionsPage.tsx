@@ -77,8 +77,11 @@ import { viewToTransactionType } from '../../utils/transaction.utils'
 import {
   buildTransactionSearchParams,
   clearTransactionCreateParam,
-  parseTransactionUrlState,
+  clearTransactionOpenParam,
   parseTransactionCreateIntent,
+  parseTransactionOpenId,
+  parseTransactionUrlState,
+  parseYearMonthFromDateOnly,
   type TransactionUrlPatch,
 } from '../../utils/transactionUrl.utils'
 import { BalanceAdjustmentSheet } from '../organisms/BalanceAdjustmentSheet'
@@ -114,6 +117,10 @@ export function TransactionsPage() {
     () => parseTransactionCreateIntent(searchParams),
     [searchParams]
   )
+  const openTransactionId = useMemo(
+    () => parseTransactionOpenId(searchParams),
+    [searchParams]
+  )
   const { view, period, page, limit, search, filters } = transactionUrlState
   const currentPeriod = useMemo(() => getCurrentYearMonth(), [])
   const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -146,6 +153,15 @@ export function TransactionsPage() {
   const [isOpeningExistingTransaction, setIsOpeningExistingTransaction] =
     useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const isMountedRef = useRef(true)
+  const inFlightOpenTransactionIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   const clearStagedFiscalNoteAttachments = useCallback(() => {
     stagedFiscalNoteAttachmentsRef.current.forEach((item) => {
@@ -224,6 +240,75 @@ export function TransactionsPage() {
     searchParams,
     setSearchParams,
   ])
+
+  useEffect(() => {
+    if (!openTransactionId) {
+      return
+    }
+
+    if (inFlightOpenTransactionIdRef.current === openTransactionId) {
+      return
+    }
+
+    inFlightOpenTransactionIdRef.current = openTransactionId
+    setSearchParams((prevParams) => clearTransactionOpenParam(prevParams), {
+      replace: true,
+    })
+
+    const loadDeepLinkedTransaction = async () => {
+      try {
+        const transaction = await queryClient.fetchQuery({
+          queryKey: TRANSACTION_QUERY_KEYS.detail(openTransactionId),
+          queryFn: () => getTransactionById(openTransactionId),
+        })
+
+        if (
+          !isMountedRef.current ||
+          inFlightOpenTransactionIdRef.current !== openTransactionId
+        ) {
+          return
+        }
+
+        const transactionPeriod = parseYearMonthFromDateOnly(transaction.date)
+        if (transactionPeriod) {
+          setSearchParams(
+            (prevParams) => {
+              const latestState = parseTransactionUrlState(prevParams)
+              if (
+                latestState.period.year === transactionPeriod.year &&
+                latestState.period.month === transactionPeriod.month
+              ) {
+                return prevParams
+              }
+
+              return buildTransactionSearchParams(latestState, {
+                period: transactionPeriod,
+                dateFrom: getMonthStartDateOnly(transactionPeriod),
+                dateTo: getMonthEndDateOnly(transactionPeriod),
+                page: TRANSACTION_DEFAULT_PAGE,
+              })
+            },
+            { replace: true }
+          )
+        }
+
+        setDetailsSheetState({ transaction })
+      } catch (fetchError) {
+        if (
+          isMountedRef.current &&
+          inFlightOpenTransactionIdRef.current === openTransactionId
+        ) {
+          showApiErrorToast(fetchError, 'transactions.detail')
+        }
+      } finally {
+        if (inFlightOpenTransactionIdRef.current === openTransactionId) {
+          inFlightOpenTransactionIdRef.current = null
+        }
+      }
+    }
+
+    void loadDeepLinkedTransaction()
+  }, [openTransactionId, queryClient, setSearchParams])
 
   useEffect(() => {
     setSearchDraft(search)
