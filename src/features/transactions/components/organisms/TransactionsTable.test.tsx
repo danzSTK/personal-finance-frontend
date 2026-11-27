@@ -208,6 +208,7 @@ describe('TransactionsTable', () => {
   it('exibe FiscalNoteBadge apenas quando hasFiscalNote é true e ação Vincular NFC-e só para EXPENSE sem nota', async () => {
     const user = userEvent.setup()
     const onLinkFiscalNote = vi.fn()
+    const onOpenDetails = vi.fn()
     const expenseWithNote: Transaction = {
       ...transactions[0],
       id: 'tx-expense-note',
@@ -241,7 +242,7 @@ describe('TransactionsTable', () => {
         onConfirm={vi.fn()}
         onDelete={vi.fn()}
         onEdit={vi.fn()}
-        onOpenDetails={vi.fn()}
+        onOpenDetails={onOpenDetails}
         onLinkFiscalNote={onLinkFiscalNote}
       />
     )
@@ -251,7 +252,7 @@ describe('TransactionsTable', () => {
       screen.getAllByLabelText('Nota fiscal vinculada (NFC-e)')
     ).toHaveLength(2)
 
-    // EXPENSE sem nota deve exibir "Vincular NFC-e" e acionar callback
+    // EXPENSE sem nota deve exibir "Vincular NFC-e" e acionar callback sem propagar para onOpenDetails
     await user.click(
       screen.getByRole('button', { name: 'Abrir ações de Farmácia' })
     )
@@ -260,6 +261,7 @@ describe('TransactionsTable', () => {
     })
     await user.click(linkAction)
     expect(onLinkFiscalNote).toHaveBeenCalledWith(expenseWithoutNote)
+    expect(onOpenDetails).not.toHaveBeenCalled()
 
     // EXPENSE com nota não deve exibir "Vincular NFC-e"
     await user.click(
@@ -286,5 +288,66 @@ describe('TransactionsTable', () => {
     expect(
       screen.queryByRole('menuitem', { name: 'Vincular NFC-e' })
     ).not.toBeInTheDocument()
+  })
+
+  it('não propaga cliques do menu de ações para onOpenDetails da linha', async () => {
+    const user = userEvent.setup()
+    const onConfirm = vi.fn()
+    const onEdit = vi.fn()
+    const onDelete = vi.fn()
+    const onLinkFiscalNote = vi.fn()
+    const onOpenDetails = vi.fn()
+    const expenseWithoutNote: Transaction = {
+      ...transactions[0],
+      id: 'tx-expense-actions',
+      description: 'Supermercado Central',
+      hasFiscalNote: false,
+    }
+
+    render(
+      <TransactionsTable
+        transactions={[expenseWithoutNote]}
+        accounts={accounts}
+        categories={categories}
+        isMutating={false}
+        onConfirm={onConfirm}
+        onDelete={onDelete}
+        onEdit={onEdit}
+        onOpenDetails={onOpenDetails}
+        onLinkFiscalNote={onLinkFiscalNote}
+      />
+    )
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Abrir ações de Supermercado Central',
+      })
+    )
+    await user.click(
+      await screen.findByRole('menuitem', { name: 'Vincular NFC-e' })
+    )
+    expect(onLinkFiscalNote).toHaveBeenCalledTimes(1)
+    expect(onLinkFiscalNote).toHaveBeenCalledWith(expenseWithoutNote)
+    expect(onOpenDetails).not.toHaveBeenCalled()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Abrir ações de Supermercado Central',
+      })
+    )
+    await user.click(await screen.findByRole('menuitem', { name: 'Editar' }))
+    expect(onEdit).toHaveBeenCalledTimes(1)
+    expect(onEdit).toHaveBeenCalledWith(expenseWithoutNote)
+    expect(onOpenDetails).not.toHaveBeenCalled()
+
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Abrir ações de Supermercado Central',
+      })
+    )
+    await user.click(await screen.findByRole('menuitem', { name: 'Excluir' }))
+    expect(onDelete).toHaveBeenCalledTimes(1)
+    expect(onDelete).toHaveBeenCalledWith(expenseWithoutNote)
+    expect(onOpenDetails).not.toHaveBeenCalled()
   })
 })

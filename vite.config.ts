@@ -12,6 +12,7 @@ const htmlBypass = (req: { headers: { accept?: string } }) => {
 const proxyConfig = {
   '/auth': 'http://localhost:3000',
   '/users': 'http://localhost:3000',
+  '/fiscal-notes': 'http://localhost:3000',
   '/transactions': {
     target: 'http://localhost:3000',
     bypass: htmlBypass,

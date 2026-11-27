@@ -236,7 +236,7 @@ function TransactionRow({
       >
         {formatSignedTransactionAmount(transaction, formatCurrencyFromCents)}
       </TableCell>
-      <TableCell>
+      <TableCell onClick={(event) => event.stopPropagation()}>
         <TransactionActionsMenu
           transaction={transaction}
           isMutating={isMutating}
@@ -383,6 +383,7 @@ function TransactionActionsMenu({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
+        onClick={(event) => event.stopPropagation()}
         className="w-64 rounded-2xl border-border bg-card p-2 text-foreground"
       >
         <DropdownMenuLabel className="text-xs text-muted-foreground">

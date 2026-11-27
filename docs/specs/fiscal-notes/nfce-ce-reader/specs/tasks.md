@@ -90,6 +90,6 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 - [x] **12. Verificação técnica automatizada (`lint`, `test`, `build`)**
   - Executar `npm run lint`, `npm test` e `npm run build` com 0 erros e 0 warnings.
 
-- [ ] **13. Validação real ponta a ponta no ambiente (Supervisor / QA)**
+- [x] **13. Validação real ponta a ponta no ambiente (Supervisor / QA)**
   - Subir/conectar frontend + backend local (com PR `#146` rodando) e testar como cliente real no browser embarcado do Orca: captura manual (chave 44d / QR), foto com QR, preview, importação com anexo em staging, duplicata (`Ver despesa existente`), lista de compras com busca, bloqueio de troca de tipo, desvínculo e vínculo em despesa existente com divergência.
   - Delegar eventuais correções aos workers e finalizar revisão da PR.

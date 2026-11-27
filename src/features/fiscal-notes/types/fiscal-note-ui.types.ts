@@ -28,9 +28,16 @@ export interface FiscalNoteLinkTarget {
 }
 
 export type FiscalNoteReaderSheetState =
-  | { open: false }
-  | { open: true; mode: 'import' }
-  | { open: true; mode: 'link'; targetTransaction: FiscalNoteLinkTarget }
+  | {
+      open: boolean
+      mode: 'import'
+      targetTransaction?: null
+    }
+  | {
+      open: boolean
+      mode: 'link'
+      targetTransaction: FiscalNoteLinkTarget | null
+    }
 
 export interface FiscalNoteDivergenceSummary {
   hasDivergence: boolean

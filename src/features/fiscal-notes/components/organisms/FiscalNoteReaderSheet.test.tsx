@@ -563,4 +563,70 @@ describe('FiscalNoteReaderSheet', () => {
       screen.getByRole('button', { name: 'Consultar nota' })
     ).toBeEnabled()
   })
+
+  it('ao reabrir após fechar na etapa 2, inicia limpo na etapa 1', async () => {
+    const user = userEvent.setup()
+
+    vi.mocked(fiscalNotesApi.previewFiscalNote).mockResolvedValueOnce(
+      buildPreviewResponse()
+    )
+
+    const { rerender } = render(
+      <FiscalNoteReaderSheet
+        open
+        mode="link"
+        linkTarget={{
+          id: 'tx-target-reopen',
+          amountCents: 4090,
+          date: '2026-10-25',
+          description: 'Compras',
+        }}
+        onOpenChange={vi.fn()}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    await user.type(
+      screen.getByLabelText('URL do QR Code ou chave de acesso'),
+      VALID_CE_ACCESS_KEY
+    )
+    await user.click(screen.getByRole('button', { name: 'Consultar nota' }))
+
+    expect(
+      await screen.findByText('Etapa 2 de 2 · Revisão')
+    ).toBeInTheDocument()
+
+    rerender(
+      <FiscalNoteReaderSheet
+        open={false}
+        mode="link"
+        linkTarget={{
+          id: 'tx-target-reopen',
+          amountCents: 4090,
+          date: '2026-10-25',
+          description: 'Compras',
+        }}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    rerender(
+      <FiscalNoteReaderSheet
+        open
+        mode="link"
+        linkTarget={{
+          id: 'tx-target-reopen',
+          amountCents: 4090,
+          date: '2026-10-25',
+          description: 'Compras',
+        }}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    expect(screen.getByText('Etapa 1 de 2 · Captura')).toBeInTheDocument()
+    expect(
+      screen.getByLabelText('URL do QR Code ou chave de acesso')
+    ).toHaveValue('')
+  })
 })

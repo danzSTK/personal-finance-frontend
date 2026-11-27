@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import {
@@ -228,32 +235,28 @@ export function FiscalNoteReaderSheet(props: FiscalNoteReaderSheetProps) {
   const setFormError = form.setError
   const setFormFocus = form.setFocus
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const justOpened = open && !wasOpenRef.current
-    const justClosed = !open && wasOpenRef.current
     wasOpenRef.current = open
 
-    if (justClosed) {
-      hasUserSelectedTabRef.current = false
-      setStep('capture')
-      setManualInput('')
-      setLocalInputError(null)
-      setSubmittedInput('')
-      setPreviewData(null)
-      setConcurrentDuplicate(null)
-      setIsRunningAfterImport(false)
-      setItemsOpen(false)
-      resetPreview()
-      resetImport()
-      resetLink()
-      resetCountdown()
+    if (!justOpened) {
       return
     }
 
-    if (justOpened) {
-      hasUserSelectedTabRef.current = false
-      setActiveTab(prefersCameraViewport(isMobile) ? 'camera' : 'manual')
-    }
+    hasUserSelectedTabRef.current = false
+    setActiveTab(prefersCameraViewport(isMobile) ? 'camera' : 'manual')
+    setStep('capture')
+    setManualInput('')
+    setLocalInputError(null)
+    setSubmittedInput('')
+    setPreviewData(null)
+    setConcurrentDuplicate(null)
+    setIsRunningAfterImport(false)
+    setItemsOpen(false)
+    resetPreview()
+    resetImport()
+    resetLink()
+    resetCountdown()
   }, [
     isMobile,
     open,

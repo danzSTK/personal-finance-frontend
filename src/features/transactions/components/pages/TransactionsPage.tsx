@@ -128,7 +128,7 @@ export function TransactionsPage() {
   const [deleteDialogState, setDeleteDialogState] =
     useState<TransactionDeleteDialogState>(null)
   const [readerSheetState, setReaderSheetState] =
-    useState<FiscalNoteReaderSheetState>({ open: false })
+    useState<FiscalNoteReaderSheetState>({ open: false, mode: 'import' })
   const [fiscalNoteDetailsState, setFiscalNoteDetailsState] =
     useState<FiscalNoteDetail | null>(null)
   const [unlinkDialogState, setUnlinkDialogState] = useState<{
@@ -167,7 +167,7 @@ export function TransactionsPage() {
 
   const closeFiscalNoteReader = useCallback(() => {
     clearStagedFiscalNoteAttachments()
-    setReaderSheetState({ open: false })
+    setReaderSheetState((current) => ({ ...current, open: false }))
   }, [clearStagedFiscalNoteAttachments])
 
   const openFiscalNoteLink = useCallback(
@@ -838,9 +838,10 @@ export function TransactionsPage() {
         }}
       />
 
-      {readerSheetState.open && readerSheetState.mode === 'link' ? (
+      {readerSheetState.mode === 'link' &&
+      readerSheetState.targetTransaction !== null ? (
         <FiscalNoteReaderSheet
-          open
+          open={readerSheetState.open}
           mode="link"
           linkTarget={readerSheetState.targetTransaction}
           onOpenChange={(isOpen) => {
@@ -849,7 +850,11 @@ export function TransactionsPage() {
             }
           }}
           onLinked={() => {
-            const linkedTransactionId = readerSheetState.targetTransaction.id
+            const linkedTransactionId =
+              readerSheetState.targetTransaction?.id ?? null
+            if (!linkedTransactionId) {
+              return
+            }
             setDetailsSheetState((current) =>
               current && current.transaction.id === linkedTransactionId
                 ? {
