@@ -36,11 +36,11 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 
 ## Bloco 2 — Camada de API (TanStack Query) e Hooks de Scanner/Countdown
 
-- [ ] **4. Implementar cliente HTTP, queries e mutations em `src/features/fiscal-notes/api/`**
+- [x] **4. Implementar cliente HTTP, queries e mutations em `src/features/fiscal-notes/api/`**
   - Criar `fiscal-notes.api.ts` (`previewFiscalNote`, `importFiscalNote`, `linkFiscalNote`, `getTransactionFiscalNote`, `unlinkTransactionFiscalNote`).
   - Criar `queries.ts` (`useTransactionFiscalNote`) e `mutations.ts` (`usePreviewFiscalNote`, `useImportFiscalNote`, `useLinkFiscalNote`, `useUnlinkFiscalNote`) com gerenciamento de cache e invalidações.
 
-- [ ] **5. Implementar hooks `useQrCodeScanner` e `useRetryCountdown` com testes unitários**
+- [x] **5. Implementar hooks `useQrCodeScanner` e `useRetryCountdown` com testes unitários**
   - Criar `src/features/fiscal-notes/hooks/useQrCodeScanner.ts` (câmera traseira preferencial, loop throttled 250ms, trava single-shot, cleanup seguro em Strict Mode, troca de câmera, torch, mapeamento de erros de permissão/hardware/HTTPS).
   - Criar `src/features/fiscal-notes/hooks/useRetryCountdown.ts`.
   - Escrever testes em `useQrCodeScanner.test.ts` e `qrBarcodeDetector.utils.test.ts`.

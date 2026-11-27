@@ -11,6 +11,20 @@ export const FISCAL_NOTES_QUERY_KEYS = {
     ['fiscal-notes', 'transaction', transactionId] as const,
 } as const
 
+/**
+ * Cross-module query key prefixes used strictly for TanStack Query invalidation
+ * without creating direct feature imports (preserving acyclic boundaries).
+ */
+export const FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES = {
+  transactions: ['transactions'] as const,
+  transactionDetail: (transactionId: string) =>
+    ['transactions', 'detail', transactionId] as const,
+  accounts: ['accounts'] as const,
+  dashboard: ['dashboard'] as const,
+} as const
+
+export const FISCAL_NOTE_DETAIL_STALE_TIME_MS = 5 * 60 * 1000
+
 export const FISCAL_NOTE_PAYMENT_METHOD_LABELS: Readonly<Record<string, string>> =
   {
     '01': 'Dinheiro',
