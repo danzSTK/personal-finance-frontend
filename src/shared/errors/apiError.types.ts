@@ -63,6 +63,11 @@ export type ApiErrorContext =
   | 'transactions.attachments.add'
   | 'transactions.attachments.reorder'
   | 'transactions.attachments.delete'
+  | 'fiscal-notes.preview'
+  | 'fiscal-notes.import'
+  | 'fiscal-notes.link'
+  | 'fiscal-notes.get'
+  | 'fiscal-notes.unlink'
   | 'generic'
 
 export interface ApiErrorPresentation {

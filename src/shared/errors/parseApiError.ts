@@ -110,7 +110,8 @@ export const parseRetryAfterSeconds = (error: unknown): number | null => {
   }
 
   const headerRetryAfter = parsePositiveInteger(
-    error.response?.headers?.['retry-after']
+    error.response?.headers?.['retry-after'] ??
+      error.response?.headers?.['Retry-After']
   )
 
   if (headerRetryAfter !== null) {

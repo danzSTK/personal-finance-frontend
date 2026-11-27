@@ -87,6 +87,23 @@ export const API_ERROR_CODES = {
   attachmentDimensionsExceeded: 'ATTACHMENT_DIMENSIONS_EXCEEDED',
   invalidAttachmentPosition: 'INVALID_ATTACHMENT_POSITION',
   transactionAttachmentNotFound: 'TRANSACTION_ATTACHMENT_NOT_FOUND',
+
+  fiscalNoteInvalidInput: 'FISCAL_NOTE_INVALID_INPUT',
+  invalidFiscalNote: 'INVALID_FISCAL_NOTE',
+  fiscalNoteNotFound: 'FISCAL_NOTE_NOT_FOUND',
+  fiscalNoteSefazNotFound: 'FISCAL_NOTE_SEFAZ_NOT_FOUND',
+  fiscalNoteAlreadyImported: 'FISCAL_NOTE_ALREADY_IMPORTED',
+  transactionAlreadyHasFiscalNote: 'TRANSACTION_ALREADY_HAS_FISCAL_NOTE',
+  transactionTypeDoesNotSupportFiscalNote:
+    'TRANSACTION_TYPE_DOES_NOT_SUPPORT_FISCAL_NOTE',
+  fiscalNoteUnsupportedUf: 'FISCAL_NOTE_UNSUPPORTED_UF',
+  fiscalNoteHomologationNotAllowed: 'FISCAL_NOTE_HOMOLOGATION_NOT_ALLOWED',
+  fiscalNoteCancelledOrDenied: 'FISCAL_NOTE_CANCELLED_OR_DENIED',
+  fiscalNoteRateLimitExceeded: 'FISCAL_NOTE_RATE_LIMIT_EXCEEDED',
+  fiscalNoteParseFailed: 'FISCAL_NOTE_PARSE_FAILED',
+  fiscalNoteResponseTooLarge: 'FISCAL_NOTE_RESPONSE_TOO_LARGE',
+  sefazTemporarilyUnavailable: 'SEFAZ_TEMPORARILY_UNAVAILABLE',
+  sefazTimeout: 'SEFAZ_TIMEOUT',
 } as const
 
 export type ApiErrorCode =

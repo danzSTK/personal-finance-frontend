@@ -186,3 +186,149 @@ describe('resolveApiError em transactions.balance-adjustment', () => {
     expect(fallback.recovery).toBe('retry')
   })
 })
+
+describe('resolveApiError em fiscal-notes', () => {
+  it.each([
+    {
+      code: API_ERROR_CODES.fiscalNoteInvalidInput,
+      status: 400,
+      expectedRecovery: 'correct-fields',
+    },
+    {
+      code: API_ERROR_CODES.invalidFiscalNote,
+      status: 400,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteNotFound,
+      status: 404,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteSefazNotFound,
+      status: 404,
+      expectedRecovery: 'correct-fields',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteAlreadyImported,
+      status: 409,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.transactionAlreadyHasFiscalNote,
+      status: 409,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.transactionTypeDoesNotSupportFiscalNote,
+      status: 409,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteUnsupportedUf,
+      status: 422,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteHomologationNotAllowed,
+      status: 422,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteCancelledOrDenied,
+      status: 422,
+      expectedRecovery: 'none',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteRateLimitExceeded,
+      status: 429,
+      expectedRecovery: 'retry',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteParseFailed,
+      status: 502,
+      expectedRecovery: 'retry',
+    },
+    {
+      code: API_ERROR_CODES.fiscalNoteResponseTooLarge,
+      status: 502,
+      expectedRecovery: 'retry',
+    },
+    {
+      code: API_ERROR_CODES.sefazTemporarilyUnavailable,
+      status: 503,
+      expectedRecovery: 'retry',
+    },
+    {
+      code: API_ERROR_CODES.sefazTimeout,
+      status: 504,
+      expectedRecovery: 'retry',
+    },
+  ])('resolve %s com copy segura e recovery esperado', ({ code, status, expectedRecovery }) => {
+    const error = resolveApiError(
+      makeApiError(code, status),
+      'fiscal-notes.preview'
+    )
+
+    expect(error.code).toBe(code)
+    expect(error.statusCode).toBe(status)
+    expect(error.recovery).toBe(expectedRecovery)
+    expect(error.title.length).toBeGreaterThan(0)
+    expect(error.description).not.toContain('técnica')
+    expect(error.description).not.toContain('/transactions/')
+  })
+
+  it('inclui retryAfterSeconds na descrição de FISCAL_NOTE_RATE_LIMIT_EXCEEDED e SEFAZ_TEMPORARILY_UNAVAILABLE', () => {
+    const rateLimited = resolveApiError(
+      makeApiError(API_ERROR_CODES.fiscalNoteRateLimitExceeded, 429, {
+        retryAfterSeconds: 45,
+      }),
+      'fiscal-notes.preview'
+    )
+    const unavailable = resolveApiError(
+      makeApiError(API_ERROR_CODES.sefazTemporarilyUnavailable, 503, {
+        retryAfterSeconds: 1,
+      }),
+      'fiscal-notes.import'
+    )
+
+    expect(rateLimited.retryAfterSeconds).toBe(45)
+    expect(rateLimited.description).toContain('45 segundos')
+    expect(rateLimited.recovery).toBe('retry')
+
+    expect(unavailable.retryAfterSeconds).toBe(1)
+    expect(unavailable.description).toContain('1 segundo')
+    expect(unavailable.recovery).toBe('retry')
+  })
+
+  it('contextualiza TRANSACTION_TYPE_DOES_NOT_SUPPORT_FISCAL_NOTE para edição e confirmação', () => {
+    const linkError = resolveApiError(
+      makeApiError(API_ERROR_CODES.transactionTypeDoesNotSupportFiscalNote, 409),
+      'fiscal-notes.link'
+    )
+    const updateError = resolveApiError(
+      makeApiError(API_ERROR_CODES.transactionTypeDoesNotSupportFiscalNote, 409),
+      'transactions.update'
+    )
+
+    expect(linkError.description).toContain('despesa')
+    expect(updateError.description).toContain('Desvincule a nota fiscal')
+  })
+
+  it.each([
+    'fiscal-notes.preview',
+    'fiscal-notes.import',
+    'fiscal-notes.link',
+    'fiscal-notes.get',
+    'fiscal-notes.unlink',
+  ] as const)('aplica fallback seguro para o contexto %s', (context) => {
+    const error = resolveApiError(
+      makeApiError('UNKNOWN_FISCAL_NOTE_ERROR', 422),
+      context
+    )
+
+    expect(error.recovery).toBe('retry')
+    expect(error.title.length).toBeGreaterThan(0)
+    expect(error.description).not.toContain('técnica')
+  })
+})

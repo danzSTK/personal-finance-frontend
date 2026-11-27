@@ -16,18 +16,18 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 
 ## Bloco 1 — Fundação, Contratos, Erros e Validação Local
 
-- [ ] **1. Instalar `barcode-detector` e configurar resolução self-hosted do `.wasm` no Vite**
+- [x] **1. Instalar `barcode-detector` e configurar resolução self-hosted do `.wasm` no Vite**
   - Adicionar `barcode-detector` ao `package.json`.
   - Criar `src/features/fiscal-notes/utils/qrBarcodeDetector.utils.ts` com `prepareZXingModule` apontando para o `.wasm` empacotado localmente e helper `decodeQrCodeFromImageFile(file)`.
   - Validar que `npm run build` empacota o `.wasm` em `dist/assets/` sem erro de TypeScript ou Vite.
 
-- [ ] **2. Registrar códigos e contextos de erro de `fiscal-notes` em `src/shared/errors/`**
+- [x] **2. Registrar códigos e contextos de erro de `fiscal-notes` em `src/shared/errors/`**
   - Adicionar os 15 códigos em `src/shared/errors/apiErrorCodes.ts`.
   - Adicionar os 5 contextos `fiscal-notes.*` em `src/shared/errors/apiError.types.ts`.
   - Mapear títulos, descrições acionáveis pt-BR e `recovery` em `src/shared/errors/resolveApiError.ts` (incluindo `retryAfterSeconds` e conflitos `409`).
   - Cobrir os novos códigos em `src/shared/errors/resolveApiError.test.ts`.
 
-- [ ] **3. Criar tipos, constantes, utilitários de parsing/formatação e schemas Zod de `fiscal-notes`**
+- [x] **3. Criar tipos, constantes, utilitários de parsing/formatação e schemas Zod de `fiscal-notes`**
   - Criar `src/features/fiscal-notes/constants/fiscal-notes.constants.ts`.
   - Criar `src/features/fiscal-notes/types/fiscal-note.types.ts` e `fiscal-note-ui.types.ts`.
   - Criar `src/features/fiscal-notes/utils/fiscalNoteInput.utils.ts` (parse URL QR v2/v3, payload `p`, chave 44d, mod-11, modelo `65`, UF `23`, produção, formatação em blocos de 4, máscara CNPJ), `fiscalNoteFormat.utils.ts` e `fiscalNoteError.utils.ts`.
