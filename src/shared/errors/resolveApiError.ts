@@ -597,6 +597,7 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
   },
   'fiscal-notes.import': saveFailure('importar a NFC-e'),
   'fiscal-notes.link': actionFailure('vincular a NFC-e à despesa'),
+  'fiscal-notes.list': loadFailure('as notas fiscais'),
   'fiscal-notes.get': loadFailure('a nota fiscal'),
   'fiscal-notes.unlink': actionFailure('desvincular a nota fiscal'),
   generic: serviceUnavailable(),
@@ -669,6 +670,18 @@ const resolveCopy = (
       description:
         'Desvincule a nota fiscal antes de alterar o tipo desta transação.',
       recovery: 'none',
+    }
+  }
+
+  if (
+    context === 'fiscal-notes.list' &&
+    code === API_ERROR_CODES.fiscalNoteInvalidInput
+  ) {
+    return {
+      title: 'Filtros inválidos',
+      description:
+        'Confira os filtros de data, valor ou CNPJ informados e tente novamente.',
+      recovery: 'correct-fields',
     }
   }
 

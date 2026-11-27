@@ -115,3 +115,63 @@ Ao clicar em *"Ver despesa existente"*, buscar a transação diretamente via `GE
 
 Consequences:
 Recuperação imediata e previsível independente dos filtros ou período ativos na tela `/transactions`.
+
+---
+
+## DEC-008 — Criar rota dedicada `/fiscal-notes` em vez de aba em `/transactions`
+
+Status: accepted
+
+Problem:
+Com a entrega de `GET /fiscal-notes` (com KPIs agregados, busca por estabelecimento/item e filtros próprios por emitente/CNPJ/UF/faixa de valor) e `GET /fiscal-notes/:id`, encaixar essa listagem como uma aba dentro de `/transactions` misturaria semânticas distintas (movimentações de fluxo de caixa vs. notas fiscais e listas de compras) e sobrecarregaria a barra de filtros e URL de `/transactions`.
+
+Decision:
+Criar a rota dedicada `/fiscal-notes` ("Notas fiscais"), posicionada na sidebar desktop do `AuthAppShell` logo abaixo de *Transações* (`NFC-e e compras`) e no topo do sheet *Mais* no mobile (preservando os 5 slots da barra inferior).
+
+Consequences:
+Separação clara de domínio e filtros específicos na URL, mantendo `/transactions` enxuta e permitindo evolução futura de inteligência de compras sem refatorar abas.
+
+---
+
+## DEC-009 — Exibir todo o histórico por padrão em `/fiscal-notes` (`issuedFrom`/`issuedTo` vazios)
+
+Status: accepted
+
+Problem:
+Diferente de lançamentos recorrentes mensais em `/transactions`, consultas a notas fiscais e compras passadas frequentemente buscam itens ou estabelecimentos ao longo de vários meses (garantias, comparação de preços, histórico de supermercado). Filtrar apenas o mês corrente por padrão esconderia a maior parte do histórico recém-importado.
+
+Decision:
+Iniciar `/fiscal-notes` com `issuedFrom` e `issuedTo` vazios (todo o histórico por padrão) e oferecer presets rápidos (*Este mês*, *Últimos 30 dias*, *Últimos 90 dias*, *Todo o período*) dentro do drawer de filtros.
+
+Consequences:
+Experiência imediata ao abrir a tela mesmo quando notas foram emitidas em meses anteriores, mantendo filtragem temporal rápida em um clique.
+
+---
+
+## DEC-010 — Usar compositor fino em `src/app/` para manter `fiscal-notes` acíclico com `Ler NFC-e` inline
+
+Status: accepted
+
+Problem:
+O usuário precisa acionar **Ler NFC-e** diretamente dentro da tela `/fiscal-notes`, o que exige abrir `FiscalNoteReaderSheet` em modo `import` alimentado por contas (`accounts`), categorias (`categories`), staging de anexos (`transactions`) e navegação para despesa existente — sem violar a fronteira acíclica estrita que proíbe `src/features/fiscal-notes/` de importar de outras features.
+
+Decision:
+Manter `FiscalNotesPage` dentro de `src/features/fiscal-notes/` livre de imports cross-feature, recebendo props opcionais (`onImportFiscalNote` / slot de leitor ou orquestração externa), e criar um compositor fino na camada `src/app/` que conecta `FiscalNotesPage` às contas, categorias, staging de anexos e navegação para `/transactions?openTransaction=<id>`.
+
+Consequences:
+Preserva a fronteira acíclica em `docs/architecture/module-boundaries.md` (zero imports de `transactions`, `accounts`, `categories` ou `auth` em `src/features/fiscal-notes/`), mantendo a tela autocontida e testável.
+
+---
+
+## DEC-011 — Navegar para despesa vinculada via deep-link `?openTransaction=<transactionId>`
+
+Status: accepted
+
+Problem:
+A partir de `/fiscal-notes` (linha da tabela, card mobile ou `FiscalNoteDetailsSheet`), o usuário precisa abrir a despesa vinculada mesmo que ela pertença a um mês ou página diferente do padrão atual de `/transactions`.
+
+Decision:
+Navegar para `/transactions?openTransaction=<transactionId>`. Em `TransactionsPage`, ler `openTransaction` na montagem/mudança de URL, buscar `GET /transactions/:id`, abrir `TransactionDetailsSheet` diretamente e limpar o query param `openTransaction` com `{ replace: true }`.
+
+Consequences:
+Desacoplamento total entre `/fiscal-notes` e `TransactionsPage`, reutilizando a infraestrutura já existente de `getTransactionById` e mantendo URLs compartilháveis e idempotentes.

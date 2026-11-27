@@ -93,3 +93,41 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 - [x] **13. Validação real ponta a ponta no ambiente (Supervisor / QA)**
   - Subir/conectar frontend + backend local (com PR `#146` rodando) e testar como cliente real no browser embarcado do Orca: captura manual (chave 44d / QR), foto com QR, preview, importação com anexo em staging, duplicata (`Ver despesa existente`), lista de compras com busca, bloqueio de troca de tipo, desvínculo e vínculo em despesa existente com divergência.
   - Delegar eventuais correções aos workers e finalizar revisão da PR.
+
+---
+
+## Extensão — Listagem Global (`/fiscal-notes`) e Detalhe Direto (`GET /fiscal-notes/:id`)
+
+### Bloco A — Spec SDD + Fundação de Listagem e Detalhe Direto
+- [x] **A1. Atualizar a Spec SDD (`requirements.md`, `design.md`, `decisions.md`, `tasks.md`)**
+  - Incorporar requisitos, contratos HTTP (`GET /fiscal-notes` e `GET /fiscal-notes/:id`), query keys, invalidações, erro `'fiscal-notes.list'`, compositor fino em `src/app/` e deep-link `?openTransaction=<id>`.
+- [x] **A2. Registrar contexto `'fiscal-notes.list'` em `src/shared/errors/`**
+  - Adicionar `'fiscal-notes.list'` em `apiError.types.ts`, mapear fallback `loadFailure('as notas fiscais')` e override de `FISCAL_NOTE_INVALID_INPUT` para filtros inválidos em `resolveApiError.ts`, com testes em `resolveApiError.test.ts`.
+- [x] **A3. Adicionar constantes, tipos e utilitários de URL/filtros de listagem**
+  - Atualizar `fiscal-notes.constants.ts` e `fiscal-note.types.ts` com contrato de listagem/sumário/ordenação/detalhe direto.
+  - Criar `fiscalNoteListUrl.utils.ts` (parse, build, query params, contador de filtros ativos e máscara/normalização de CNPJ) e `fiscalNoteListUrl.utils.test.ts`.
+- [x] **A4. Implementar camada HTTP, queries, invalidações e barrel público**
+  - Adicionar `listFiscalNotes` e `getFiscalNoteById` em `fiscal-notes.api.ts`.
+  - Adicionar `useFiscalNotesList` (`keepPreviousData`) e `useFiscalNoteById` (sem retry em `404`) em `queries.ts`.
+  - Atualizar `useImportFiscalNote`, `useLinkFiscalNote`, `useUnlinkFiscalNote` e `useDeleteTransaction` (em `transactions/api/mutations.ts`) para manter `lists()` e `details()` consistentes, exportar no `index.ts` e cobrir com testes.
+
+### Bloco B — Componentes de UI e Página `/fiscal-notes`
+- [ ] **B1. Adaptar `FiscalNoteDetailsSheet` para detalhe direto lazy (`GET /fiscal-notes/:id`) e deep-link**
+  - Suportar carregamento por `fiscalNoteId` (loading/skeleton, `ApiErrorAlert` com retry) além do objeto já carregado, e ação **Ver despesa vinculada** + **Desvincular**.
+- [ ] **B2. Criar componentes Atomic Design da listagem de notas fiscais**
+  - KPIs do recorte (`summary`), barra de busca (`120` chars, debounce ~350 ms) + ordenação (6 opções), drawer de filtros (`issuedFrom`/`issuedTo` + presets, faixa de valor, `issuerCnpj` mascarado, `sourceUf`, validação local), chips removíveis, tabela desktop + cards mobile com `itemsCount`, paginação (`10/20/50`) e estados (skeleton, empty sem filtros, empty com filtros, erro com retry).
+- [ ] **B3. Criar `FiscalNotesPage` em `src/features/fiscal-notes/` (sem imports cross-feature)**
+  - Orquestrar URL state, listagem, abertura do `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog` e slot/callback para **Ler NFC-e** inline e **Ver despesa vinculada**.
+  - Cobrir componentes e fluxos críticos com testes Vitest + Testing Library.
+
+### Bloco C — Navegação, Compositor Fino (`src/app/`) e Deep-Link em `TransactionsPage`
+- [ ] **C1. Atualizar navegação em `AuthAppShell` e `AUTH_ROUTES`**
+  - Adicionar item `Notas fiscais` (`NFC-e e compras`) abaixo de *Transações* na sidebar desktop e no topo do sheet *Mais* no mobile (mantendo 5 slots na barra inferior).
+- [ ] **C2. Criar compositor fino em `src/app/` e registrar rota `/fiscal-notes`**
+  - Conectar `FiscalNotesPage` ao `FiscalNoteReaderSheet` inline com contas, categorias, staging de anexos e abertura da despesa existente sem criar ciclos entre features.
+- [ ] **C3. Suportar `?openTransaction=<id>` em `TransactionsPage`**
+  - Ler `openTransaction` da URL, buscar via `GET /transactions/:id`, abrir `TransactionDetailsSheet` e limpar o query param via `{ replace: true }`.
+
+### Bloco D — Documentação Viva e QA Final
+- [ ] **D1. Sincronizar `docs/fiscal-notes/`, `docs/transactions/`, `docs/architecture/module-boundaries.md`, `docs/README.md` e `AGENTS.md` locais**
+- [ ] **D2. Verificação final automatizada (`lint`, `test`, `build`) e validação ponta a ponta no ambiente**

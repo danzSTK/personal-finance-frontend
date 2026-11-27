@@ -159,6 +159,14 @@ export const useDeleteTransaction = () => {
       queryClient.removeQueries({
         queryKey: FISCAL_NOTES_QUERY_KEYS.byTransaction(deletedTransactionId),
       })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+        exact: false,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.details(),
+        exact: false,
+      })
       invalidateTransactionData()
       toast({
         title: 'Transação excluída',

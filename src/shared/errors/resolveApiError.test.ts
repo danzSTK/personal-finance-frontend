@@ -315,10 +315,57 @@ describe('resolveApiError em fiscal-notes', () => {
     expect(updateError.description).toContain('Desvincule a nota fiscal')
   })
 
+  it('contextualiza FISCAL_NOTE_INVALID_INPUT para fiscal-notes.list sem afetar preview/import/link', () => {
+    const listError = resolveApiError(
+      makeApiError(API_ERROR_CODES.fiscalNoteInvalidInput, 400),
+      'fiscal-notes.list'
+    )
+    const previewError = resolveApiError(
+      makeApiError(API_ERROR_CODES.fiscalNoteInvalidInput, 400),
+      'fiscal-notes.preview'
+    )
+    const importError = resolveApiError(
+      makeApiError(API_ERROR_CODES.fiscalNoteInvalidInput, 400),
+      'fiscal-notes.import'
+    )
+    const linkError = resolveApiError(
+      makeApiError(API_ERROR_CODES.fiscalNoteInvalidInput, 400),
+      'fiscal-notes.link'
+    )
+
+    expect(listError.code).toBe(API_ERROR_CODES.fiscalNoteInvalidInput)
+    expect(listError.statusCode).toBe(400)
+    expect(listError.title).toBe('Filtros inválidos')
+    expect(listError.description).toContain('filtros de data, valor ou CNPJ')
+    expect(listError.recovery).toBe('correct-fields')
+
+    expect(previewError.title).toBe('Código da NFC-e inválido')
+    expect(importError.title).toBe('Código da NFC-e inválido')
+    expect(linkError.title).toBe('Código da NFC-e inválido')
+  })
+
+  it('resolve erro de rede e 500 em fiscal-notes.list com retry seguro', () => {
+    const network = resolveApiError(
+      { isAxiosError: true, message: 'ECONNREFUSED technical' },
+      'fiscal-notes.list'
+    )
+    const server = resolveApiError(
+      makeApiError('INTERNAL_SERVER_ERROR', 500),
+      'fiscal-notes.list'
+    )
+
+    expect(network.isNetworkError).toBe(true)
+    expect(network.recovery).toBe('retry')
+    expect(server.title).toBe('Serviço indisponível no momento')
+    expect(server.recovery).toBe('retry')
+    expect(server.description).not.toContain('técnica')
+  })
+
   it.each([
     'fiscal-notes.preview',
     'fiscal-notes.import',
     'fiscal-notes.link',
+    'fiscal-notes.list',
     'fiscal-notes.get',
     'fiscal-notes.unlink',
   ] as const)('aplica fallback seguro para o contexto %s', (context) => {

@@ -292,3 +292,96 @@ Na entrega final (via skill `modular-documentation`):
 - Criar documentação viva em `docs/fiscal-notes/{README.md, concepts/, flows/, decisions/, components/, reference/}` e `src/features/fiscal-notes/AGENTS.md`.
 - Atualizar `docs/transactions/` (`README.md`, `concepts/transaction-model-and-types.md`, `flows/create-edit-and-transfer.md`, `flows/confirm-and-delete-transaction.md`, `components/transaction-screen-components.md`, `reference/api-and-contracts.md`) e `src/features/transactions/AGENTS.md`.
 - Atualizar `docs/architecture/module-boundaries.md` (registrando o novo módulo `fiscal-notes` e sua relação acíclica com `transactions`) e `docs/README.md`.
+
+---
+
+## 11. Extensão — Listagem Global (`/fiscal-notes`) e Detalhe Direto (`GET /fiscal-notes/:id`)
+
+### 11.1 Arquitetura Acíclica e Compositor Fino em `src/app/`
+
+```mermaid
+flowchart TD
+  AppPage[src/app — FiscalNotesRoutePage compositor fino] --> FiscalNotes[src/features/fiscal-notes]
+  AppPage --> Accounts[src/features/accounts]
+  AppPage --> Categories[src/features/categories]
+  AppPage --> Transactions[src/features/transactions]
+  AppPage --> Auth[src/features/auth — AuthAppShell]
+  Transactions --> FiscalNotes
+  FiscalNotes --> Shared[src/shared]
+```
+
+- `src/features/fiscal-notes/` mantém **zero** imports de `transactions`, `accounts`, `categories` ou `auth`.
+- `FiscalNotesPage` (em `src/features/fiscal-notes/components/pages/FiscalNotesPage.tsx`) gerencia URL state, KPIs, busca, ordenação, filtros, tabela/cards, `FiscalNoteDetailsSheet` (lazy via `GET /fiscal-notes/:id`) e `FiscalNoteUnlinkDialog`.
+- Para a ação inline **Ler NFC-e**, `FiscalNotesPage` recebe `onImportFiscalNote` e/ou `renderReaderSheet` (ou um compositor fino em `src/app/` renderiza `FiscalNotesPage` + `FiscalNoteReaderSheet` em modo `import` conectado às contas, categorias, staging de anexos e navegação para `/transactions?openTransaction=<id>`).
+- Para **Ver despesa vinculada**, `FiscalNotesPage` navega para `/transactions?openTransaction=<transactionId>`.
+
+### 11.2 Rotas, Navegação e Parâmetros de URL
+
+| Recurso | Local | Mudança |
+| --- | --- | --- |
+| Rota dedicada | `src/features/auth/constants/auth.constants.ts` + `src/app/routes/index.tsx` | Adicionar `AUTH_ROUTES.fiscalNotes = '/fiscal-notes'` |
+| Navegação `AuthAppShell` | `src/features/auth/components/templates/AuthAppShell.tsx` | Sidebar desktop: item `Notas fiscais` (`NFC-e e compras`) abaixo de *Transações*; Mobile: manter 5 slots na barra inferior e inserir `Notas fiscais` no topo do sheet *Mais* |
+| URL de Listagem | `src/features/fiscal-notes/utils/fiscalNoteListUrl.utils.ts` | Query params: `q`, `issuedFrom`, `issuedTo`, `issuerCnpj`, `sourceUf`, `minAmountCents`, `maxAmountCents`, `sort`, `page`, `limit` |
+| Deep-link em `TransactionsPage` | `src/features/transactions/components/pages/TransactionsPage.tsx` | Ler `?openTransaction=<id>`, buscar `GET /transactions/:id`, abrir `TransactionDetailsSheet` e remover `openTransaction` com `{ replace: true }` |
+
+### 11.3 Contratos HTTP (`GET /fiscal-notes` e `GET /fiscal-notes/:id`)
+
+| Operação | Método & Rota | Request / Params | Response DTO |
+| --- | --- | --- | --- |
+| List | `GET /fiscal-notes` | `FiscalNoteListQueryParams` (`issuedFrom`, `issuedTo`, `issuerCnpj`, `sourceUf`, `minAmountCents`, `maxAmountCents`, `search`, `page`, `limit`, `sort`) | `FiscalNoteListResponse` (`object: 'fiscal_note.list'`, `data: FiscalNoteSummaryItem[]`, `meta: FiscalNoteListMeta`, `summary: FiscalNoteListSummaryTotals`) |
+| Get by ID | `GET /fiscal-notes/:id` | `:id` UUID | `FiscalNoteDetail` (`object: 'fiscal_note.item'`, com `items[]` e `payments[]` ordenados por `position ASC`) |
+
+#### Detalhamento dos Tipos e Constantes
+- **`FiscalNoteListSort`** (allowlist fechada): `'issuedAt:desc' | 'issuedAt:asc' | 'payableAmountCents:desc' | 'payableAmountCents:asc' | 'createdAt:desc' | 'createdAt:asc'` (padrão `'issuedAt:desc'`).
+- **Limites e Paginação:** `FISCAL_NOTE_LIST_DEFAULT_PAGE = 1`, `FISCAL_NOTE_LIST_DEFAULT_LIMIT = 20`, `FISCAL_NOTE_LIST_MAX_LIMIT = 100`, `FISCAL_NOTE_LIST_PAGE_SIZE_OPTIONS = [10, 20, 50]`, `FISCAL_NOTE_LIST_SEARCH_MAX_LENGTH = 120`.
+- **Período padrão:** `issuedFrom` e `issuedTo` iniciam `null` (todo o histórico). Presets no drawer (*Este mês*, *Últimos 30 dias*, *Últimos 90 dias*, *Todo o período*) calculam strings `DateOnly` (`YYYY-MM-DD`) via `src/shared/utils/dateOnly.ts`.
+- **Normalização de URL (`fiscalNoteListUrl.utils.ts`):**
+  - `parseFiscalNoteListUrlState(searchParams)` valida datas (`isValidDateOnly`) descartando `issuedFrom > issuedTo`, extrai CNPJ apenas quando exatamente 14 dígitos válidos, valida `sourceUf` (2 dígitos), valida inteiros `>= 0` descartando `minAmountCents > maxAmountCents`, aplica allowlist em `sort` e normaliza `page >= 1` e `limit` (`1..100`, opções `10/20/50`, fallback `20`).
+  - `buildFiscalNoteListSearchParams(state, patch)` omite valores vazios/nulos e padrões (`page === 1`, `limit === 20`, `sort === 'issuedAt:desc'`), preservando `0` em `minAmountCents`/`maxAmountCents`.
+
+### 11.4 TanStack Query Keys e Invalidações
+
+```ts
+export const FISCAL_NOTES_QUERY_KEYS = {
+  all: ['fiscal-notes'] as const,
+  lists: () => ['fiscal-notes', 'list'] as const,
+  list: (filters: FiscalNoteListQueryParams) =>
+    ['fiscal-notes', 'list', filters] as const,
+  details: () => ['fiscal-notes', 'detail'] as const,
+  detail: (fiscalNoteId: string) =>
+    ['fiscal-notes', 'detail', fiscalNoteId] as const,
+  byTransaction: (transactionId: string) =>
+    ['fiscal-notes', 'transaction', transactionId] as const,
+} as const
+```
+
+| Hook / Mutation | Comportamento de Cache e Invalidação |
+| --- | --- |
+| `useFiscalNotesList(params, { enabled })` | `queryKey: FISCAL_NOTES_QUERY_KEYS.list(params)`, `placeholderData: keepPreviousData`, `staleTime: 30_000`, `retry < 2` |
+| `useFiscalNoteById(fiscalNoteId, { enabled })` | `queryKey: FISCAL_NOTES_QUERY_KEYS.detail(id)`, `staleTime: 5 min`, sem retry em `404` / `FISCAL_NOTE_NOT_FOUND` |
+| `useImportFiscalNote()` | `setQueryData(byTransaction(txId), note)` + `setQueryData(detail(note.id), note)` + invalida `FISCAL_NOTES_QUERY_KEYS.lists()`, `transactions`, `accounts`, `dashboard` |
+| `useLinkFiscalNote()` | `setQueryData(byTransaction(txId), note)` + `setQueryData(detail(note.id), note)` + invalida `FISCAL_NOTES_QUERY_KEYS.lists()`, `transactions`, `transactionDetail(txId)` |
+| `useUnlinkFiscalNote()` | `removeQueries(byTransaction(txId))` + invalida `FISCAL_NOTES_QUERY_KEYS.lists()`, `FISCAL_NOTES_QUERY_KEYS.details()`, `transactions`, `transactionDetail(txId)` |
+| `useDeleteTransaction()` (`transactions/api/mutations.ts`) | `removeQueries(byTransaction(txId))` + invalida `FISCAL_NOTES_QUERY_KEYS.lists()` e `FISCAL_NOTES_QUERY_KEYS.details()` (via `@/features/fiscal-notes`) |
+
+### 11.5 Contexto de Erro `'fiscal-notes.list'` (`src/shared/errors/`)
+
+- Adicionar `'fiscal-notes.list'` em `ApiErrorContext` (`apiError.types.ts`).
+- Fallback de contexto em `resolveApiError.ts`: `loadFailure('as notas fiscais')`.
+- Override contextual para `400 FISCAL_NOTE_INVALID_INPUT` quando `context === 'fiscal-notes.list'`:
+  - Título: `'Filtros inválidos'`
+  - Descrição: `'Confira os filtros de data, valor ou CNPJ informados e tente novamente.'`
+  - Recuperação: `'correct-fields'`
+  - Preserva integralmente a mensagem de QR/chave nos contextos `'fiscal-notes.preview'`, `'fiscal-notes.import'` e `'fiscal-notes.link'`.
+
+### 11.6 Composição Atomic Design para `/fiscal-notes` (Bloco B)
+
+- **`molecules/`:**
+  - `FiscalNoteKpiStrip.tsx` (cards KPI do recorte com `totalPayableAmountCents`, `totalNotes`, `totalDiscountAmountCents`, `totalTaxAmountCents`);
+  - `FiscalNoteFilterChips.tsx` (chips removíveis para busca/filtros ativos + ação limpar tudo).
+- **`organisms/`:**
+  - `FiscalNoteFiltersSheet.tsx` (drawer/sheet com presets de data, `DateOnlyPicker`, faixa de valor `CurrencyInput`, CNPJ mascarado, `sourceUf` e validação local antes de aplicar);
+  - `FiscalNoteListTable.tsx` (tabela desktop + cards mobile com `itemsCount`, ações *Ver lista de compras*, *Ver despesa vinculada* e *Desvincular*);
+  - `FiscalNoteDetailsSheet.tsx` (adaptado para receber `fiscalNote` direto ou `fiscalNoteId` com fetch lazy via `useFiscalNoteById`, skeleton, `ApiErrorAlert` + retry, e CTA *Ver despesa vinculada*).
+- **`pages/`:**
+  - `FiscalNotesPage.tsx` (composição pura em `fiscal-notes` sem imports cross-feature, orquestrando URL, busca com debounce, ordenação, filtros, paginação e estados skeleton/empty/error).

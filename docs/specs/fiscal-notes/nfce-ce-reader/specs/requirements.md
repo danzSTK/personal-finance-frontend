@@ -34,9 +34,14 @@ Permitir que o usuário da **Danfy Finance** leia uma **Nota Fiscal de Consumido
 
 ## 2. Escopo
 
-### In Scope (V1)
+### In Scope (V1 + Extensão Listagem e Detalhe Direto)
 
-- Novo módulo dedicado `src/features/fiscal-notes/` com API pública via `src/features/fiscal-notes/index.ts`, já estruturado com componentes desacoplados para futura tela dedicada de lista de compras/notas fiscais.
+- Novo módulo dedicado `src/features/fiscal-notes/` com API pública via `src/features/fiscal-notes/index.ts`, com componentes desacoplados e tela dedicada de listagem consolidada de notas fiscais / listas de compras.
+- **Tela dedicada `/fiscal-notes` ("Notas fiscais"):**
+  - Item de navegação dedicado na sidebar desktop de `AuthAppShell` (abaixo de *Transações*, rótulo `Notas fiscais`, descrição `NFC-e e compras`);
+  - Barra inferior mobile permanece com 5 slots; `Notas fiscais` entra no topo do sheet *Mais*;
+  - Consumo paginado leve via `GET /fiscal-notes` e abertura lazy de detalhe completo via `GET /fiscal-notes/:id` no `FiscalNoteDetailsSheet`;
+  - KPIs do recorte (`totalPayableAmountCents`, `totalNotes`, `totalDiscountAmountCents`, `totalTaxAmountCents`), busca textual proeminente (`search`, até 120 chars, debounce ~350 ms), ordenação (`sort` com 6 opções allowlisted, padrão `issuedAt:desc`), drawer de filtros (`issuedFrom`/`issuedTo` com todo o histórico por padrão + presets rápidos, `minAmountCents`/`maxAmountCents`, `issuerCnpj`, `sourceUf`), chips de filtros ativos removíveis, paginação (`10 / 20 / 50`), estado sincronizado na URL e ações inline (**Ler NFC-e**, **Ver despesa vinculada** via `/transactions?openTransaction=<transactionId>`, e **Desvincular**).
 - Captura da NFC-e por **3 modos de entrada**:
   1. **Câmera ao vivo** via `barcode-detector` (`zxing-wasm`, self-hosted no bundle Vite, hook próprio `useQrCodeScanner`);
   2. **Foto / print da galeria** decodificado localmente via `BarcodeDetector.detect()`;
@@ -64,11 +69,11 @@ Permitir que o usuário da **Danfy Finance** leia uma **Nota Fiscal de Consumido
 - Mapeamento completo dos códigos de erro de `fiscal-notes` em `src/shared/errors/` com suporte a `retryAfterSeconds` (`429`/`503`) e recuperação de conflitos (`409`).
 - Testes automatizados (Vitest + Testing Library) e sincronização da documentação modular viva.
 
-### Out of Scope (V1)
+### Out of Scope
 
 - Suporte a outras UFs além do Ceará (`UF = 23`) — backend rejeita com `422 FISCAL_NOTE_UNSUPPORTED_UF`.
 - Edição dos dados da nota fiscal, itens ou formas de pagamento (imutáveis / read-only na V1).
-- Página/rota global listando todas as notas fiscais ou listas de compras manuais sem NFC-e (o backend ainda não expõe `GET /fiscal-notes` global; os componentes de visualização ficam preparados e desacoplados para essa evolução futura).
+- Listas de compras manuais desvinculadas de NFC-e (sem nota fiscal ou transação associada).
 - Categorização individual por item ou split automático de múltiplas formas de pagamento em múltiplas transações/contas.
 - Leitura de NF-e modelo `55` ou notas de ambiente de homologação (`tipo_ambiente = 2`).
 
@@ -258,6 +263,52 @@ Permitir que o usuário da **Danfy Finance** leia uma **Nota Fiscal de Consumido
   - nenhum indicador dependendo apenas de cor (sempre combinado com ícone e texto/label);
   - valores financeiros e quantidades renderizados com `.numeric`.
 
+### 4.8 Tela Dedicada `/fiscal-notes` (Listagem e Detalhe Direto)
+
+- **REQ-21 (Rota dedicada e navegação):**
+  THE SYSTEM SHALL disponibilizar a rota autenticada `/fiscal-notes` ("Notas fiscais"):
+  - na sidebar desktop do `AuthAppShell`, exibida abaixo de *Transações* com rótulo `Notas fiscais` e descrição `NFC-e e compras`;
+  - no mobile, mantendo a barra inferior com 5 slots e posicionando `Notas fiscais` no topo do sheet *Mais*.
+
+- **REQ-22 (KPIs do recorte):**
+  WHEN `GET /fiscal-notes` retornar `200 OK`
+  THE SYSTEM SHALL exibir 4 cartões de KPI refletindo `summary` do recorte filtrado:
+  1. `totalPayableAmountCents` (Total gasto nas notas filtradas, `.numeric`);
+  2. `totalNotes` (Quantidade de notas no recorte);
+  3. `totalDiscountAmountCents` (Total de descontos obtidos, `.numeric`);
+  4. `totalTaxAmountCents` (Tributos informativos acumulados, `.numeric`).
+
+- **REQ-23 (Busca textual proeminente e ordenação):**
+  THE SYSTEM SHALL oferecer campo de busca textual (`search`, máximo de 120 caracteres, debounce de ~350 ms) por nome do estabelecimento ou descrição de item, mantendo o parâmetro `q` sincronizado na URL e reiniciando para `page = 1` ao alterar a busca.
+  THE SYSTEM SHALL oferecer seletor de ordenação (`sort`) com as 6 opções allowlisted (`issuedAt:desc` como padrão, `issuedAt:asc`, `payableAmountCents:desc`, `payableAmountCents:asc`, `createdAt:desc`, `createdAt:asc`).
+
+- **REQ-24 (Drawer de filtros, presets, validação local, chips e URL):**
+  THE SYSTEM SHALL usar **todo o histórico por padrão** (`issuedFrom` e `issuedTo` vazios) e disponibilizar drawer/sheet de filtros com:
+  - Período (`issuedFrom` e `issuedTo` em `DateOnly`) com presets rápidos: *Este mês*, *Últimos 30 dias*, *Últimos 90 dias* e *Todo o período*;
+  - Faixa de valor (`minAmountCents` e `maxAmountCents`);
+  - CNPJ do emitente (`issuerCnpj`, entrada mascarada `00.000.000/0000-00` normalizada para 14 dígitos);
+  - UF de origem (`sourceUf`, opção suportada `23 - Ceará (CE)`).
+  THE SYSTEM SHALL validar localmente antes de aplicar filtros que `issuedFrom <= issuedTo`, `minAmountCents <= maxAmountCents` e que `issuerCnpj` (quando preenchido) contenha 14 dígitos válidos, exibir chips removíveis para filtros ativos e manter todos os parâmetros sincronizados na query string (`q`, `issuedFrom`, `issuedTo`, `issuerCnpj`, `sourceUf`, `minAmountCents`, `maxAmountCents`, `sort`, `page`, `limit`).
+
+- **REQ-25 (Listagem responsiva, paginação e detalhe lazy):**
+  THE SYSTEM SHALL renderizar a listagem de forma responsiva (tabela no desktop e cards no mobile) exibindo emitente, CNPJ/nº-série, data de emissão, `itemsCount` (quantidade de itens), desconto (quando `> 0`) e `payableAmountCents` (`.numeric`), com controles de paginação e seletor de tamanho de página (`10 / 20 / 50`, padrão `20`).
+  WHEN o usuário clicar em uma nota ou em **"Ver lista de compras"**
+  THE SYSTEM SHALL abrir `FiscalNoteDetailsSheet` buscando os detalhes completos sob demanda via `GET /fiscal-notes/:id`, exibindo estado de carregamento (skeleton), estado de erro via `ApiErrorAlert` com botão *Tentar novamente* em caso de falha, e itens/pagamentos ordenados quando carregados.
+
+- **REQ-26 (Ações na tela `/fiscal-notes` e deep-link para transação):**
+  THE SYSTEM SHALL oferecer diretamente em `/fiscal-notes`:
+  1. **Ler NFC-e** inline no cabeçalho da tela (e em mobile), composto por um compositor fino em `src/app/` para injetar contas, categorias, staging de anexos e abertura da despesa existente sem violar a fronteira acíclica de `src/features/fiscal-notes/`;
+  2. **Ver despesa vinculada** em cada linha/card e no `FiscalNoteDetailsSheet`, navegando por deep-link para `/transactions?openTransaction=<transactionId>` (que abre diretamente o `TransactionDetailsSheet` daquela despesa em `TransactionsPage`, limpando `openTransaction` da URL);
+  3. **Desvincular** diretamente da listagem ou do `FiscalNoteDetailsSheet` via `FiscalNoteUnlinkDialog`, atualizando a lista e os KPIs após confirmação.
+
+- **REQ-27 (Estados obrigatórios da listagem `/fiscal-notes`):**
+  THE SYSTEM SHALL exibir:
+  - **Loading inicial:** skeleton estrutural para KPIs e lista;
+  - **Paginação/refetch em andamento:** preservação dos dados anteriores (`keepPreviousData`) com feedback sutil de atualização;
+  - **Empty sem filtros:** estado vazio acolhedor com CTA principal **"Ler primeira NFC-e"**;
+  - **Empty com filtros/busca:** estado vazio informando ausência de resultados com CTA **"Limpar filtros"**;
+  - **Error:** `ApiErrorAlert` contextual (`'fiscal-notes.list'`, incluindo tratamento específico de `400 FISCAL_NOTE_INVALID_INPUT` para filtros inválidos) com ação **"Tentar novamente"**.
+
 ---
 
 ## 5. Critérios de Aceite Testáveis
@@ -269,4 +320,5 @@ Permitir que o usuário da **Danfy Finance** leia uma **Nota Fiscal de Consumido
 5. **Link com divergência:** exibe alerta comparativo quando valor ou data divergem, confirma via `POST /transactions/:id/fiscal-note` sem alterar a transação.
 6. **Lista de compras e Desvínculo:** `TransactionDetailsSheet` carrega nota sob demanda apenas quando `hasFiscalNote === true`, abre `FiscalNoteDetailsSheet` com busca funcional nos itens, copia chave formatada e desvincula com `AlertDialog` + `DELETE /transactions/:id/fiscal-note`.
 7. **Invariantes:** `TransactionFormSheet` bloqueia troca de `type` quando `hasFiscalNote === true`; `TransactionDeleteDialog` exibe aviso de remoção sincronizada.
-8. **Qualidade:** `npm run lint`, `npm test` e `npm run build` passam com 0 erros e 0 warnings.
+8. **Listagem `/fiscal-notes` e detalhe direto:** parsing/serialização segura da URL (todo o histórico por padrão, ranges inválidos descartados), busca com debounce, drawer de filtros com presets e validação, chips removíveis, paginação `10/20/50`, detalhe lazy via `GET /fiscal-notes/:id`, ação inline **Ler NFC-e**, deep-link `/transactions?openTransaction=<id>`, desvínculo direto e contexto de erro `'fiscal-notes.list'`.
+9. **Qualidade:** `npm run lint`, `npm test` e `npm run build` passam com 0 erros e 0 warnings, e `src/features/fiscal-notes/` mantém zero imports de outras features.

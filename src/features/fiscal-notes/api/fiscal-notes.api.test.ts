@@ -13,12 +13,15 @@ import type {
   FiscalNoteDetail,
   FiscalNoteImportRequest,
   FiscalNoteImportResponse,
+  FiscalNoteListResponse,
   FiscalNotePreviewResponse,
 } from '../types/fiscal-note.types'
 import {
+  getFiscalNoteById,
   getTransactionFiscalNote,
   importFiscalNote,
   linkFiscalNote,
+  listFiscalNotes,
   previewFiscalNote,
   unlinkTransactionFiscalNote,
 } from './fiscal-notes.api'
@@ -28,7 +31,11 @@ import {
   usePreviewFiscalNote,
   useUnlinkFiscalNote,
 } from './mutations'
-import { useTransactionFiscalNote } from './queries'
+import {
+  useFiscalNoteById,
+  useFiscalNotesList,
+  useTransactionFiscalNote,
+} from './queries'
 
 vi.mock('@/shared/config/axios', () => ({
   api: {
@@ -124,6 +131,47 @@ const mockImportResponse: FiscalNoteImportResponse = {
   fiscalNote: mockFiscalNoteDetail,
 }
 
+const mockFiscalNoteListResponse: FiscalNoteListResponse = {
+  object: 'fiscal_note.list',
+  data: [
+    {
+      object: 'fiscal_note.summary',
+      id: 'fn-1',
+      transactionId: 'tx-1',
+      accessKey: mockFiscalNoteDetail.accessKey,
+      sourceUf: '23',
+      number: '76054',
+      series: '103',
+      issuedAt: '2026-10-15T14:30:00.000Z',
+      issuerName: 'SUPERMERCADO EXEMPLO LTDA',
+      issuerCnpj: '03539462000250',
+      grossAmountCents: 3500,
+      discountAmountCents: 359,
+      payableAmountCents: 3141,
+      taxAmountCents: 420,
+      itemsCount: 8,
+      createdAt: '2026-10-15T14:35:00.000Z',
+      updatedAt: '2026-10-15T14:35:00.000Z',
+    },
+  ],
+  meta: {
+    total: 1,
+    page: 1,
+    limit: 20,
+    totalPages: 1,
+    hasNextPage: false,
+    hasPreviousPage: false,
+  },
+  summary: {
+    object: 'fiscal_note.summary_totals',
+    totalNotes: 1,
+    totalGrossAmountCents: 3500,
+    totalDiscountAmountCents: 359,
+    totalPayableAmountCents: 3141,
+    totalTaxAmountCents: 420,
+  },
+}
+
 const createTestQueryClient = () =>
   new QueryClient({
     defaultOptions: {
@@ -197,6 +245,118 @@ describe('fiscal-notes API client', () => {
     expect(api.delete).toHaveBeenCalledWith(
       FISCAL_NOTES_API_ENDPOINTS.byTransaction('tx-1')
     )
+  })
+
+  it('envia listFiscalNotes omitindo parâmetros vazios e preservando 0, e busca getFiscalNoteById', async () => {
+    vi.mocked(api.get)
+      .mockResolvedValueOnce({ data: mockFiscalNoteListResponse })
+      .mockResolvedValueOnce({ data: mockFiscalNoteDetail })
+
+    const listResult = await listFiscalNotes({
+      search: '   ',
+      issuedFrom: '',
+      issuedTo: undefined,
+      issuerCnpj: '03539462000250',
+      minAmountCents: 0,
+      maxAmountCents: 5000,
+      page: 1,
+      limit: 20,
+      sort: 'issuedAt:desc',
+    })
+
+    expect(api.get).toHaveBeenNthCalledWith(1, FISCAL_NOTES_API_ENDPOINTS.list, {
+      params: {
+        issuerCnpj: '03539462000250',
+        minAmountCents: 0,
+        maxAmountCents: 5000,
+        page: 1,
+        limit: 20,
+        sort: 'issuedAt:desc',
+      },
+    })
+    expect(listResult).toEqual(mockFiscalNoteListResponse)
+
+    const byIdResult = await getFiscalNoteById('fn-1')
+    expect(api.get).toHaveBeenNthCalledWith(
+      2,
+      FISCAL_NOTES_API_ENDPOINTS.byId('fn-1')
+    )
+    expect(byIdResult).toEqual(mockFiscalNoteDetail)
+  })
+})
+
+describe('useFiscalNotesList e useFiscalNoteById', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it('useFiscalNotesList consulta a listagem com query key filtrada e respeita enabled', async () => {
+    const queryClient = createTestQueryClient()
+    renderHook(() => useFiscalNotesList({ page: 1 }, { enabled: false }), {
+      wrapper: createWrapper(queryClient),
+    })
+    expect(api.get).not.toHaveBeenCalled()
+
+    vi.mocked(api.get).mockResolvedValueOnce({
+      data: mockFiscalNoteListResponse,
+    })
+    const params = { page: 1, limit: 20, sort: 'issuedAt:desc' as const }
+    const { result } = renderHook(() => useFiscalNotesList(params), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+
+    expect(api.get).toHaveBeenCalledWith(FISCAL_NOTES_API_ENDPOINTS.list, {
+      params,
+    })
+    expect(
+      queryClient.getQueryData(FISCAL_NOTES_QUERY_KEYS.list(params))
+    ).toEqual(mockFiscalNoteListResponse)
+  })
+
+  it('useFiscalNoteById busca por ID e não faz retry em 404 FISCAL_NOTE_NOT_FOUND', async () => {
+    const queryClient = createTestQueryClient()
+    renderHook(() => useFiscalNoteById(null), {
+      wrapper: createWrapper(queryClient),
+    })
+    expect(api.get).not.toHaveBeenCalled()
+
+    vi.mocked(api.get).mockResolvedValueOnce({ data: mockFiscalNoteDetail })
+    const { result } = renderHook(() => useFiscalNoteById('fn-1'), {
+      wrapper: createWrapper(queryClient),
+    })
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true))
+    expect(api.get).toHaveBeenCalledWith(FISCAL_NOTES_API_ENDPOINTS.byId('fn-1'))
+    expect(
+      queryClient.getQueryData(FISCAL_NOTES_QUERY_KEYS.detail('fn-1'))
+    ).toEqual(mockFiscalNoteDetail)
+
+    vi.clearAllMocks()
+    vi.mocked(api.get).mockRejectedValue({
+      isAxiosError: true,
+      response: {
+        status: 404,
+        data: {
+          statusCode: 404,
+          code: API_ERROR_CODES.fiscalNoteNotFound,
+          message: 'Fiscal note not found',
+          path: '/fiscal-notes/fn-missing',
+          timestamp: '2026-10-15T14:35:00.000Z',
+          details: null,
+        },
+      },
+    })
+
+    const retryClient = new QueryClient()
+    const { result: missingResult } = renderHook(
+      () => useFiscalNoteById('fn-missing'),
+      { wrapper: createWrapper(retryClient) }
+    )
+
+    await waitFor(() => expect(missingResult.current.isError).toBe(true))
+    expect(api.get).toHaveBeenCalledTimes(1)
   })
 })
 
@@ -316,6 +476,14 @@ describe('fiscal-notes mutations', () => {
       FISCAL_NOTES_QUERY_KEYS.byTransaction('tx-1'),
       mockFiscalNoteDetail
     )
+    expect(setQueryDataSpy).toHaveBeenCalledWith(
+      FISCAL_NOTES_QUERY_KEYS.detail('fn-1'),
+      mockFiscalNoteDetail
+    )
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+      exact: false,
+    })
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
       exact: false,
@@ -355,6 +523,14 @@ describe('fiscal-notes mutations', () => {
       FISCAL_NOTES_QUERY_KEYS.byTransaction('tx-1'),
       mockFiscalNoteDetail
     )
+    expect(setQueryDataSpy).toHaveBeenCalledWith(
+      FISCAL_NOTES_QUERY_KEYS.detail('fn-1'),
+      mockFiscalNoteDetail
+    )
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+      exact: false,
+    })
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
       exact: false,
@@ -365,7 +541,7 @@ describe('fiscal-notes mutations', () => {
     })
   })
 
-  it('useUnlinkFiscalNote remove cache da nota e invalida transactions e detalhe', async () => {
+  it('useUnlinkFiscalNote remove cache da nota e invalida lists, details, transactions e detalhe', async () => {
     vi.mocked(api.delete).mockResolvedValueOnce({ data: undefined })
     const queryClient = createTestQueryClient()
     queryClient.setQueryData(
@@ -392,6 +568,14 @@ describe('fiscal-notes mutations', () => {
     expect(
       queryClient.getQueryData(FISCAL_NOTES_QUERY_KEYS.byTransaction('tx-1'))
     ).toBeUndefined()
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+      exact: false,
+    })
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.details(),
+      exact: false,
+    })
     expect(invalidateSpy).toHaveBeenCalledWith({
       queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
       exact: false,

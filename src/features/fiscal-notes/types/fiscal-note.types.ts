@@ -152,3 +152,69 @@ export interface FiscalNoteAlreadyImportedDetails {
 export interface TransactionAlreadyHasFiscalNoteDetails {
   existingFiscalNoteId: string
 }
+
+export type FiscalNoteListSort =
+  | 'issuedAt:desc'
+  | 'issuedAt:asc'
+  | 'payableAmountCents:desc'
+  | 'payableAmountCents:asc'
+  | 'createdAt:desc'
+  | 'createdAt:asc'
+
+export interface FiscalNoteSummaryItem {
+  object: 'fiscal_note.summary'
+  id: string
+  transactionId: string
+  accessKey: string
+  sourceUf: string
+  number: string
+  series: string
+  issuedAt: string
+  issuerName: string
+  issuerCnpj: string
+  grossAmountCents: number
+  discountAmountCents: number
+  payableAmountCents: number
+  taxAmountCents: number
+  itemsCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface FiscalNoteListMeta {
+  total: number
+  page: number
+  limit: number
+  totalPages: number
+  hasNextPage: boolean
+  hasPreviousPage: boolean
+}
+
+export interface FiscalNoteListSummaryTotals {
+  object: 'fiscal_note.summary_totals'
+  totalNotes: number
+  totalGrossAmountCents: number
+  totalDiscountAmountCents: number
+  totalPayableAmountCents: number
+  totalTaxAmountCents: number
+}
+
+export interface FiscalNoteListResponse {
+  object: 'fiscal_note.list'
+  data: FiscalNoteSummaryItem[]
+  meta: FiscalNoteListMeta
+  summary: FiscalNoteListSummaryTotals
+}
+
+export interface FiscalNoteListQueryParams {
+  issuedFrom?: string
+  issuedTo?: string
+  issuerCnpj?: string
+  sourceUf?: string
+  minAmountCents?: number
+  maxAmountCents?: number
+  search?: string
+  page?: number
+  limit?: number
+  sort?: FiscalNoteListSort
+}

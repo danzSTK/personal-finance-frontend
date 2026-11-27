@@ -65,6 +65,7 @@ describe('TransactionDeleteDialog', () => {
       FISCAL_NOTES_QUERY_KEYS.byTransaction('tx-del-1'),
       { id: 'fn-1' }
     )
+    const invalidateSpy = vi.spyOn(queryClient, 'invalidateQueries')
     vi.mocked(api.delete).mockResolvedValueOnce({ data: undefined })
 
     const Wrapper = ({ children }: PropsWithChildren) => (
@@ -98,5 +99,13 @@ describe('TransactionDeleteDialog', () => {
         FISCAL_NOTES_QUERY_KEYS.byTransaction('tx-del-1')
       )
     ).toBeUndefined()
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+      exact: false,
+    })
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: FISCAL_NOTES_QUERY_KEYS.details(),
+      exact: false,
+    })
   })
 })

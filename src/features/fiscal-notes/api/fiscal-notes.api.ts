@@ -5,9 +5,56 @@ import type {
   FiscalNoteImportRequest,
   FiscalNoteImportResponse,
   FiscalNoteLinkRequest,
+  FiscalNoteListQueryParams,
+  FiscalNoteListResponse,
   FiscalNotePreviewRequest,
   FiscalNotePreviewResponse,
 } from '../types/fiscal-note.types'
+
+const cleanFiscalNoteListParams = (
+  params: FiscalNoteListQueryParams
+): FiscalNoteListQueryParams => {
+  const cleaned: FiscalNoteListQueryParams = {}
+
+  if (params.issuedFrom?.trim()) cleaned.issuedFrom = params.issuedFrom.trim()
+  if (params.issuedTo?.trim()) cleaned.issuedTo = params.issuedTo.trim()
+  if (params.issuerCnpj?.trim()) cleaned.issuerCnpj = params.issuerCnpj.trim()
+  if (params.sourceUf?.trim()) cleaned.sourceUf = params.sourceUf.trim()
+  if (typeof params.minAmountCents === 'number') {
+    cleaned.minAmountCents = params.minAmountCents
+  }
+  if (typeof params.maxAmountCents === 'number') {
+    cleaned.maxAmountCents = params.maxAmountCents
+  }
+  if (params.search?.trim()) cleaned.search = params.search.trim()
+  if (typeof params.page === 'number') cleaned.page = params.page
+  if (typeof params.limit === 'number') cleaned.limit = params.limit
+  if (params.sort) cleaned.sort = params.sort
+
+  return cleaned
+}
+
+/** Fetches the paginated list of active fiscal notes with optional filters and summary totals. */
+export const listFiscalNotes = async (
+  params: FiscalNoteListQueryParams = {}
+): Promise<FiscalNoteListResponse> => {
+  const cleanParams = cleanFiscalNoteListParams(params)
+  const { data } = await api.get<FiscalNoteListResponse>(
+    FISCAL_NOTES_API_ENDPOINTS.list,
+    { params: cleanParams }
+  )
+  return data
+}
+
+/** Fetches a single persisted fiscal note by its ID with ordered items and payments. */
+export const getFiscalNoteById = async (
+  fiscalNoteId: string
+): Promise<FiscalNoteDetail> => {
+  const { data } = await api.get<FiscalNoteDetail>(
+    FISCAL_NOTES_API_ENDPOINTS.byId(fiscalNoteId)
+  )
+  return data
+}
 
 /** Consults SEFAZ-CE preview data and duplicate status for a fiscal note input. */
 export const previewFiscalNote = async (

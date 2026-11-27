@@ -66,6 +66,7 @@ export type ApiErrorContext =
   | 'fiscal-notes.preview'
   | 'fiscal-notes.import'
   | 'fiscal-notes.link'
+  | 'fiscal-notes.list'
   | 'fiscal-notes.get'
   | 'fiscal-notes.unlink'
   | 'generic'

@@ -37,6 +37,14 @@ export const useImportFiscalNote = () => {
         FISCAL_NOTES_QUERY_KEYS.byTransaction(data.transaction.id),
         data.fiscalNote
       )
+      queryClient.setQueryData(
+        FISCAL_NOTES_QUERY_KEYS.detail(data.fiscalNote.id),
+        data.fiscalNote
+      )
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+        exact: false,
+      })
       void queryClient.invalidateQueries({
         queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
         exact: false,
@@ -67,6 +75,11 @@ export const useLinkFiscalNote = () => {
         FISCAL_NOTES_QUERY_KEYS.byTransaction(transactionId),
         data
       )
+      queryClient.setQueryData(FISCAL_NOTES_QUERY_KEYS.detail(data.id), data)
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+        exact: false,
+      })
       void queryClient.invalidateQueries({
         queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
         exact: false,
@@ -92,6 +105,14 @@ export const useUnlinkFiscalNote = () => {
     onSuccess: (_data, transactionId) => {
       queryClient.removeQueries({
         queryKey: FISCAL_NOTES_QUERY_KEYS.byTransaction(transactionId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+        exact: false,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.details(),
+        exact: false,
       })
       void queryClient.invalidateQueries({
         queryKey: FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES.transactions,
