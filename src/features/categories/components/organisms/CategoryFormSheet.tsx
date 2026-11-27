@@ -231,7 +231,7 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex h-12 items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
+                      'flex h-12 w-full items-center justify-center rounded-2xl border transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
                         ? 'border-primary bg-primary/15'
                         : 'border-border bg-secondary hover:border-primary/60 hover:bg-accent'
@@ -323,7 +323,7 @@ export function CategoryFormSheet({
                     key={option.value}
                     type="button"
                     className={cn(
-                      'flex min-h-11 items-center gap-2 rounded-2xl border px-3 py-2 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
+                      'flex h-11 w-full min-w-0 items-center gap-2 rounded-2xl border px-3 text-left text-sm transition focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-secondary',
                       isSelected
                         ? 'border-primary bg-primary/15 text-foreground'
                         : 'border-border bg-secondary text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground'
@@ -332,8 +332,8 @@ export function CategoryFormSheet({
                     aria-pressed={isSelected}
                     title={option.label}
                   >
-                    <Icon className="h-4 w-4" />
-                    {option.label}
+                    <Icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 truncate">{option.label}</span>
                   </button>
                 )
               })}
@@ -345,14 +345,14 @@ export function CategoryFormSheet({
                       type="button"
                       variant="outline"
                       className={cn(
-                        'flex min-h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 py-2 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
+                        'h-11 w-full justify-center rounded-2xl border-border bg-secondary px-3 text-muted-foreground hover:border-primary/60 hover:bg-accent hover:text-foreground',
                         isSelectedIconInOverflow &&
                           'border-primary bg-primary/15 text-foreground'
                       )}
                       aria-label="Mais ícones"
                       title="Mais ícones"
                     >
-                      <Ellipsis className="h-4 w-4" />
+                      <Ellipsis className="h-4 w-4 shrink-0" aria-hidden />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent
@@ -375,7 +375,7 @@ export function CategoryFormSheet({
                             onSelect={() => setIcon(option.value)}
                             title={option.label}
                           >
-                            <Icon className="h-4 w-4" />
+                            <Icon className="h-4 w-4 shrink-0" aria-hidden />
                             <span className="min-w-0 truncate">
                               {option.label}
                             </span>
