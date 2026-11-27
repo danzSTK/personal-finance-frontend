@@ -31,6 +31,7 @@ Referências do contrato backend: `personal-finance-backend:docs/auth/reference/
 | `accounts` | `/accounts` | Privada (`ACTIVE`) | Delegada ao módulo `accounts`. |
 | `categories` | `/categories` | Privada (`ACTIVE`) | Delegada ao módulo `categories`. |
 | `transactions` | `/transactions` | Privada (`ACTIVE`) | Delegada ao módulo `transactions`. |
+| `fiscalNotes` | `/fiscal-notes` | Privada (`ACTIVE`) | Delegada a `FiscalNotesRoutePage` (`src/app/pages/`) + módulo `fiscal-notes`. |
 | `settings` | `/settings` | Privada (`ACTIVE`) | Layout base de configurações. |
 | `settingsAccount` | `/settings/account` | Privada (`ACTIVE`) | Perfil, username e avatar. |
 | `settingsSecurity` | `/settings/security` | Privada (`ACTIVE`) | Providers, alteração de senha e sessões ativas. |

@@ -6,34 +6,72 @@ last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../flows/import-link-and-unlink.md
+  - ../flows/list-filter-and-inspect.md
   - ../components/surfaces-and-api.md
   - ../../architecture/api-error-handling.md
   - ../../architecture/module-boundaries.md
 ---
 
-# Referência de API, Query Keys, Schemas e Erros — `fiscal-notes`
+# Referência de API, Rotas, Query Keys, Schemas e Erros — `fiscal-notes`
 
-Fonte de verdade dos endpoints consumidos, chaves de cache, schemas de validação local, constantes de domínio e códigos de erro mapeados para `src/features/fiscal-notes/`.
+Fonte de verdade da rota frontend, dos endpoints consumidos, chaves de cache, parâmetros de listagem, schemas de validação local, constantes de domínio e códigos de erro mapeados para `src/features/fiscal-notes/`.
 
 Referência de contrato backend: `personal-finance-backend:docs/fiscal-notes/reference/http-and-error-contracts.md` e `personal-finance-backend:docs/integrations/frontend-error-handling.md`.
+
+## Rota Frontend
+
+| Rota | Compositor / Página | Query Params Suportados (`fiscalNoteListUrl.utils.ts`) |
+| --- | --- | --- |
+| `/fiscal-notes` | `FiscalNotesRoutePage` (`src/app/pages/`) → `FiscalNotesPage` | `q`, `issuedFrom`, `issuedTo`, `issuerCnpj`, `sourceUf`, `minAmountCents`, `maxAmountCents`, `sort`, `page`, `limit` |
 
 ## Endpoints Consumidos (`FISCAL_NOTES_API_ENDPOINTS`)
 
 | Método | Endpoint | Função / Hook | Cache / Invalidação |
 | --- | --- | --- | --- |
+| `GET` | `/fiscal-notes` | `listFiscalNotes` / `useFiscalNotesList` | Query key `FISCAL_NOTES_QUERY_KEYS.list(params)` (`staleTime: 30 s`, `placeholderData: keepPreviousData`, `retry < 2`) |
+| `GET` | `/fiscal-notes/:id` | `getFiscalNoteById` / `useFiscalNoteById` | Query key `FISCAL_NOTES_QUERY_KEYS.detail(id)` (`staleTime: 5 min`, sem retry em `404` / `FISCAL_NOTE_NOT_FOUND`, até 2 retries nos demais erros) |
 | `POST` | `/fiscal-notes/preview` | `previewFiscalNote` / `usePreviewFiscalNote` | Mutation (`retry: false`); sem invalidação (somente leitura) |
-| `POST` | `/fiscal-notes/import` | `importFiscalNote` / `useImportFiscalNote` | `setQueryData(byTransaction(res.transaction.id), res.fiscalNote)`; invalida `['transactions']`, `['accounts']`, `['dashboard']` (`exact: false`) |
-| `POST` | `/transactions/:id/fiscal-note` | `linkFiscalNote` / `useLinkFiscalNote` | `setQueryData(byTransaction(id), data)`; invalida `['transactions']` (`exact: false`) e `['transactions', 'detail', id]` |
+| `POST` | `/fiscal-notes/import` | `importFiscalNote` / `useImportFiscalNote` | `setQueryData(byTransaction(res.transaction.id), res.fiscalNote)` + `setQueryData(detail(res.fiscalNote.id), res.fiscalNote)`; invalida `lists()`, `['transactions']`, `['accounts']`, `['dashboard']` (`exact: false`) |
+| `POST` | `/transactions/:id/fiscal-note` | `linkFiscalNote` / `useLinkFiscalNote` | `setQueryData(byTransaction(id), data)` + `setQueryData(detail(data.id), data)`; invalida `lists()`, `['transactions']` (`exact: false`) e `['transactions', 'detail', id]` |
 | `GET` | `/transactions/:id/fiscal-note` | `getTransactionFiscalNote` / `useTransactionFiscalNote` | Query key `FISCAL_NOTES_QUERY_KEYS.byTransaction(id)` (`staleTime: 5 min`, sem retry em `404` / `FISCAL_NOTE_NOT_FOUND`, até 2 retries nos demais erros) |
-| `DELETE` | `/transactions/:id/fiscal-note` | `unlinkTransactionFiscalNote` / `useUnlinkFiscalNote` | `removeQueries(byTransaction(id))`; invalida `['transactions']` (`exact: false`) e `['transactions', 'detail', id]` |
+| `DELETE` | `/transactions/:id/fiscal-note` | `unlinkTransactionFiscalNote` / `useUnlinkFiscalNote` | `removeQueries(byTransaction(id))`; invalida `lists()`, `details()`, `['transactions']` (`exact: false`) e `['transactions', 'detail', id]` |
+
+> **Invalidação em `transactions` (`useDeleteTransaction`):** ao excluir uma transação em `src/features/transactions/api/mutations.ts`, também remove `FISCAL_NOTES_QUERY_KEYS.byTransaction(deletedTransactionId)` e invalida `FISCAL_NOTES_QUERY_KEYS.lists()` e `FISCAL_NOTES_QUERY_KEYS.details()` (`exact: false`).
+
+## Contrato de Listagem (`GET /fiscal-notes`)
+
+- **Query params (`FiscalNoteListQueryParams`):**
+  - `issuedFrom` (`DateOnly` `YYYY-MM-DD`, opcional)
+  - `issuedTo` (`DateOnly` `YYYY-MM-DD`, opcional)
+  - `issuerCnpj` (14 dígitos numéricos, opcional)
+  - `sourceUf` (UF 2 dígitos, ex.: `'23'`, opcional)
+  - `minAmountCents` (inteiro `>= 0`, opcional)
+  - `maxAmountCents` (inteiro `>= 0`, opcional)
+  - `search` (texto até `120` chars para estabelecimento ou descrição do item; na URL usa a chave `q`)
+  - `page` (`>= 1`, padrão `1`)
+  - `limit` (`1..100`, padrão `20`, opções na UI `10`, `20`, `50`)
+  - `sort` (`FiscalNoteListSort`, allowlist): `'issuedAt:desc'` (padrão), `'issuedAt:asc'`, `'payableAmountCents:desc'`, `'payableAmountCents:asc'`, `'createdAt:desc'`, `'createdAt:asc'`
+- **Resposta (`FiscalNoteListResponse`, `object: 'fiscal_note.list'`):**
+  - `data`: `FiscalNoteSummaryItem[]` (`object: 'fiscal_note.summary'`, inclui `itemsCount` sem `items[]`/`payments[]`)
+  - `meta`: `FiscalNoteListMeta` (`total`, `page`, `limit`, `totalPages`, `hasNextPage`, `hasPreviousPage`)
+  - `summary`: `FiscalNoteListSummaryTotals` (`object: 'fiscal_note.summary_totals'`, `totalNotes`, `totalGrossAmountCents`, `totalDiscountAmountCents`, `totalPayableAmountCents`, `totalTaxAmountCents`)
 
 ## Query Keys e Constantes (`src/features/fiscal-notes/constants/fiscal-notes.constants.ts`)
 
 | Constante | Valor / Estrutura | Uso |
 | --- | --- | --- |
 | `FISCAL_NOTES_QUERY_KEYS.all` | `['fiscal-notes']` | Raiz de queries de notas fiscais |
+| `FISCAL_NOTES_QUERY_KEYS.lists()` | `['fiscal-notes', 'list']` | Prefixo para invalidar todas as listagens paginadas |
+| `FISCAL_NOTES_QUERY_KEYS.list(filters)` | `['fiscal-notes', 'list', filters]` | Cache da listagem paginada por filtro |
+| `FISCAL_NOTES_QUERY_KEYS.details()` | `['fiscal-notes', 'detail']` | Prefixo para invalidar detalhes diretos |
+| `FISCAL_NOTES_QUERY_KEYS.detail(id)` | `['fiscal-notes', 'detail', id]` | Cache do detalhe direto (`GET /fiscal-notes/:id`) |
 | `FISCAL_NOTES_QUERY_KEYS.byTransaction(id)` | `['fiscal-notes', 'transaction', id]` | Cache da nota vinculada a uma transação |
 | `FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES` | `transactions`, `transactionDetail(id)`, `accounts`, `dashboard` | Prefixos literais para invalidação cross-module sem acoplamento de imports |
+| `FISCAL_NOTE_LIST_DEFAULT_PAGE` / `LIMIT` / `MAX_LIMIT` | `1` / `20` / `100` | Defaults e teto de paginação da listagem |
+| `FISCAL_NOTE_LIST_PAGE_SIZE_OPTIONS` | `[10, 20, 50]` | Opções do seletor de tamanho de página na UI |
+| `FISCAL_NOTE_LIST_SEARCH_MAX_LENGTH` | `120` | Limite de caracteres da busca por loja ou item |
+| `FISCAL_NOTE_LIST_SORTS` / `DEFAULT_SORT` | 6 opções / `'issuedAt:desc'` | Allowlist de ordenação e rótulos (`FISCAL_NOTE_LIST_SORT_OPTIONS`) |
+| `FISCAL_NOTE_SUPPORTED_UF_OPTIONS` | `[{ code: '23', label: 'Ceará (CE)' }]` | Opções de UF emissora no drawer de filtros |
 | `FISCAL_NOTE_DETAIL_STALE_TIME_MS` | `300_000` (`5 min`) | Retenção em cache da nota persistida (imutável na V1) |
 | `FISCAL_NOTE_PREVIEW_ITEMS_LIMIT` | `3` | Quantidade de itens exibidos na prévia de `FiscalNoteSummaryCard` |
 | `FISCAL_NOTE_ALLOWED_IMAGE_TYPES` | `['image/png', 'image/jpeg', 'image/webp']` | Tipos MIME aceitos para leitura de QR Code por foto |
@@ -53,6 +91,7 @@ Referência de contrato backend: `personal-finance-backend:docs/fiscal-notes/ref
 - `'fiscal-notes.preview'`
 - `'fiscal-notes.import'`
 - `'fiscal-notes.link'`
+- `'fiscal-notes.list'` (`loadFailure('as notas fiscais')`, com override contextual para `400 FISCAL_NOTE_INVALID_INPUT`: *"Filtros inválidos"* / `recovery: 'correct-fields'`)
 - `'fiscal-notes.get'`
 - `'fiscal-notes.unlink'`
 
@@ -60,7 +99,7 @@ Referência de contrato backend: `personal-finance-backend:docs/fiscal-notes/ref
 
 | Código Backend | HTTP | Superfície / Tratamento UX | Recuperação |
 | --- | --- | --- | --- |
-| `FISCAL_NOTE_INVALID_INPUT` | `400` | `ApiErrorAlert` (*"Código da NFC-e inválido"*) | `'correct-fields'` |
+| `FISCAL_NOTE_INVALID_INPUT` | `400` | Em `preview`/`import`/`link`: `ApiErrorAlert` (*"Código da NFC-e inválido"*); em `fiscal-notes.list`: override (*"Filtros inválidos"*) | `'correct-fields'` |
 | `INVALID_FISCAL_NOTE` | `400` | `ApiErrorAlert` (*"Não foi possível validar esta nota fiscal"*) | `'none'` |
 | `FISCAL_NOTE_NOT_FOUND` | `404` | `ApiErrorAlert` / sem retry na query (*"Nota fiscal não encontrada"*) | `'none'` |
 | `FISCAL_NOTE_SEFAZ_NOT_FOUND` | `404` | `ApiErrorAlert` (*"Nota fiscal não encontrada na SEFAZ-CE"*) | `'correct-fields'` |
@@ -78,5 +117,5 @@ Referência de contrato backend: `personal-finance-backend:docs/fiscal-notes/ref
 
 ## Escopo e Limites Conhecidos
 
-- Não existe rota dedicada para listagem global de notas fiscais na V1; o acesso ocorre via `/transactions` (fluxos de importação, vínculo e detalhes da despesa) e atalho rápido mobile `/transactions?view=EXPENSE&create=FISCAL_NOTE`.
+- A rota `/fiscal-notes` oferece listagem paginada, busca por loja/item, filtros combináveis e consulta de detalhe direto (`GET /fiscal-notes/:id`), mantendo o vínculo ativo 1:1 com despesas (`EXPENSE`) e todos os itens/pagamentos em modo somente leitura.
 - `parseTransactionAlreadyHasFiscalNoteDetails` está implementado em `utils/fiscalNoteError.utils.ts` como utilitário tipado auxiliar; atualmente o tratamento visual de `TRANSACTION_ALREADY_HAS_FISCAL_NOTE` ocorre via `resolveApiError` + `ApiErrorAlert`.

@@ -2,6 +2,7 @@
 area: transactions
 type: flow
 status: current
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../concepts/transaction-model-and-types.md
@@ -12,17 +13,17 @@ related:
 
 # Listagem, Filtros em URL, KPIs e Agrupamento por Dia
 
-Descreve o funcionamento da tela principal `/transactions`, incluindo sincronização de filtros na URL, KPIs por visão, agrupamento diário e consumo da intenção transitória `?create=`.
+Descreve o funcionamento da tela principal `/transactions`, incluindo sincronização de filtros na URL, KPIs por visão, agrupamento diário e consumo das intenções transitórias `?create=` e `?openTransaction=`.
 
 ## Atores, Pré-condições e Pontos de Entrada
 
 - **Ator:** usuário autenticado com e-mail verificado.
 - **Rota frontend:** `/transactions` (`PrivateRoute`, título `Danfy Finance | Transações`), envolvida em `AuthAppShell`.
-- **Pontos de entrada:** menu principal, deep links do `DashboardPage`, deep links de `AccountCard` (`Receitas`, `Despesas`, `Ver transações`), atalhos de `MobileQuickActions` (`/transactions?view=...&create=INCOME|EXPENSE|TRANSFER|FISCAL_NOTE`) e botão **"Ler NFC-e"** na barra de ações de `/transactions` (visões `ALL` e `EXPENSE`).
+- **Pontos de entrada:** menu principal, deep links do `DashboardPage`, deep links de `AccountCard` (`Receitas`, `Despesas`, `Ver transações`), atalhos de `MobileQuickActions` (`/transactions?view=...&create=INCOME|EXPENSE|TRANSFER|FISCAL_NOTE`), deep-link de `/fiscal-notes` (`/transactions?openTransaction=<id>`) e botão **"Ler NFC-e"** na barra de ações de `/transactions` (visões `ALL` e `EXPENSE`).
 
 ## Estado Sincronizado na URL (`transactionUrl.utils.ts`)
 
-`parseTransactionUrlState` e `buildTransactionSearchParams` governam todos os parâmetros compartilháveis:
+`parseTransactionUrlState`, `parseTransactionCreateIntent` e `parseTransactionOpenId` / `buildTransactionSearchParams` governam todos os parâmetros compartilháveis:
 
 | Parâmetro | Valores / Padrão | Comportamento |
 | --- | --- | --- |
@@ -30,10 +31,11 @@ Descreve o funcionamento da tela principal `/transactions`, incluindo sincroniza
 | `view` | `ALL \| EXPENSE \| INCOME \| TRANSFER \| ADJUSTMENT` (omitido se `ALL`) | Controla `type` enviado à API e formato dos KPIs |
 | `page` / `limit` | `page: 1`, `limit: 10 \| 20 \| 50 \| 100` (padrão `20`) | Qualquer alteração de período, visão, filtro, limite ou busca reseta `page` para `1` |
 | `q` | Texto livre (debounce `300ms`) | Filtragem de substring por descrição **no cliente** sobre a página atual (não enviado ao backend) |
-| `accountId` / `categoryId` | UUID opcional | `categoryId` é limpo automaticamente quando `view === 'TRANSFER'` |
+| `accountId` / `categoryId` | UUID opcional | `categoryId` é limpo automaticamente quando `view === 'TRANSFER'` ou `'ADJUSTMENT'` |
 | `status` | `PENDING \| EFFECTIVE` | Filtra lançamentos pendentes ou efetivados |
 | `dateFrom` / `dateTo` | `DateOnly` (`YYYY-MM-DD`) | Omitidos na URL quando coincidem com início/fim do mês selecionado; `compareDateOnly(dateFrom, dateTo) === 1` bloqueia aplicação no `TransactionFiltersSheet` |
 | `create` *(transitório)* | `INCOME \| EXPENSE \| TRANSFER \| ADJUSTMENT \| FISCAL_NOTE` | Abre `TransactionFormSheet` (`INCOME`/`EXPENSE`/`TRANSFER`), `BalanceAdjustmentSheet` (`ADJUSTMENT`) ou `FiscalNoteReaderSheet` em modo `import` (`FISCAL_NOTE`), removendo `create` da URL com `replace: true` |
+| `openTransaction` *(transitório)* | ID seguro (`/^[a-zA-Z0-9_-]{1,128}$/`, `parseTransactionOpenId`) | Remove `openTransaction` da URL via `clearTransactionOpenParam` (`{ replace: true }`), busca `GET /transactions/:id` (`TRANSACTION_QUERY_KEYS.detail(id)`), sincroniza automaticamente `period`, `dateFrom` e `dateTo` (e reseta `page` para `1`) para o mês de `transaction.date` caso difira do período atual, e abre `TransactionDetailsSheet`. Em falha, exibe `showApiErrorToast(error, 'transactions.detail')` |
 
 ## KPIs (`TransactionsKpiGrid`) e Agrupamento (`TransactionsTable`)
 

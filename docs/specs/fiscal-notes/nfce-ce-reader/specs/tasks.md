@@ -129,5 +129,5 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
   - Ler `openTransaction` da URL, buscar via `GET /transactions/:id`, abrir `TransactionDetailsSheet` e limpar o query param via `{ replace: true }`.
 
 ### Bloco D — Documentação Viva e QA Final
-- [ ] **D1. Sincronizar `docs/fiscal-notes/`, `docs/transactions/`, `docs/architecture/module-boundaries.md`, `docs/README.md` e `AGENTS.md` locais**
-- [ ] **D2. Verificação final automatizada (`lint`, `test`, `build`) e validação ponta a ponta no ambiente**
+- [x] **D1. Sincronizar `docs/fiscal-notes/`, `docs/transactions/`, `docs/architecture/module-boundaries.md`, `docs/README.md` e `AGENTS.md` locais**
+- [x] **D2. Verificação final automatizada (`lint`, `test`, `build`) e validação ponta a ponta no ambiente**

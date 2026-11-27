@@ -2,7 +2,7 @@
 area: auth
 type: index
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../architecture/module-boundaries.md

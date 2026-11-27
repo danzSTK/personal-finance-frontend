@@ -35,7 +35,7 @@ Cada módulo segue a estrutura modular A1 (`README.md`, `concepts/`, `flows/`, `
 - [Módulo `accounts`](./accounts/README.md) — Contas financeiras, templates institucionais/personalizados, saldo derivado, filtro de período e resumo detalhado.
 - [Módulo `auth`](./auth/README.md) — Autenticação por cookies HttpOnly, OAuth Google, verificação de e-mail, sessões, providers, alteração de senha, perfil/avatar, configurações e shell autenticado.
 - [Módulo `categories`](./categories/README.md) — Categorias de receitas e despesas (sistema e personalizadas), metadados visuais, arquivamento, exclusão e merge seguro.
-- [Módulo `fiscal-notes`](./fiscal-notes/README.md) — Leitor de NFC-e (SEFAZ-CE) via câmera, foto ou chave/URL, lista de compras vinculada 1:1 a despesas (`EXPENSE`), importação atômica e desvínculo.
+- [Módulo `fiscal-notes`](./fiscal-notes/README.md) — Leitor de NFC-e (SEFAZ-CE) via câmera, foto ou chave/URL, página dedicada `/fiscal-notes` com busca/filtros/KPIs, lista de compras vinculada 1:1 a despesas (`EXPENSE`), importação atômica e desvínculo.
 - [Módulo `transactions`](./transactions/README.md) — Lançamentos (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), filtros em URL, KPIs, confirmação de pendências, integração NFC-e e galeria de anexos.
 
 ### Especificações (Contratos de Mudança)

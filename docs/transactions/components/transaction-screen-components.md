@@ -75,7 +75,7 @@ TransactionsPage (pages/TransactionsPage.tsx)
 ## Responsabilidades Principais
 
 ### Páginas e Containers
-- **`TransactionsPage` (`pages/TransactionsPage.tsx`):** dona da leitura/escrita da query string via `transactionUrl.utils.ts` (incluindo `?create=FISCAL_NOTE`), do estado local dos modais/sheets abertos (`selectedTransaction`, modo `create`/`edit`, sheet de confirmação, diálogo de exclusão, sheet de filtros, `FiscalNoteReaderSheet`, `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog` e `stagedFiscalNoteAttachments`) e da orquestração das queries `useTransactions`, `useAccounts`, `useAccountSummary` e `useCategories` (receitas e despesas), além da busca imperativa `getTransactionById` ao abrir despesa duplicada de NFC-e.
+- **`TransactionsPage` (`pages/TransactionsPage.tsx`):** dona da leitura/escrita da query string via `transactionUrl.utils.ts` (incluindo `?create=FISCAL_NOTE` e `?openTransaction=<id>` com sincronização automática de período), do estado local dos modais/sheets abertos (`selectedTransaction`, modo `create`/`edit`, sheet de confirmação, diálogo de exclusão, sheet de filtros, `FiscalNoteReaderSheet`, `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog` e `stagedFiscalNoteAttachments`) e da orquestração das queries `useTransactions`, `useAccounts`, `useAccountSummary` e `useCategories` (receitas e despesas), além da busca imperativa `getTransactionById` ao abrir despesa duplicada de NFC-e ou via deep-link `?openTransaction=<id>`.
 - **`DashboardPage` (`src/features/auth/components/pages/DashboardPage.tsx`):** consome `usePendingTransactionRange` para receitas e despesas e constrói os deep links de pendências via `buildPendingDashboardTransactionsUrl`.
 
 ### Organismos de Listagem e Estado
@@ -102,7 +102,7 @@ TransactionsPage (pages/TransactionsPage.tsx)
 
 ## Ownership de Estado e Dependências
 
-- **URL (`useSearchParams`):** fonte de verdade para `view`, `status`, `accountId`, `categoryId`, `search`, `dateFrom`, `dateTo`, `sort`, `page`, `limit` e gatilho `?create=`.
+- **URL (`useSearchParams`):** fonte de verdade para `view`, `status`, `accountId`, `categoryId`, `search`, `dateFrom`, `dateTo`, `sort`, `page`, `limit` e gatilhos transitórios `?create=` e `?openTransaction=`.
 - **TanStack Query:** dono de todos os dados remotos (`useTransactions`, `usePendingTransactionRange`, `useTransactionAttachments` e mutações); não existe store Zustand em `transactions`.
 - **React Hook Form + Zod:** estado transitório dos formulários `TransactionFormSheet` (`transactionFormSchema`) e `TransactionConfirmSheet` (`transactionConfirmSchema`).
 - **Dependências cross-feature:**

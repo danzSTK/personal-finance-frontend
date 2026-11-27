@@ -2,9 +2,11 @@
 area: fiscal-notes
 type: flow
 status: current
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../concepts/nfce-ce-and-shopping-list.md
+  - ./list-filter-and-inspect.md
   - ../decisions/adr-qr-scanner-and-module-boundaries.md
   - ../components/surfaces-and-api.md
   - ../reference/api-and-error-codes.md
@@ -17,16 +19,18 @@ Descreve os fluxos completos de captura de NFC-e da SEFAZ-CE, consulta de prévi
 ## Atores, Pré-condições e Pontos de Entrada
 
 - **Ator:** usuário autenticado com e-mail verificado.
-- **Rota principal de orquestração:** `/transactions` (`TransactionsPage`). Não há rota dedicada para `/fiscal-notes` na V1.
+- **Rotas principais de orquestração:** `/transactions` (`TransactionsPage`) e `/fiscal-notes` (`FiscalNotesRoutePage` + `FiscalNotesPage`).
 - **Pontos de entrada — Modo `import` (nova despesa):**
   1. Botão **"Ler NFC-e"** na barra de ações de `/transactions` nas visões `ALL` e `EXPENSE` (desktop) ou no menu `...` (mobile).
-  2. Atalho **"Ler NFC-e"** no `MobileQuickActions` (`AuthAppShell`), navegando para `/transactions?view=EXPENSE&create=FISCAL_NOTE` (o parâmetro `create` é consumido e removido da URL com `replace: true`).
-  3. Atalho **"Importar via NFC-e"** dentro de `TransactionFormSheet` quando em modo `create` e `type === 'EXPENSE'`.
+  2. Botão **"Ler NFC-e"** (header ou estado vazio inicial) na tela dedicada `/fiscal-notes`, orquestrado inline por `FiscalNotesRoutePage`.
+  3. Atalho **"Ler NFC-e"** no `MobileQuickActions` (`AuthAppShell`), navegando para `/transactions?view=EXPENSE&create=FISCAL_NOTE` (o parâmetro `create` é consumido e removido da URL com `replace: true`).
+  4. Atalho **"Importar via NFC-e"** dentro de `TransactionFormSheet` quando em modo `create` e `type === 'EXPENSE'`.
 - **Pontos de entrada — Modo `link` (despesa existente):**
   1. Seção **Nota fiscal** em `TransactionDetailsSheet` quando `type === 'EXPENSE'` e `!transaction.hasFiscalNote`.
   2. Item **"Vincular NFC-e"** no menu contextual `...` de `TransactionsTable` (apenas `EXPENSE` sem nota vinculada).
 - **Pontos de entrada — Consulta e Desvínculo:**
-  - Card `FiscalNoteSummaryCard` em `TransactionDetailsSheet` (quando `type === 'EXPENSE'` e `hasFiscalNote === true`) → abre `FiscalNoteDetailsSheet` (*"Ver lista completa"*) ou `FiscalNoteUnlinkDialog` (*"Desvincular"*).
+  - Em `/transactions`: card `FiscalNoteSummaryCard` em `TransactionDetailsSheet` (quando `type === 'EXPENSE'` e `hasFiscalNote === true`) → abre `FiscalNoteDetailsSheet` (*"Ver lista completa"*) ou `FiscalNoteUnlinkDialog` (*"Desvincular"*).
+  - Em `/fiscal-notes`: listagem direta via `GET /fiscal-notes`, abertura lazy de `FiscalNoteDetailsSheet` via `GET /fiscal-notes/:id` e desvínculo via `FiscalNoteUnlinkDialog` (detalhado em [Listagem, Busca e Inspeção](./list-filter-and-inspect.md)).
 
 ## Fluxo Principal — Captura, Preview, Import e Link
 
@@ -62,7 +66,8 @@ flowchart TD
 
 ### Etapa 2A — Tratamento Proativo e Concorrente de Duplicata
 - Se `preview.alreadyImported === true` ou se qualquer mutação (`preview`, `import`, `link`) retornar `409 FISCAL_NOTE_ALREADY_IMPORTED` (`parseFiscalNoteAlreadyImportedDetails`), o `FiscalNoteDuplicateBanner` é exibido, os botões de confirmação são bloqueados e o botão **"Ver despesa existente"** chama `onOpenExistingTransaction(existingTransactionId)`.
-- Em `TransactionsPage`, `handleOpenExistingTransaction` busca `GET /transactions/:id` (`getTransactionById` via `queryClient.fetchQuery`), fecha `FiscalNoteReaderSheet` e abre `TransactionDetailsSheet` diretamente com a despesa encontrada — mesmo que ela pertença a outro mês ou página não carregada.
+- Em `TransactionsPage` (`/transactions`), `handleOpenExistingTransaction` busca `GET /transactions/:id` (`getTransactionById` via `queryClient.fetchQuery`), fecha `FiscalNoteReaderSheet` e abre `TransactionDetailsSheet` diretamente com a despesa encontrada — mesmo que ela pertença a outro mês ou página não carregada.
+- Em `FiscalNotesRoutePage` (`/fiscal-notes`), `openTransactionInPage` fecha o leitor e navega para `/transactions?openTransaction=<existingTransactionId>`.
 
 ### Etapa 2B — Importação com Staging de Anexos (`mode === 'import'`)
 1. O formulário (`fiscalNoteImportSchema`) é pré-preenchido com `suggestedTransaction` (`amountCents`, `date`, `description`, `status: 'EFFECTIVE'`), `accountId` padrão (se existir conta não arquivada com `isDefault`) e `categoryId` de despesa. Se `fiscalNote.payableAmountCents === 0`, um aviso orienta o usuário e o schema exige `amountCents >= 1`.
@@ -96,7 +101,7 @@ flowchart TD
 | Operação | Autenticação | Contrato relevante | Efeito / Cache | Erros e recuperação | Fonte |
 | --- | --- | --- | --- | --- | --- |
 | `POST /fiscal-notes/preview` | Cookie HttpOnly | `{ input }` | Mutation `retry: false`; sem cache persistido | `400`, `404`, `409`, `422`, `429`/`503` (countdown), `502`/`504` (`fiscal-notes.preview`) | `personal-finance-backend:docs/fiscal-notes/reference/http-and-error-contracts.md` |
-| `POST /fiscal-notes/import` | Cookie HttpOnly | `{ input, accountId, categoryId, amountCents?, date?, description?, status? }` | `setQueryData(byTransaction(tx.id))`, invalida `['transactions']`, `['accounts']`, `['dashboard']` | `applyApiFieldErrors`, `409` duplicata, `ApiErrorAlert` (`fiscal-notes.import`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-lifecycle.md` |
-| `POST /transactions/:id/fiscal-note` | Cookie HttpOnly | `{ input }` em `EXPENSE` sem nota | `setQueryData(byTransaction(id))`, invalida `['transactions']` e `['transactions', 'detail', id]` | `409` duplicata / já possui nota / tipo inválido, `ApiErrorAlert` (`fiscal-notes.link`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-lifecycle.md` |
+| `POST /fiscal-notes/import` | Cookie HttpOnly | `{ input, accountId, categoryId, amountCents?, date?, description?, status? }` | `setQueryData(byTransaction(tx.id))` + `setQueryData(detail(note.id))`, invalida `lists()`, `['transactions']`, `['accounts']`, `['dashboard']` | `applyApiFieldErrors`, `409` duplicata, `ApiErrorAlert` (`fiscal-notes.import`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-lifecycle.md` |
+| `POST /transactions/:id/fiscal-note` | Cookie HttpOnly | `{ input }` em `EXPENSE` sem nota | `setQueryData(byTransaction(id))` + `setQueryData(detail(note.id))`, invalida `lists()`, `['transactions']` e `['transactions', 'detail', id]` | `409` duplicata / já possui nota / tipo inválido, `ApiErrorAlert` (`fiscal-notes.link`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-lifecycle.md` |
 | `GET /transactions/:id/fiscal-note` | Cookie HttpOnly | Somente quando `hasFiscalNote === true` | `['fiscal-notes', 'transaction', id]` (`staleTime: 5 min`, sem retry em `404`) | `ApiErrorAlert` + retry (`fiscal-notes.get`) | `personal-finance-backend:docs/fiscal-notes/reference/http-and-error-codes.md` |
-| `DELETE /transactions/:id/fiscal-note` | Cookie HttpOnly | Path `:id`; preserva transação e libera chave | `removeQueries(byTransaction(id))`, invalida `['transactions']` e `['transactions', 'detail', id]` | `ApiErrorAlert` no `FiscalNoteUnlinkDialog` (`fiscal-notes.unlink`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-unlink.md` |
+| `DELETE /transactions/:id/fiscal-note` | Cookie HttpOnly | Path `:id`; preserva transação e libera chave | `removeQueries(byTransaction(id))`, invalida `lists()`, `details()`, `['transactions']` e `['transactions', 'detail', id]` | `ApiErrorAlert` no `FiscalNoteUnlinkDialog` (`fiscal-notes.unlink`) | `personal-finance-backend:docs/fiscal-notes/flows/import-link-and-unlink.md` |
