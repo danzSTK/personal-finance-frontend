@@ -17,7 +17,7 @@ Antes de planejar, editar ou revisar código neste módulo, leia:
 
 - **Fronteira acíclica estrita (`transactions -> fiscal-notes`, nunca o inverso):** `src/features/fiscal-notes/` **não** pode importar de `transactions`, `accounts`, `categories` ou `auth`. Consumidores externos devem importar exclusivamente via `@/features/fiscal-notes` (`src/features/fiscal-notes/index.ts`).
 - **Extensibilidade sem acoplamento:**
-  - Contas (`FiscalNoteAccountOption[]`) e categorias (`FiscalNoteCategoryOption[]`) chegam via props no modo `import`.
+  - Contas (`FiscalNoteAccountOption[]`) e categorias (`FiscalNoteCategoryOption[]`) chegam via props no modo `import`, que também aceita os slots opcionais `renderAccountField` e `renderCategoryField` (`FiscalNoteSelectFieldRenderer`) para seletores customizados com identidade visual injetados pelo consumidor (mantendo `<Select>` fallback para uso isolado).
   - Comprovantes/anexos em staging no fluxo de importação usam o slot `renderAttachmentsField` e o callback `onAfterImport` injetados por `TransactionsPage`.
   - Navegação para despesa duplicada usa o callback `onOpenExistingTransaction(transactionId)`.
   - Invalidação cross-module em `api/mutations.ts` usa exclusivamente prefixos literais definidos em `FISCAL_NOTES_EXTERNAL_QUERY_KEY_PREFIXES` (`['transactions']`, `['transactions', 'detail', transactionId]`, `['accounts']`, `['dashboard']`).

@@ -116,6 +116,43 @@ describe('fiscalNoteInput.utils', () => {
     if (contingencyResult.valid) {
       expect(contingencyResult.data.qrVersion).toBe('2')
       expect(contingencyResult.data.accessKey).toBe(VALID_CE_ACCESS_KEY)
+      expect(contingencyResult.data.normalizedInput).toBe(contingencyUrl)
+    }
+  })
+
+  it('aceita URL de QR Code v2 em contingência sem digVal normalizando para a chave de 44 dígitos', () => {
+    const realContingencyWithoutDigVal =
+      'http://nfce.sefaz.ce.gov.br/pages/ShowNFCe.html?p=23261103539462000250651030000832639499160820|2|1|25|15.63||1|D1042A26152D9548BC455EF1DCD7C3C538B5E2D9'
+
+    const result = parseFiscalNoteInput(realContingencyWithoutDigVal)
+
+    expect(result).toEqual({
+      valid: true,
+      data: {
+        accessKey: '23261103539462000250651030000832639499160820',
+        uf: '23',
+        model: '65',
+        environment: '1',
+        qrVersion: '2',
+        sourceType: 'url',
+        normalizedInput: '23261103539462000250651030000832639499160820',
+      },
+    })
+  })
+
+  it('rejeita QR Code v2 em contingência quando dia, valor, CSC ou hash estiverem ausentes', () => {
+    const missingDay = `https://nfce.sefaz.ce.gov.br/nfce/pagina?p=${VALID_CE_ACCESS_KEY}|2|1||15.63|digVal|1|HASH`
+    const missingAmount = `https://nfce.sefaz.ce.gov.br/nfce/pagina?p=${VALID_CE_ACCESS_KEY}|2|1|25||digVal|1|HASH`
+    const missingCsc = `https://nfce.sefaz.ce.gov.br/nfce/pagina?p=${VALID_CE_ACCESS_KEY}|2|1|25|15.63|digVal||HASH`
+    const missingHash = `https://nfce.sefaz.ce.gov.br/nfce/pagina?p=${VALID_CE_ACCESS_KEY}|2|1|25|15.63|digVal|1|`
+
+    for (const url of [missingDay, missingAmount, missingCsc, missingHash]) {
+      const result = parseFiscalNoteInput(url)
+      expect(result).toEqual({
+        valid: false,
+        error:
+          'O payload do QR Code v2 em contingência está com campos obrigatórios ausentes.',
+      })
     }
   })
 

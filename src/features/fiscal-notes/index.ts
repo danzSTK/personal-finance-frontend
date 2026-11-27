@@ -37,4 +37,6 @@ export type {
   FiscalNoteLinkTarget,
   FiscalNoteReaderMode,
   FiscalNoteReaderSheetState,
+  FiscalNoteSelectFieldRenderer,
+  FiscalNoteSelectFieldRenderProps,
 } from './types/fiscal-note-ui.types'

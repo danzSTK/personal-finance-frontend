@@ -2,8 +2,6 @@ import { useEffect, useMemo } from 'react'
 import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
-import { CircleDashed } from 'lucide-react'
-import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
@@ -37,6 +35,7 @@ import {
   getConfirmActionLabel,
   getTransactionTypeLabel,
 } from '../../utils/transaction.utils'
+import { AccountSelectLabel } from '../molecules/TransactionAccountSelect'
 
 interface TransactionConfirmSheetProps {
   state: TransactionConfirmSheetState
@@ -324,34 +323,6 @@ export function TransactionConfirmSheet({
         ) : null}
       </SheetContent>
     </Sheet>
-  )
-}
-
-interface AccountSelectLabelProps {
-  account: Account | null
-  fallback?: string
-}
-
-function AccountSelectLabel({
-  account,
-  fallback = 'Conta',
-}: AccountSelectLabelProps) {
-  if (!account) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <AccountIdentity account={account} size="sm" />
-      <span className="truncate">{account.name}</span>
-    </div>
   )
 }
 

@@ -89,6 +89,7 @@ import type {
   FiscalNoteCategoryOption,
   FiscalNoteLinkTarget,
   FiscalNoteReaderStep,
+  FiscalNoteSelectFieldRenderer,
 } from '../../types/fiscal-note-ui.types'
 import {
   getFiscalNoteRetryAfterSeconds,
@@ -122,6 +123,8 @@ export interface FiscalNoteReaderImportProps
   mode: 'import'
   accounts: FiscalNoteAccountOption[]
   categories: FiscalNoteCategoryOption[]
+  renderAccountField?: FiscalNoteSelectFieldRenderer
+  renderCategoryField?: FiscalNoteSelectFieldRenderer
   renderAttachmentsField?: FiscalNoteAttachmentsFieldRenderer
   onAfterImport?: (result: FiscalNoteImportResponse) => Promise<void> | void
 }
@@ -952,41 +955,56 @@ export function FiscalNoteReaderSheet(props: FiscalNoteReaderSheetProps) {
                   </div>
 
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <span className="block text-sm font-medium text-foreground">
                         Conta
                       </span>
-                      <Select
-                        value={form.watch('accountId')}
-                        onValueChange={(value) =>
-                          form.setValue('accountId', value, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          aria-label="Conta"
-                          aria-invalid={Boolean(form.formState.errors.accountId)}
-                          className={inputClassName}
+                      {props.renderAccountField ? (
+                        props.renderAccountField({
+                          value: form.watch('accountId'),
+                          onChange: (value) =>
+                            form.setValue('accountId', value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            }),
+                          disabled: isSubmittingImport,
+                          invalid: Boolean(form.formState.errors.accountId),
+                        })
+                      ) : (
+                        <Select
+                          value={form.watch('accountId')}
+                          onValueChange={(value) =>
+                            form.setValue('accountId', value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })
+                          }
                         >
-                          <SelectValue placeholder="Escolha uma conta">
-                            {selectedAccountName ?? 'Escolha uma conta'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent className="border-border bg-card text-foreground">
-                          {activeAccounts.map((account) => (
-                            <SelectItem
-                              key={account.id}
-                              value={account.id}
-                              hideIndicator
-                              className="focus:bg-accent focus:text-foreground"
-                            >
-                              {account.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          <SelectTrigger
+                            aria-label="Conta"
+                            aria-invalid={Boolean(
+                              form.formState.errors.accountId
+                            )}
+                            className={inputClassName}
+                          >
+                            <SelectValue placeholder="Escolha uma conta">
+                              {selectedAccountName ?? 'Escolha uma conta'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="border-border bg-card text-foreground">
+                            {activeAccounts.map((account) => (
+                              <SelectItem
+                                key={account.id}
+                                value={account.id}
+                                hideIndicator
+                                className="focus:bg-accent focus:text-foreground"
+                              >
+                                {account.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                       {form.formState.errors.accountId?.message ? (
                         <p className="text-xs font-medium text-destructive">
                           {form.formState.errors.accountId.message}
@@ -994,43 +1012,56 @@ export function FiscalNoteReaderSheet(props: FiscalNoteReaderSheetProps) {
                       ) : null}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="min-w-0 space-y-2">
                       <span className="block text-sm font-medium text-foreground">
                         Categoria
                       </span>
-                      <Select
-                        value={form.watch('categoryId')}
-                        onValueChange={(value) =>
-                          form.setValue('categoryId', value, {
-                            shouldDirty: true,
-                            shouldValidate: true,
-                          })
-                        }
-                      >
-                        <SelectTrigger
-                          aria-label="Categoria"
-                          aria-invalid={Boolean(
-                            form.formState.errors.categoryId
-                          )}
-                          className={inputClassName}
+                      {props.renderCategoryField ? (
+                        props.renderCategoryField({
+                          value: form.watch('categoryId'),
+                          onChange: (value) =>
+                            form.setValue('categoryId', value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            }),
+                          disabled: isSubmittingImport,
+                          invalid: Boolean(form.formState.errors.categoryId),
+                        })
+                      ) : (
+                        <Select
+                          value={form.watch('categoryId')}
+                          onValueChange={(value) =>
+                            form.setValue('categoryId', value, {
+                              shouldDirty: true,
+                              shouldValidate: true,
+                            })
+                          }
                         >
-                          <SelectValue placeholder="Escolha uma categoria">
-                            {selectedCategoryName ?? 'Escolha uma categoria'}
-                          </SelectValue>
-                        </SelectTrigger>
-                        <SelectContent className="border-border bg-card text-foreground">
-                          {expenseCategories.map((category) => (
-                            <SelectItem
-                              key={category.id}
-                              value={category.id}
-                              hideIndicator
-                              className="focus:bg-accent focus:text-foreground"
-                            >
-                              {category.displayName}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          <SelectTrigger
+                            aria-label="Categoria"
+                            aria-invalid={Boolean(
+                              form.formState.errors.categoryId
+                            )}
+                            className={inputClassName}
+                          >
+                            <SelectValue placeholder="Escolha uma categoria">
+                              {selectedCategoryName ?? 'Escolha uma categoria'}
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent className="border-border bg-card text-foreground">
+                            {expenseCategories.map((category) => (
+                              <SelectItem
+                                key={category.id}
+                                value={category.id}
+                                hideIndicator
+                                className="focus:bg-accent focus:text-foreground"
+                              >
+                                {category.displayName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                       {form.formState.errors.categoryId?.message ? (
                         <p className="text-xs font-medium text-destructive">
                           {form.formState.errors.categoryId.message}

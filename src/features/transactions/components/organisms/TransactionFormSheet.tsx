@@ -1,25 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 import {
   CheckCircle2,
-  CircleDashed,
   Clock3,
   QrCode,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
-import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
-import {
-  getCategoryColorOption,
-  getCategoryColorToken,
-  getCategoryIconKey,
-  getCategoryIconOption,
-} from '@/features/categories/utils/category.utils'
 import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
@@ -66,6 +58,8 @@ import {
   getTransactionFormDefaults,
   getTransactionTypeLabel,
 } from '../../utils/transaction.utils'
+import { TransactionAccountSelect } from '../molecules/TransactionAccountSelect'
+import { TransactionCategorySelect } from '../molecules/TransactionCategorySelect'
 import { TransactionAttachmentsGallery } from './TransactionAttachmentsGallery'
 import {
   type StagedTransactionAttachment,
@@ -211,17 +205,6 @@ export function TransactionFormSheet({
   const destinationAccounts = activeAccounts.filter(
     (account) => account.id !== form.watch('accountId')
   )
-  const selectedAccount =
-    activeAccounts.find((account) => account.id === form.watch('accountId')) ??
-    null
-  const selectedDestinationAccount =
-    activeAccounts.find(
-      (account) => account.id === form.watch('destinationAccountId')
-    ) ?? null
-  const selectedCategory =
-    availableCategories.find(
-      (category) => category.id === form.watch('categoryId')
-    ) ?? null
   const todayDate = getTodayDateOnly()
   const yesterdayDate = getYesterdayDateOnly()
   const effectiveStatusLabel =
@@ -654,33 +637,21 @@ export function TransactionFormSheet({
             label={effectiveType === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             error={form.formState.errors.accountId?.message}
           >
-            <Select
+            <TransactionAccountSelect
+              accounts={activeAccounts}
               value={form.watch('accountId')}
               onValueChange={setOriginAccount}
-            >
-              <SelectTrigger className={inputClassName}>
-                <AccountSelectLabel
-                  account={selectedAccount}
-                  fallback={
-                    effectiveType === 'TRANSFER'
-                      ? 'Escolha a origem'
-                      : 'Escolha uma conta'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="border-border bg-card text-foreground">
-                {activeAccounts.map((account) => (
-                  <SelectItem
-                    key={account.id}
-                    value={account.id}
-                    hideIndicator
-                    className="focus:bg-accent focus:text-foreground"
-                  >
-                    <AccountSelectLabel account={account} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={
+                effectiveType === 'TRANSFER'
+                  ? 'Escolha a origem'
+                  : 'Escolha uma conta'
+              }
+              ariaLabel={
+                effectiveType === 'TRANSFER' ? 'Conta de origem' : 'Conta'
+              }
+              invalid={Boolean(form.formState.errors.accountId)}
+              triggerClassName={inputClassName}
+            />
           </TransactionFormField>
 
           {effectiveType === 'TRANSFER' ? (
@@ -688,7 +659,8 @@ export function TransactionFormSheet({
               label="Conta de destino"
               error={form.formState.errors.destinationAccountId?.message}
             >
-              <Select
+              <TransactionAccountSelect
+                accounts={destinationAccounts}
                 value={form.watch('destinationAccountId') ?? ''}
                 onValueChange={(value) =>
                   form.setValue('destinationAccountId', value, {
@@ -696,26 +668,11 @@ export function TransactionFormSheet({
                     shouldValidate: true,
                   })
                 }
-              >
-                <SelectTrigger className={inputClassName}>
-                  <AccountSelectLabel
-                    account={selectedDestinationAccount}
-                    fallback="Escolha o destino"
-                  />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card text-foreground">
-                  {destinationAccounts.map((account) => (
-                    <SelectItem
-                      key={account.id}
-                      value={account.id}
-                      hideIndicator
-                      className="focus:bg-accent focus:text-foreground"
-                    >
-                      <AccountSelectLabel account={account} />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Escolha o destino"
+                ariaLabel="Conta de destino"
+                invalid={Boolean(form.formState.errors.destinationAccountId)}
+                triggerClassName={inputClassName}
+              />
             </TransactionFormField>
           ) : null}
 
@@ -742,7 +699,8 @@ export function TransactionFormSheet({
               label="Categoria"
               error={form.formState.errors.categoryId?.message}
             >
-              <Select
+              <TransactionCategorySelect
+                categories={availableCategories}
                 value={form.watch('categoryId') ?? ''}
                 onValueChange={(value) =>
                   form.setValue('categoryId', value, {
@@ -750,26 +708,11 @@ export function TransactionFormSheet({
                     shouldValidate: true,
                   })
                 }
-              >
-                <SelectTrigger className={inputClassName}>
-                  <CategorySelectLabel
-                    category={selectedCategory}
-                    fallback="Escolha uma categoria"
-                  />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card text-foreground">
-                  {availableCategories.map((category) => (
-                    <SelectItem
-                      key={category.id}
-                      value={category.id}
-                      hideIndicator
-                      className="focus:bg-accent focus:text-foreground"
-                    >
-                      <CategorySelectLabel category={category} />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Escolha uma categoria"
+                ariaLabel="Categoria"
+                invalid={Boolean(form.formState.errors.categoryId)}
+                triggerClassName={inputClassName}
+              />
             </TransactionFormField>
           ) : null}
 
@@ -870,76 +813,6 @@ function TransactionDescriptionField({
         }
       />
     </TransactionFormField>
-  )
-}
-
-interface AccountSelectLabelProps {
-  account: Account | null
-  fallback?: string
-}
-
-function AccountSelectLabel({
-  account,
-  fallback = 'Conta',
-}: AccountSelectLabelProps) {
-  if (!account) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <AccountIdentity account={account} size="sm" />
-      <span className="truncate">{account.name}</span>
-    </div>
-  )
-}
-
-interface CategorySelectLabelProps {
-  category: Category | null
-  fallback?: string
-}
-
-function CategorySelectLabel({
-  category,
-  fallback = 'Categoria',
-}: CategorySelectLabelProps) {
-  if (!category) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  const Icon = getCategoryIconOption(getCategoryIconKey(category)).icon
-  const color = getCategoryColorOption(
-    getCategoryColorToken(category),
-    category.type === 'INCOME' ? 'INCOME' : 'EXPENSE'
-  )
-  const style: CSSProperties = {
-    backgroundColor: color.hex,
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-foreground"
-        style={style}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="truncate">{category.displayName}</span>
-    </div>
   )
 }
 

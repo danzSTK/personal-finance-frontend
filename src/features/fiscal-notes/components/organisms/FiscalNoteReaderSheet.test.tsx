@@ -629,4 +629,105 @@ describe('FiscalNoteReaderSheet', () => {
       screen.getByLabelText('URL do QR Code ou chave de acesso')
     ).toHaveValue('')
   })
+
+  it('renderiza renderAccountField e renderCategoryField quando fornecidos no modo import e propaga onChange no submit', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    const customAccountId = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'
+    const customCategoryId = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+
+    vi.mocked(fiscalNotesApi.previewFiscalNote).mockResolvedValueOnce(
+      buildPreviewResponse()
+    )
+    vi.mocked(fiscalNotesApi.importFiscalNote).mockResolvedValueOnce({
+      object: 'fiscal_note.import',
+      transaction: {
+        id: 'tx-custom-slots-1',
+        accountId: customAccountId,
+        destinationAccountId: null,
+        categoryId: customCategoryId,
+        type: 'EXPENSE',
+        status: 'EFFECTIVE',
+        amountCents: 4090,
+        date: '2026-10-25',
+        effectiveAt: '2026-10-25T14:35:00.000Z',
+        description: 'SUPERMERCADO CENTRAL LTDA',
+        direction: null,
+        hasFiscalNote: true,
+        attachmentsCount: 0,
+        createdAt: '2026-10-25T14:40:00.000Z',
+        updatedAt: '2026-10-25T14:40:00.000Z',
+      },
+      fiscalNote: buildFiscalNoteDetail(),
+    })
+
+    render(
+      <FiscalNoteReaderSheet
+        open
+        mode="import"
+        accounts={mockAccounts}
+        categories={mockCategories}
+        renderAccountField={({ value, onChange, disabled, invalid }) => (
+          <select
+            aria-label="Conta personalizada"
+            value={value}
+            disabled={disabled}
+            aria-invalid={invalid}
+            onChange={(event) => onChange(event.target.value)}
+          >
+            <option value={mockAccounts[0].id}>Conta Corrente</option>
+            <option value={customAccountId}>Nubank</option>
+          </select>
+        )}
+        renderCategoryField={({ value, onChange, disabled, invalid }) => (
+          <select
+            aria-label="Categoria personalizada"
+            value={value}
+            disabled={disabled}
+            aria-invalid={invalid}
+            onChange={(event) => onChange(event.target.value)}
+          >
+            <option value="">Escolha uma categoria</option>
+            <option value={customCategoryId}>Supermercado</option>
+          </select>
+        )}
+        onOpenChange={onOpenChange}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    await user.type(
+      screen.getByLabelText('URL do QR Code ou chave de acesso'),
+      VALID_CE_ACCESS_KEY
+    )
+    await user.click(screen.getByRole('button', { name: 'Consultar nota' }))
+
+    const accountSelect = await screen.findByLabelText('Conta personalizada')
+    const categorySelect = screen.getByLabelText('Categoria personalizada')
+    expect(accountSelect).toHaveValue(mockAccounts[0].id)
+    expect(categorySelect).toHaveValue('')
+
+    await user.selectOptions(accountSelect, customAccountId)
+    await user.selectOptions(categorySelect, customCategoryId)
+
+    await user.click(
+      screen.getByRole('button', { name: 'Confirmar importação' })
+    )
+
+    await waitFor(() => {
+      expect(fiscalNotesApi.importFiscalNote).toHaveBeenCalledWith(
+        {
+          input: VALID_CE_ACCESS_KEY,
+          accountId: customAccountId,
+          categoryId: customCategoryId,
+          amountCents: 4090,
+          date: '2026-10-25',
+          description: 'SUPERMERCADO CENTRAL LTDA',
+          status: 'EFFECTIVE',
+        },
+        expect.anything()
+      )
+      expect(onOpenChange).toHaveBeenCalledWith(false)
+    })
+  })
 })

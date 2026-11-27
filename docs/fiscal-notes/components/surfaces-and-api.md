@@ -24,7 +24,7 @@ Consumidores externos devem importar exclusivamente de `@/features/fiscal-notes`
 | **Hooks** | `useTransactionFiscalNote`, `useUnlinkFiscalNote` | `TransactionDetailsSheet`, `FiscalNoteUnlinkDialog` / `mutations.ts` |
 | **Constantes** | `FISCAL_NOTES_QUERY_KEYS` | `TransactionsPage`, `useDeleteTransaction` (`transactions`) |
 | **Tipos de Domínio / API** | `FiscalNote`, `FiscalNoteDetail`, `FiscalNoteItem`, `FiscalNotePayment`, `FiscalNotePreviewDetail`, `FiscalNotePreviewItem`, `FiscalNotePreviewPayment`, `FiscalNotePreviewResponse`, `FiscalNoteImportRequest`, `FiscalNoteImportResponse` | `TransactionsPage`, `TransactionDetailsSheet` |
-| **Tipos de UI** | `FiscalNoteReaderSheetProps`, `FiscalNoteReaderImportProps`, `FiscalNoteReaderLinkProps`, `FiscalNoteReaderMode`, `FiscalNoteReaderSheetState`, `FiscalNoteLinkTarget`, `FiscalNoteAccountOption`, `FiscalNoteCategoryOption`, `FiscalNoteAttachmentsFieldRenderProps`, `FiscalNoteAttachmentsFieldRenderer`, e props dos demais organismos/átomos | `TransactionsPage`, `TransactionDetailsSheet` |
+| **Tipos de UI** | `FiscalNoteReaderSheetProps`, `FiscalNoteReaderImportProps`, `FiscalNoteReaderLinkProps`, `FiscalNoteReaderMode`, `FiscalNoteReaderSheetState`, `FiscalNoteLinkTarget`, `FiscalNoteAccountOption`, `FiscalNoteCategoryOption`, `FiscalNoteSelectFieldRenderProps`, `FiscalNoteSelectFieldRenderer`, `FiscalNoteAttachmentsFieldRenderProps`, `FiscalNoteAttachmentsFieldRenderer`, e props dos demais organismos/átomos | `TransactionsPage`, `TransactionDetailsSheet` |
 
 ## Árvore por Atomic Design
 
@@ -39,6 +39,7 @@ Organisms (orquestração local, hooks e RHF)
 │   ├── FiscalNoteTotalsCard (molecule — bruto, desconto, a pagar, tributos, troco)
 │   ├── FiscalNotePaymentsList (molecule — meios de pagamento informativos)
 │   ├── FiscalNoteDivergenceAlert (molecule — comparativo valor/data no modo link)
+│   ├── [slots renderAccountField / renderCategoryField] (opcionais; fallback para <Select> padrão)
 │   └── [slot renderAttachmentsField] (injetado por TransactionsPage para staging)
 ├── FiscalNoteSummaryCard (resumo para TransactionDetailsSheet com prévia de 3 itens)
 │   ├── FiscalNoteBadge (atom)

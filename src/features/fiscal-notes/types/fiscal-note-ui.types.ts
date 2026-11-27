@@ -57,3 +57,14 @@ export interface FiscalNoteAttachmentsFieldRenderProps {
 export type FiscalNoteAttachmentsFieldRenderer = (
   props: FiscalNoteAttachmentsFieldRenderProps
 ) => ReactNode
+
+export interface FiscalNoteSelectFieldRenderProps {
+  value: string
+  onChange: (value: string) => void
+  disabled: boolean
+  invalid: boolean
+}
+
+export type FiscalNoteSelectFieldRenderer = (
+  props: FiscalNoteSelectFieldRenderProps
+) => ReactNode

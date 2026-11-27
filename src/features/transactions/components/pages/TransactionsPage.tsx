@@ -83,6 +83,8 @@ import {
 } from '../../utils/transactionUrl.utils'
 import { BalanceAdjustmentSheet } from '../organisms/BalanceAdjustmentSheet'
 import { TransactionConfirmSheet } from '../organisms/TransactionConfirmSheet'
+import { TransactionAccountSelect } from '../molecules/TransactionAccountSelect'
+import { TransactionCategorySelect } from '../molecules/TransactionCategorySelect'
 import { TransactionCreateButton } from '../molecules/TransactionCreateButton'
 import { TransactionDeleteDialog } from '../organisms/TransactionDeleteDialog'
 import { TransactionDetailsSheet } from '../organisms/TransactionDetailsSheet'
@@ -306,6 +308,17 @@ export function TransactionsPage() {
       ...(incomeCategoriesResponse?.data ?? []),
     ],
     [expenseCategoriesResponse?.data, incomeCategoriesResponse?.data]
+  )
+  const activeAccounts = useMemo(
+    () => accounts.filter((account) => !account.isArchived),
+    [accounts]
+  )
+  const expenseCategories = useMemo(
+    () =>
+      categories.filter(
+        (category) => !category.isArchived && category.type === 'EXPENSE'
+      ),
+    [categories]
   )
   const fiscalNoteAccounts = useMemo<FiscalNoteAccountOption[]>(
     () =>
@@ -877,6 +890,26 @@ export function TransactionsPage() {
           mode="import"
           accounts={fiscalNoteAccounts}
           categories={fiscalNoteCategories}
+          renderAccountField={({ value, onChange, disabled, invalid }) => (
+            <TransactionAccountSelect
+              accounts={activeAccounts}
+              value={value}
+              onValueChange={onChange}
+              disabled={disabled}
+              invalid={invalid}
+              ariaLabel="Conta"
+            />
+          )}
+          renderCategoryField={({ value, onChange, disabled, invalid }) => (
+            <TransactionCategorySelect
+              categories={expenseCategories}
+              value={value}
+              onValueChange={onChange}
+              disabled={disabled}
+              invalid={invalid}
+              ariaLabel="Categoria"
+            />
+          )}
           renderAttachmentsField={({ disabled, isUploading }) => (
             <TransactionStagedAttachmentsField
               items={stagedFiscalNoteAttachments}

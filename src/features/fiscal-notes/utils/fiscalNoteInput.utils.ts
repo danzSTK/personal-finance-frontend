@@ -148,11 +148,18 @@ const parsePipePayload = (
     }
 
     if (parts.length === QR_V2_CONTINGENCY_PARTS) {
-      const hasMissingContingencyFields = parts
-        .slice(3, 8)
-        .some((part) => !part)
+      const contingencyIssueDay = parts[3] ?? ''
+      const contingencyTotalAmount = parts[4] ?? ''
+      const contingencyDigestValue = parts[5] ?? ''
+      const cscId = parts[6] ?? ''
+      const qrHash = parts[7] ?? ''
 
-      if (hasMissingContingencyFields) {
+      if (
+        !contingencyIssueDay ||
+        !contingencyTotalAmount ||
+        !cscId ||
+        !qrHash
+      ) {
         return {
           ok: false,
           error:
@@ -167,7 +174,7 @@ const parsePipePayload = (
           environment: '1',
           qrVersion: '2',
           sourceType,
-          normalizedInput,
+          normalizedInput: contingencyDigestValue ? normalizedInput : accessKey,
         },
       }
     }

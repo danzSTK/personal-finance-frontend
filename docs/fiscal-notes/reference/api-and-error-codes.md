@@ -44,7 +44,7 @@ Referência de contrato backend: `personal-finance-backend:docs/fiscal-notes/ref
 
 ## Schemas de Validação Local (`src/features/fiscal-notes/schemas/`)
 
-- **`fiscalNoteInputSchema` (`fiscalNoteInput.schema.ts`):** valida string não vazia até `1024` caracteres usando `parseFiscalNoteInput` (URL com parâmetro `p`, payload `p` ou chave 44d, QR v2 normal/contingência ou v3, ambiente `'1'`, modelo `'65'`, DV Módulo 11 válido e UF `'23'`).
+- **`fiscalNoteInputSchema` (`fiscalNoteInput.schema.ts`):** valida string não vazia até `1024` caracteres usando `parseFiscalNoteInput` (URL com parâmetro `p`, payload `p` ou chave 44d, QR v2 normal/contingência — normalizando QR v2 em contingência sem `digVal` para a chave de 44 dígitos — ou v3, ambiente `'1'`, modelo `'65'`, DV Módulo 11 válido e UF `'23'`).
 - **`fiscalNoteImportSchema` (`fiscalNoteImport.schema.ts`):** valida `accountId` (UUID), `categoryId` (UUID), `amountCents` (inteiro positivo `>= 1`, `<= Number.MAX_SAFE_INTEGER`), `date` (`isValidDateOnly`), `description` (1 a 500 caracteres) e `status` (`'EFFECTIVE' | 'PENDING'`).
 
 ## Contextos e Códigos de Erro (`src/shared/errors/`)

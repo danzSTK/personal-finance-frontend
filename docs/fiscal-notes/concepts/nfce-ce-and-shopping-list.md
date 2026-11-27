@@ -31,7 +31,7 @@ Na V1 do produto, a nota fiscal opera no **Modelo A** (associada em relação **
 | Origem (`sourceType`) | Formato aceito | Validações locais aplicadas |
 | --- | --- | --- |
 | `url` | URL HTTP/HTTPS do QR Code com query param `p` | Extrai `p` (decodificando `%7C` se necessário) e valida payload separado por `\|` |
-| `payload` | Payload `p=` ou string separada por `\|` | QR v2 normal (5 partes: chave, versão `2`, ambiente, CSC ID, hash), QR v2 contingência (8 partes não vazias) ou QR v3 (`>= 3` partes) |
+| `payload` | Payload `p=` ou string separada por `\|` | QR v2 normal (5 partes: chave, versão `2`, ambiente, CSC ID, hash), QR v2 contingência (8 partes com dia, valor, CSC ID e hash obrigatórios; se `digVal` estiver vazio (`\|\|`), normaliza `normalizedInput` para a chave de 44 dígitos para consulta via `/qrcodev3` no backend) ou QR v3 (`>= 3` partes) |
 | `access-key` | Chave numérica de 44 dígitos (aceita espaços/pontos/hífens na digitação) | Normaliza removendo não-dígitos; formata visualmente em 11 blocos de 4 dígitos |
 
 Regras estruturais verificadas na chave de 44 dígitos antes de chamar a API:

@@ -162,7 +162,7 @@ export const useDeleteTransaction = () => {
       invalidateTransactionData()
       toast({
         title: 'Transação excluída',
-        description: 'O lançamento saiu do histórico ativo.',
+        description: 'O lançamento foi excluído permanentemente.',
       })
     },
     onError: (error) => showApiErrorToast(error, 'transactions.delete'),

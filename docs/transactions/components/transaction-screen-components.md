@@ -67,7 +67,7 @@ TransactionsPage (pages/TransactionsPage.tsx)
 │   ├── BalanceAdjustmentSheet (organisms/)
 │   ├── TransactionConfirmSheet (organisms/)
 │   ├── TransactionDeleteDialog (organisms/)
-│   ├── FiscalNoteReaderSheet (cross-feature: fiscal-notes)  [slot renderAttachmentsField + onAfterImport + onOpenExistingTransaction]
+│   ├── FiscalNoteReaderSheet (cross-feature: fiscal-notes)  [slots renderAccountField, renderCategoryField, renderAttachmentsField + onAfterImport + onOpenExistingTransaction]
 │   ├── FiscalNoteDetailsSheet (cross-feature: fiscal-notes)
 │   └── FiscalNoteUnlinkDialog (cross-feature: fiscal-notes)
 ```
@@ -93,6 +93,8 @@ TransactionsPage (pages/TransactionsPage.tsx)
 - **`TransactionDeleteDialog` (`organisms/TransactionDeleteDialog.tsx`):** confirmação destrutiva para exclusão de lançamentos não-`TRANSFER`, exibindo aviso de remoção sincronizada da NFC-e quando `hasFiscalNote === true` e `ApiErrorAlert` em caso de falha.
 
 ### Moléculas
+- **`TransactionAccountSelect` / `AccountSelectLabel`:** seletor de conta reutilizável com `AccountIdentity` e truncamento seguro (usado em `TransactionFormSheet`, `TransactionFiltersSheet`, `TransactionConfirmSheet`, `BalanceAdjustmentSheet` e no slot `renderAccountField` do `FiscalNoteReaderSheet`).
+- **`TransactionCategorySelect` / `CategorySelectLabel`:** seletor de categoria reutilizável com ícone e cor da categoria (usado em `TransactionFormSheet`, `TransactionFiltersSheet` e no slot `renderCategoryField` do `FiscalNoteReaderSheet`).
 - **`TransactionCreateButton`:** gatilho principal de criação (aceita tipo inicial).
 - **`TransactionKpiCard`:** card de indicador com valor formatado em `tabular-nums`, variação/legenda e cor semântica Danfy.
 - **`TransactionStatusPill`:** badge semântico para `PENDING`, `EFFECTIVE` e `OVERDUE` (derivado visualmente de `PENDING` vencida).
