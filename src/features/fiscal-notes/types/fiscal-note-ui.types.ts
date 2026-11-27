@@ -6,6 +6,20 @@ export type FiscalNoteCaptureTab = 'camera' | 'image' | 'manual'
 
 export type FiscalNoteReaderStep = 'capture' | 'preview'
 
+export interface FiscalNoteAccountOption {
+  id: string
+  name: string
+  isArchived?: boolean
+  isDefault?: boolean
+}
+
+export interface FiscalNoteCategoryOption {
+  id: string
+  displayName: string
+  type: string
+  isArchived?: boolean
+}
+
 export interface FiscalNoteLinkTarget {
   id: string
   amountCents: number

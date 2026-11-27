@@ -47,18 +47,18 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 
 ## Bloco 3 — Componentes do Módulo `src/features/fiscal-notes/` (Atomic Design)
 
-- [ ] **6. Implementar atoms e molecules de visualização e captura da NFC-e**
+- [x] **6. Implementar atoms e molecules de visualização e captura da NFC-e**
   - Atoms: `FiscalNoteBadge.tsx`, `FiscalNoteItemRow.tsx`.
   - Molecules: `FiscalNoteAccessKeyField.tsx`, `FiscalNoteImageUploadPane.tsx`, `FiscalNoteDuplicateBanner.tsx`, `FiscalNoteDivergenceAlert.tsx`, `FiscalNoteTotalsCard.tsx`, `FiscalNotePaymentsList.tsx`, `FiscalNoteMetadataBlock.tsx`.
 
-- [ ] **7. Implementar organisms de visualização ("Lista de Compras") e desvínculo**
+- [x] **7. Implementar organisms de visualização ("Lista de Compras") e desvínculo**
   - `FiscalNoteItemsList.tsx` (reutilizável, busca/filtro por descrição e código na loja, estado vazio de busca).
   - `FiscalNoteSummaryCard.tsx` (card resumo + prévia dos 3 primeiros itens + CTA *"Ver lista completa"* + *"Desvincular"*).
   - `FiscalNoteDetailsSheet.tsx` (sheet completo da nota fiscal / lista de compras + cópia de chave + desvínculo).
   - `FiscalNoteUnlinkDialog.tsx` (`AlertDialog` de confirmação explicando preservação da transação e liberação da chave).
   - Testes em `FiscalNoteDetailsSheet.test.tsx`.
 
-- [ ] **8. Implementar `FiscalNoteQrScannerPane`, `FiscalNoteReaderSheet` e barrel `index.ts`**
+- [x] **8. Implementar `FiscalNoteQrScannerPane`, `FiscalNoteReaderSheet` e barrel `index.ts`**
   - `FiscalNoteQrScannerPane.tsx` (viewfinder Danfy Dark, controles de câmera/lanterna e fallback imediato para foto/manual).
   - `FiscalNoteReaderSheet.tsx` (Etapa 1: abas Câmera / Foto / Manual com default mobile=Câmera e desktop=Manual → Preview → Etapa 2: modo `import` com formulário completo + slot `renderAttachmentsField`, ou modo `link` com `FiscalNoteDivergenceAlert`; banner proativo de duplicata + countdown de retry).
   - Criar `src/features/fiscal-notes/index.ts` expondo apenas a API pública.
