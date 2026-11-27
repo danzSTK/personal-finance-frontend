@@ -2,7 +2,7 @@
 area: auth
 type: component
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../flows/authenticated-shell-routing.md
@@ -16,7 +16,7 @@ related:
   quick actions, conteúdo e `Toaster`.
 - `SettingsLayout` (template) adiciona `SettingsNav` e outlet; pages de settings
   compõem conteúdo real ou placeholder.
-- `MobileQuickActions` conecta shell aos intents de transactions/categories.
+- `MobileQuickActions` conecta o shell aos intents de `transactions` (`Receita`, `Despesa`, `Transferência`), `fiscal-notes` (**"Ler NFC-e"**, no slot central da 2ª linha via `AUTH_QUICK_ACTION_ROUTES.fiscalNote`) e `categories` (`Nova categoria`).
 - `useUser`, `useLogout`, `useAuthStore` e constantes de rota/UX fornecem dados
   e side effects.
 

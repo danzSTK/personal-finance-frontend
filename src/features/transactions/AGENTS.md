@@ -13,7 +13,8 @@ Antes de planejar, editar ou revisar código neste módulo, leia:
 - `docs/transactions/flows/balance-adjustment.md` — Reajuste de saldo por saldo alvo (`POST /transactions/balance-adjustments`) e ajuste manual (`ADJUSTMENT`).
 - `docs/transactions/flows/manage-attachments.md` — Galeria, upload (criação/edição/detalhes), reordenação dual e lightbox.
 - `docs/transactions/reference/api-and-contracts.md` — Endpoints, query keys, códigos de erro e gaps conhecidos.
-- `docs/architecture/module-boundaries.md` — Fronteiras com `accounts`, `categories` e `auth`.
+- `docs/fiscal-notes/README.md` — Módulo `fiscal-notes` consumido exclusivamente via `@/features/fiscal-notes`.
+- `docs/architecture/module-boundaries.md` — Fronteiras com `accounts`, `categories`, `fiscal-notes` e `auth`.
 
 ## Regras de Fronteira e Invariantes
 
@@ -24,8 +25,13 @@ Antes de planejar, editar ou revisar código neste módulo, leia:
   - `ADJUSTMENT` usa categoria técnica do backend, exige `direction` (`INCREASE`/`DECREASE`) e `description` obrigatória (até 500 caracteres) no modo manual e na edição, e omite `categoryId` na listagem/filtros.
   - Anexos são permitidos apenas para `INCOME` e `EXPENSE`.
 - **API pública (`src/features/transactions/index.ts`):** mantenha `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode` expostos exclusivamente por esse barrel para consumo em `accounts`.
+- **Integração com `fiscal-notes` (`@/features/fiscal-notes`) e invariantes de `hasFiscalNote`:**
+  - Consuma `FiscalNoteBadge`, `FiscalNoteSummaryCard`, `FiscalNoteReaderSheet`, `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog`, `useTransactionFiscalNote`, `FISCAL_NOTES_QUERY_KEYS` e tipos `FiscalNote*` exclusivamente pelo barrel `@/features/fiscal-notes` (fronteira acíclica `transactions -> fiscal-notes`).
+  - `hasFiscalNote?: boolean` aplica-se apenas a `EXPENSE`: exiba `FiscalNoteBadge` na tabela, seção **Nota fiscal** (consulta lazy via `useTransactionFiscalNote`) no `TransactionDetailsSheet` e ação *"Vincular NFC-e"* quando `!hasFiscalNote`.
+  - Quando `hasFiscalNote === true`, bloqueie troca de `type` para fora de `EXPENSE` no `TransactionFormSheet` (modo `edit`) e oriente no `TransactionConfirmSheet` (`TRANSACTION_TYPE_DOES_NOT_SUPPORT_FISCAL_NOTE`), e exiba aviso no `TransactionDeleteDialog` de que a nota vinculada também será removida e sua chave liberada.
+  - `?create=FISCAL_NOTE` abre `FiscalNoteReaderSheet` em modo `import` (com `TransactionStagedAttachmentsField` via slot `renderAttachmentsField` e upload pós-criação via `onAfterImport`); em duplicata, `onOpenExistingTransaction` busca `getTransactionById` (`GET /transactions/:id`) e abre `TransactionDetailsSheet`.
 - **Separação entre edição e confirmação:** `PATCH /transactions/:id` envia apenas campos alterados (diff-only) e **nunca** altera `status`; somente `PATCH /transactions/:id/confirm` efetiva lançamentos `PENDING`.
 - **Filtros em URL e deep links:** estado de tela (`period`, `view`, `page`, `limit`, `q`, `accountId`, `categoryId`, `status`, `dateFrom`, `dateTo`) é gerenciado via `transactionUrl.utils.ts`. Consultas de pendências do Dashboard (`usePendingTransactionRange`) não devem restringir `dateFrom`/`dateTo` para incluir pendências passadas e futuras.
 - **Anexos e cache de presigned URLs:** respeite os limites (`3` arquivos, `5 MB`, PNG/JPEG/WebP), `staleTime: 240_000` (menor que o TTL de 300s do R2), reordenação dual (drag-and-drop + menu acessível `Mover para esquerda/direita`) com rollback otimista, e em criação faça upload pós-criação fechando o formulário se o upload falhar para evitar duplicar o lançamento.
-- **Invalidação de cache:** toda mutação de transação (`create`, `update`, `confirm`, `delete`) invalida `['transactions']` **e** `ACCOUNT_QUERY_KEYS.accounts` (`['accounts']`).
+- **Invalidação de cache:** toda mutação de transação (`create`, `update`, `confirm`, `delete`) invalida `['transactions']` **e** `ACCOUNT_QUERY_KEYS.accounts` (`['accounts']`); `useDeleteTransaction` também remove `FISCAL_NOTES_QUERY_KEYS.byTransaction(deletedTransactionId)`.
 - **Sincronização documental:** toda mudança em fluxos, filtros de URL, endpoints, anexos ou invariantes exige atualização de `docs/transactions/` e deste `AGENTS.md` na mesma entrega.

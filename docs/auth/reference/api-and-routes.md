@@ -2,7 +2,7 @@
 area: auth
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../concepts/session-and-cookie-model.md
@@ -41,6 +41,7 @@ Atalhos rápidos (`AUTH_QUICK_ACTION_ROUTES`):
 - `income`: `/transactions?view=INCOME&create=INCOME`
 - `expense`: `/transactions?view=EXPENSE&create=EXPENSE`
 - `transfer`: `/transactions?view=TRANSFER&create=TRANSFER`
+- `fiscalNote`: `/transactions?view=EXPENSE&create=FISCAL_NOTE` (botão **"Ler NFC-e"** no `MobileQuickActions`)
 - `category`: `/categories?create=EXPENSE`
 
 ## Endpoints Consumidos (`AUTH_API_ENDPOINTS`)

@@ -2,7 +2,7 @@
 area: documentation
 type: index
 status: current
-last_reviewed: 2026-11-26
+last_reviewed: 2026-11-27
 related:
   - ./architecture/module-boundaries.md
   - ./architecture/api-error-handling.md
@@ -11,6 +11,7 @@ related:
   - ./accounts/README.md
   - ./auth/README.md
   - ./categories/README.md
+  - ./fiscal-notes/README.md
   - ./transactions/README.md
 ---
 
@@ -34,7 +35,8 @@ Cada módulo segue a estrutura modular A1 (`README.md`, `concepts/`, `flows/`, `
 - [Módulo `accounts`](./accounts/README.md) — Contas financeiras, templates institucionais/personalizados, saldo derivado, filtro de período e resumo detalhado.
 - [Módulo `auth`](./auth/README.md) — Autenticação por cookies HttpOnly, OAuth Google, verificação de e-mail, sessões, providers, alteração de senha, perfil/avatar, configurações e shell autenticado.
 - [Módulo `categories`](./categories/README.md) — Categorias de receitas e despesas (sistema e personalizadas), metadados visuais, arquivamento, exclusão e merge seguro.
-- [Módulo `transactions`](./transactions/README.md) — Lançamentos (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), filtros em URL, KPIs, confirmação de pendências e galeria de anexos.
+- [Módulo `fiscal-notes`](./fiscal-notes/README.md) — Leitor de NFC-e (SEFAZ-CE) via câmera, foto ou chave/URL, lista de compras vinculada 1:1 a despesas (`EXPENSE`), importação atômica e desvínculo.
+- [Módulo `transactions`](./transactions/README.md) — Lançamentos (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), filtros em URL, KPIs, confirmação de pendências, integração NFC-e e galeria de anexos.
 
 ### Especificações (Contratos de Mudança)
 - `docs/specs/<modulo>/<feature>/specs/` — Contratos de Spec-Driven Development (`requirements.md`, `design.md`, `tasks.md`, `decisions.md`) governados pela skill `spec-driven-development`.

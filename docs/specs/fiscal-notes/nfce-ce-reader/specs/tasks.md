@@ -82,12 +82,12 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 
 ## Bloco 5 — Qualidade, Documentação Viva e Validação Real no Ambiente
 
-- [ ] **11. Sincronizar documentação modular viva e `AGENTS.md`**
+- [x] **11. Sincronizar documentação modular viva e `AGENTS.md`**
   - Criar `src/features/fiscal-notes/AGENTS.md` e `docs/fiscal-notes/{README.md, concepts/, flows/, decisions/, components/, reference/}`.
   - Atualizar `docs/transactions/` e `src/features/transactions/AGENTS.md`.
   - Atualizar `docs/architecture/module-boundaries.md` e `docs/README.md`.
 
-- [ ] **12. Verificação técnica automatizada (`lint`, `test`, `build`)**
+- [x] **12. Verificação técnica automatizada (`lint`, `test`, `build`)**
   - Executar `npm run lint`, `npm test` e `npm run build` com 0 erros e 0 warnings.
 
 - [ ] **13. Validação real ponta a ponta no ambiente (Supervisor / QA)**

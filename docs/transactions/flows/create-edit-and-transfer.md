@@ -24,17 +24,18 @@ Descreve o fluxo do `TransactionFormSheet` (`side={isMobile ? 'bottom' : 'right'
 
 ## Fluxo de Criação (`mode: 'create'`)
 
-1. O formulário apresenta `CurrencyInput` (cent-first), switch de status (`EFFECTIVE` padrão vs. `PENDING`), presets de data (`Hoje`, `Ontem`, `Outro` → `DateOnlyPicker`), descrição (até 120 caracteres), conta de origem e:
+1. Quando o tipo selecionado é `EXPENSE` e `onImportFiscalNote` está presente, exibe um banner de atalho **"Importar via NFC-e"** que fecha o formulário e abre o `FiscalNoteReaderSheet` em modo `import`.
+2. O formulário apresenta `CurrencyInput` (cent-first), switch de status (`EFFECTIVE` padrão vs. `PENDING`), presets de data (`Hoje`, `Ontem`, `Outro` → `DateOnlyPicker`), descrição (até 500 caracteres), conta de origem e:
    - para `INCOME` / `EXPENSE`: seletor de categoria do mesmo tipo + `TransactionStagedAttachmentsField`;
    - para `TRANSFER`: seletor de conta de destino (impede `destinationAccountId === accountId`; mudar origem limpa destino se igual), sem categoria e sem anexos.
-2. Ao submeter, `transactionFormSchema` valida e envia `POST /transactions` (`useCreateTransaction`).
-3. Se houver arquivos em staging (`stagedAttachments.length > 0`), envia imediatamente `POST /transactions/:id/attachments` (`uploadTransactionAttachments`):
+3. Ao submeter, `transactionFormSchema` valida e envia `POST /transactions` (`useCreateTransaction`).
+4. Se houver arquivos em staging (`stagedAttachments.length > 0`), envia imediatamente `POST /transactions/:id/attachments` (`uploadTransactionAttachments`):
    - em sucesso: invalida anexos e fecha o sheet;
    - em falha no upload pós-criação: exibe `showApiErrorToast(..., 'transactions.attachments.add')`, limpa o staging e **fecha o sheet** para evitar que o usuário reenvie e duplique a transação já criada.
 
 ## Fluxo de Edição (`mode: 'edit'`)
 
-1. Expõe seletor de tipo (`EXPENSE`, `INCOME`, `TRANSFER`), oculta o switch de status (status não é editável por `PATCH`) e incorpora a galeria viva `TransactionAttachmentsGallery` quando o tipo for `INCOME` ou `EXPENSE`.
+1. Expõe seletor de tipo (`EXPENSE`, `INCOME`, `TRANSFER`) — desabilitado para `ADJUSTMENT` ou quando `transaction.hasFiscalNote === true` (exibindo orientação para desvincular a NFC-e antes de alterar o tipo) —, oculta o switch de status (status não é editável por `PATCH`) e incorpora a galeria viva `TransactionAttachmentsGallery` quando o tipo for `INCOME` ou `EXPENSE`.
 2. Constrói payload **diff-only** (`UpdateTransactionDto`) contendo apenas campos alterados; se não houver diferença, fecha o sheet sem chamada HTTP.
 3. Envia `PATCH /transactions/:id` (`useUpdateTransaction`), invalidando `['transactions']` e `['accounts']` (`exact: false`) em sucesso.
 

@@ -2,7 +2,7 @@
 area: transactions
 type: reference
 status: current
-last_reviewed: 2026-11-25
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../concepts/transaction-model-and-types.md
@@ -12,6 +12,7 @@ related:
   - ../flows/balance-adjustment.md
   - ../flows/confirm-and-delete-transaction.md
   - ../flows/manage-attachments.md
+  - ../../fiscal-notes/reference/api-and-error-codes.md
   - ../../architecture/api-error-handling.md
   - ../../architecture/module-boundaries.md
 ---
@@ -24,7 +25,7 @@ Fonte de verdade dos endpoints consumidos, chaves de cache, parâmetros de URL, 
 
 | Rota | Página | Query Params Suportados (`transactionUrl.utils.ts`) |
 | --- | --- | --- |
-| `/transactions` | `TransactionsPage` | `view` (`ALL` \| `INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT`), `status` (`PENDING` \| `EFFECTIVE`), `accountId`, `categoryId`, `search`, `dateFrom` (`YYYY-MM-DD`), `dateTo` (`YYYY-MM-DD`), `sort`, `page`, `limit`, `create` (`INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT`) |
+| `/transactions` | `TransactionsPage` | `view` (`ALL` \| `INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT`), `status` (`PENDING` \| `EFFECTIVE`), `accountId`, `categoryId`, `search`, `dateFrom` (`YYYY-MM-DD`), `dateTo` (`YYYY-MM-DD`), `sort`, `page`, `limit`, `create` (`INCOME` \| `EXPENSE` \| `TRANSFER` \| `ADJUSTMENT` \| `FISCAL_NOTE`) |
 
 ## Endpoints Próprios Consumidos (`src/features/transactions/api/`)
 
@@ -33,12 +34,12 @@ Referência do contrato backend: `personal-finance-backend:docs/transactions/ref
 | Método | Endpoint | Função / Hook | Cache / Invalidação |
 | --- | --- | --- | --- |
 | `GET` | `/transactions` | `getTransactions` / `useTransactions`, `usePendingTransactionRange` | Query key `TRANSACTION_QUERY_KEYS.list(params)` (`['transactions', 'list', params]`) |
-| `GET` | `/transactions/:id` | `getTransaction` / `useTransaction` *(sem consumidor atual na UI)* | Query key `TRANSACTION_QUERY_KEYS.detail(id)` (`['transactions', 'detail', id]`) |
+| `GET` | `/transactions/:id` | `getTransactionById` / `useTransaction` *(hook sem consumidor na UI; `getTransactionById` é usado em `TransactionsPage` para recuperar despesa duplicada de NFC-e)* | Query key `TRANSACTION_QUERY_KEYS.detail(id)` (`['transactions', 'detail', id]`) |
 | `POST` | `/transactions` | `createTransaction` / `useCreateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
 | `POST` | `/transactions/balance-adjustments` | `useCreateBalanceAdjustment` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
 | `PATCH` | `/transactions/:id` | `updateTransaction` / `useUpdateTransaction` | Invalida `TRANSACTION_QUERY_KEYS.transactions` e `ACCOUNT_QUERY_KEYS.accounts` |
 | `PATCH` | `/transactions/:id/confirm` | `confirmTransaction` / `useConfirmTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
-| `DELETE` | `/transactions/:id` | `deleteTransaction` / `useDeleteTransaction` | Invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
+| `DELETE` | `/transactions/:id` | `deleteTransaction` / `useDeleteTransaction` | Remove `FISCAL_NOTES_QUERY_KEYS.byTransaction(id)` e invalida `TRANSACTION_QUERY_KEYS.all` e `ACCOUNT_QUERY_KEYS.all` |
 | `GET` | `/transactions/:id/attachments` | `getTransactionAttachments` / `useTransactionAttachments` | Query key `TRANSACTION_QUERY_KEYS.attachments(id)` (`['transactions', 'attachments', id]`), `staleTime: 240_000` (4 min) |
 | `POST` | `/transactions/:id/attachments` | `uploadTransactionAttachment` / `useUploadTransactionAttachment` | `multipart/form-data`; invalida `attachments(id)` e `TRANSACTION_QUERY_KEYS.all` |
 | `PATCH` | `/transactions/:id/attachments/positions` | `reorderTransactionAttachments` / `useReorderTransactionAttachments` | Update otimista + rollback em `onError`; invalida `attachments(id)` em `onSettled` |
@@ -49,6 +50,7 @@ Referência do contrato backend: `personal-finance-backend:docs/transactions/ref
 - `GET /accounts` (`useAccounts` de `accounts`) — seleção de conta origem/destino e filtros.
 - `GET /accounts/summary` (`useAccountSummary` de `accounts`) — resumo patrimonial auxiliar no contexto da tela.
 - `GET /categories` (`useCategories` de `categories`, 2 consultas para `INCOME` e `EXPENSE`) — seleção e filtro de categorias.
+- `POST /fiscal-notes/preview`, `POST /fiscal-notes/import`, `POST /transactions/:id/fiscal-note`, `GET /transactions/:id/fiscal-note`, `DELETE /transactions/:id/fiscal-note` — consumidos via `@/features/fiscal-notes` (`FiscalNoteReaderSheet`, `FiscalNoteUnlinkDialog`, `useTransactionFiscalNote`; referência completa em [`fiscal-notes`](../../fiscal-notes/reference/api-and-error-codes.md)).
 
 ## Schemas de Validação Local (`src/features/transactions/schemas/`)
 
@@ -71,6 +73,7 @@ Referência do contrato backend: `personal-finance-backend:docs/transactions/ref
 | `TRANSACTION_CATEGORY_UNAVAILABLE` | Categoria arquivada/inexistente; no contexto `transactions.balance-adjustment`, exibe copy específica sobre configuração técnica de ajuste indisponível. |
 | `TRANSACTION_INVALID_STATE_TRANSITION` | Transição de status inválida para a operação solicitada. |
 | `TRANSACTION_NOT_FOUND` | Transação não encontrada ou já removida. |
+| `TRANSACTION_TYPE_DOES_NOT_SUPPORT_FISCAL_NOTE` | Nos contextos `transactions.update` e `transactions.confirm`, informa que a NFC-e precisa ser desvinculada antes de alterar o tipo da transação. |
 | `TRANSACTION_UPDATE_EMPTY` | Payload `PATCH` enviado sem campos alterados (prevenido na UI por envio diff-only). |
 
 ### Anexos (7 códigos)
@@ -92,5 +95,5 @@ Registrados explicitamente para evitar documentar comportamento inexistente e gu
 2. **Erro silencioso na listagem de anexos:** `TransactionAttachmentsGallery` ainda não renderiza `ApiErrorAlert` inline caso `useTransactionAttachments` falhe.
 3. **Exclusão de anexo sem confirmação:** a ação **Excluir** no menu `...` de `TransactionAttachmentThumbnail` dispara `DELETE` imediatamente, sem modal de confirmação.
 4. **Dupla superfície de erro na exclusão de transação:** `useDeleteTransaction` dispara `showApiErrorToast` em `onError` enquanto `TransactionDeleteDialog` também renderiza `ApiErrorAlert` (pode duplicar feedback visual no erro).
-5. **Símbolo/prop ociosos:** `useTransaction(id)` está implementado em `api/queries.ts` sem uso ativo na UI; `TransactionsPage` repassa `isMutating = false` fixo para `TransactionsTable`.
+5. **Símbolo/prop ociosos:** `useTransaction(id)` está implementado em `api/queries.ts` sem uso ativo na UI (`getTransactionById` já atende a recuperação de despesa duplicada de NFC-e); `TransactionsPage` repassa `isMutating = false` fixo para `TransactionsTable`.
 6. **Cobertura parcial do barrel `index.ts`:** `src/features/transactions/index.ts` já expõe `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode`, mas consumidores legados ainda importam `queries` e `transactionUrl.utils` por caminhos internos (`DT-03` em [module-boundaries.md](../../architecture/module-boundaries.md)).

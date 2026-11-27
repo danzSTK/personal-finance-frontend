@@ -2,10 +2,11 @@
 area: transactions
 type: index
 status: current
-last_reviewed: 2026-11-25
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../architecture/module-boundaries.md
+  - ../fiscal-notes/README.md
   - ./concepts/transaction-model-and-types.md
   - ./concepts/transaction-attachments-model.md
   - ./flows/list-filter-and-kpis.md
@@ -61,7 +62,7 @@ Todo o código proprietário reside em `src/features/transactions/`, com instru�
 
 - **Código proprietário:** `src/features/transactions/`
 - **API pública (`src/features/transactions/index.ts`):** exporta `BalanceAdjustmentSheet`, `BalanceAdjustmentSheetState` e `BalanceAdjustmentMode`.
-- **Dependências de entrada:** `api` e `AuthAppShell` de `auth` (`DT-01`, `DT-02`); `useAccounts`, `useAccountSummary`, `ACCOUNT_QUERY_KEYS`, `AccountIdentity` e `Account` de `accounts`; `useCategories`, `Category` e utilitários visuais de `categories`.
+- **Dependências de entrada:** `api` e `AuthAppShell` de `auth` (`DT-01`, `DT-02`); `useAccounts`, `useAccountSummary`, `ACCOUNT_QUERY_KEYS`, `AccountIdentity` e `Account` de `accounts`; `useCategories`, `Category` e utilitários visuais de `categories`; `FiscalNoteBadge`, `FiscalNoteSummaryCard`, `FiscalNoteReaderSheet`, `FiscalNoteDetailsSheet`, `FiscalNoteUnlinkDialog`, `useTransactionFiscalNote`, `FISCAL_NOTES_QUERY_KEYS` e tipos `FiscalNote*` via API pública `@/features/fiscal-notes`.
 - **Consumidores cross-feature:** `AccountsPage` (`BalanceAdjustmentSheet` via `@/features/transactions`), `AccountCard` (`useTransactions` e `TransactionView`) e `DashboardPage` (em `auth`).
 
 ## Estado Atual de Implementação
@@ -72,9 +73,10 @@ Todo o código proprietário reside em `src/features/transactions/`, com instru�
 - [x] Criação e edição (`INCOME`, `EXPENSE`, `TRANSFER`, `ADJUSTMENT`), confirmação de `PENDING` e exclusão de lançamentos elegíveis com invalidação conjunta de `transactions` e `accounts`.
 - [x] Reajuste de saldo completo (`BalanceAdjustmentSheet` com modo por saldo alvo `POST /transactions/balance-adjustments` e ajuste manual `POST /transactions` `type=ADJUSTMENT`) e visão `ADJUSTMENT` (`?view=ADJUSTMENT`, `?create=ADJUSTMENT`).
 - [x] Galeria de anexos em detalhes e edição, staging em criação, reordenação otimista dual e lightbox com zoom/pan/teclado.
+- [x] Integração NFC-e (SEFAZ-CE) via `@/features/fiscal-notes`: indicador `hasFiscalNote` (`FiscalNoteBadge`), atalho **"Ler NFC-e"** (`?create=FISCAL_NOTE`, barra de ações e `TransactionFormSheet`), importação com staging de anexos, vínculo em despesa existente, consulta lazy no `TransactionDetailsSheet`, bloqueio de troca de `type` com nota vinculada e aviso de remoção sincronizada no `TransactionDeleteDialog`.
 
 ### Gaps Conhecidos / Pendente
 - [ ] `TransactionAttachmentsGallery` usa `enabled: isEligible` em vez de condicionar também a `attachmentsCount > 0` em detalhes, e ainda não exibe `ApiErrorAlert` para falhas da query de listagem de anexos.
 - [ ] Exclusão de anexo no menu `...` executa imediatamente sem modal de confirmação prévia.
-- [ ] `useTransaction(id)` está exportado em `api/queries.ts` sem consumidor ativo na UI; `TransactionsPage` passa `isMutating = false` fixo para `TransactionsTable`.
+- [ ] `useTransaction(id)` está exportado em `api/queries.ts` sem consumidor ativo na UI (`getTransactionById` já é usado em `TransactionsPage` para recuperar despesa duplicada de NFC-e); `TransactionsPage` passa `isMutating = false` fixo para `TransactionsTable`.
 - [ ] Exports públicos de `queries`/`urlUtils` ainda são importados por caminho interno em consumidores legados (`DT-03`).
