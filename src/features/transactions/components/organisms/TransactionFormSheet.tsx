@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   CircleDashed,
   Clock3,
+  QrCode,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
@@ -76,6 +77,7 @@ interface TransactionFormSheetProps {
   accounts: Account[]
   categories: Category[]
   onOpenChange: (isOpen: boolean) => void
+  onImportFiscalNote?: () => void
 }
 
 const inputClassName =
@@ -86,6 +88,7 @@ export function TransactionFormSheet({
   accounts,
   categories,
   onOpenChange,
+  onImportFiscalNote,
 }: TransactionFormSheetProps) {
   const queryClient = useQueryClient()
   const createMutation = useCreateTransaction()
@@ -183,13 +186,17 @@ export function TransactionFormSheet({
   const selectedType = form.watch('type')
   const isEditingAdjustment =
     state?.mode === 'edit' && state.transaction.type === 'ADJUSTMENT'
+  const isEditingFiscalNote =
+    state?.mode === 'edit' && Boolean(state.transaction.hasFiscalNote)
   const effectiveType: TransactionFormValues['type'] = isEditingAdjustment
     ? 'ADJUSTMENT'
-    : state?.mode === 'edit' && selectedType === 'ADJUSTMENT'
+    : isEditingFiscalNote
       ? state.transaction.type
-      : state?.mode === 'create' && selectedType === 'ADJUSTMENT'
-        ? state.type
-        : selectedType
+      : state?.mode === 'edit' && selectedType === 'ADJUSTMENT'
+        ? state.transaction.type
+        : state?.mode === 'create' && selectedType === 'ADJUSTMENT'
+          ? state.type
+          : selectedType
   const selectedDate = form.watch('date')
   const selectedStatus = form.watch('status')
   const supportsAttachments =
@@ -372,6 +379,34 @@ export function TransactionFormSheet({
         </SheetHeader>
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate>
+          {!isEditing &&
+          effectiveType === 'EXPENSE' &&
+          onImportFiscalNote ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">
+                  Tem o cupom fiscal?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Preencha os dados lendo o QR Code da NFC-e.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 shrink-0 rounded-xl border-brand/40 bg-card text-foreground hover:bg-brand/15 hover:text-foreground"
+                onClick={() => {
+                  onOpenChange(false)
+                  onImportFiscalNote()
+                }}
+              >
+                <QrCode className="h-4 w-4 text-brand" aria-hidden="true" />
+                Importar via NFC-e
+              </Button>
+            </div>
+          ) : null}
+
           {isEditing ? (
             <TransactionFormField
               label="Tipo"
@@ -396,8 +431,9 @@ export function TransactionFormSheet({
                 <Select
                   key="standard-type"
                   value={effectiveType}
+                  disabled={isEditingFiscalNote}
                   onValueChange={(value) => {
-                    if (!value) return
+                    if (!value || isEditingFiscalNote) return
 
                     form.setValue(
                       'type',
@@ -425,6 +461,12 @@ export function TransactionFormSheet({
                   </SelectContent>
                 </Select>
               )}
+              {isEditingFiscalNote ? (
+                <span className="block text-xs leading-5 text-muted-foreground">
+                  Esta despesa possui NFC-e vinculada. Desvincule a nota antes
+                  de alterar o tipo.
+                </span>
+              ) : null}
             </TransactionFormField>
           ) : null}
 

@@ -14,10 +14,9 @@ import {
   type YearMonth,
 } from '@/shared/utils/dateOnly'
 
-export type TransactionCreateIntent = Extract<
-  TransactionView,
-  'INCOME' | 'EXPENSE' | 'TRANSFER' | 'ADJUSTMENT'
->
+export type TransactionCreateIntent =
+  | Extract<TransactionView, 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'ADJUSTMENT'>
+  | 'FISCAL_NOTE'
 
 export interface TransactionUrlState {
   view: TransactionView
@@ -65,9 +64,18 @@ export const parseTransactionCreateIntent = (
   return value === 'INCOME' ||
     value === 'EXPENSE' ||
     value === 'TRANSFER' ||
-    value === 'ADJUSTMENT'
+    value === 'ADJUSTMENT' ||
+    value === 'FISCAL_NOTE'
     ? value
     : null
+}
+
+export const clearTransactionCreateParam = (
+  searchParams: URLSearchParams
+): URLSearchParams => {
+  const nextSearchParams = new URLSearchParams(searchParams)
+  nextSearchParams.delete(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
+  return nextSearchParams
 }
 
 export const parseTransactionUrlState = (

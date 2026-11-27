@@ -5,10 +5,12 @@ import {
   Edit3,
   EllipsisVertical,
   Eye,
+  QrCode,
   Trash2,
 } from 'lucide-react'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
+import { FiscalNoteBadge } from '@/features/fiscal-notes'
 import {
   getCategoryColorOption,
   getCategoryColorToken,
@@ -59,6 +61,7 @@ interface TransactionsTableProps {
   onDelete: (transaction: Transaction) => void
   onEdit: (transaction: Transaction) => void
   onOpenDetails: (transaction: Transaction) => void
+  onLinkFiscalNote?: (transaction: Transaction) => void
 }
 
 export function TransactionsTable({
@@ -70,6 +73,7 @@ export function TransactionsTable({
   onDelete,
   onEdit,
   onOpenDetails,
+  onLinkFiscalNote,
 }: TransactionsTableProps) {
   const dayGroups = groupTransactionsByDate(transactions)
 
@@ -109,6 +113,7 @@ export function TransactionsTable({
                     onDelete={onDelete}
                     onEdit={onEdit}
                     onOpenDetails={onOpenDetails}
+                    onLinkFiscalNote={onLinkFiscalNote}
                   />
                 ))}
               </Fragment>
@@ -171,6 +176,7 @@ interface TransactionRowProps extends TransactionItemProps {
   onDelete: (transaction: Transaction) => void
   onEdit: (transaction: Transaction) => void
   onOpenDetails: (transaction: Transaction) => void
+  onLinkFiscalNote?: (transaction: Transaction) => void
 }
 
 function TransactionRow({
@@ -182,6 +188,7 @@ function TransactionRow({
   onDelete,
   onEdit,
   onOpenDetails,
+  onLinkFiscalNote,
 }: TransactionRowProps) {
   const derivedStatus = getTransactionDerivedStatus(transaction)
   const accountLabel = getAccountLabel(transaction, accounts)
@@ -204,6 +211,9 @@ function TransactionRow({
           </span>
           {transaction.attachmentsCount ? (
             <TransactionAttachmentBadge count={transaction.attachmentsCount} />
+          ) : null}
+          {transaction.hasFiscalNote ? (
+            <FiscalNoteBadge variant="compact" />
           ) : null}
         </div>
       </TableCell>
@@ -234,6 +244,9 @@ function TransactionRow({
           onDelete={() => onDelete(transaction)}
           onEdit={() => onEdit(transaction)}
           onOpenDetails={() => onOpenDetails(transaction)}
+          onLinkFiscalNote={
+            onLinkFiscalNote ? () => onLinkFiscalNote(transaction) : undefined
+          }
         />
       </TableCell>
     </TableRow>
@@ -281,6 +294,9 @@ function TransactionMobileItem({
               count={transaction.attachmentsCount}
               compact
             />
+          ) : null}
+          {transaction.hasFiscalNote ? (
+            <FiscalNoteBadge variant="compact" />
           ) : null}
         </span>
       </span>
@@ -334,6 +350,7 @@ interface TransactionActionsMenuProps {
   onDelete: () => void
   onEdit: () => void
   onOpenDetails: () => void
+  onLinkFiscalNote?: () => void
 }
 
 function TransactionActionsMenu({
@@ -343,8 +360,11 @@ function TransactionActionsMenu({
   onDelete,
   onEdit,
   onOpenDetails,
+  onLinkFiscalNote,
 }: TransactionActionsMenuProps) {
   const canConfirm = transaction.status === 'PENDING'
+  const canLinkFiscalNote =
+    transaction.type === 'EXPENSE' && !transaction.hasFiscalNote
 
   return (
     <DropdownMenu>
@@ -394,6 +414,16 @@ function TransactionActionsMenu({
           <Edit3 className="h-4 w-4" />
           Editar
         </DropdownMenuItem>
+        {canLinkFiscalNote ? (
+          <DropdownMenuItem
+            className="rounded-xl focus:bg-accent focus:text-foreground"
+            disabled={isMutating}
+            onSelect={() => onLinkFiscalNote?.()}
+          >
+            <QrCode className="h-4 w-4" />
+            Vincular NFC-e
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuSeparator className="bg-border" />
         {transaction.type === 'TRANSFER' ? (
           <DropdownMenuLabel className="whitespace-normal rounded-xl bg-state-info/10 text-xs font-normal leading-5 text-foreground">

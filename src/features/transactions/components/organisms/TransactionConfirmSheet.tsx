@@ -180,6 +180,12 @@ export function TransactionConfirmSheet({
               <p className="mt-1 text-sm font-semibold text-foreground">
                 {getTransactionTypeLabel(transaction.type)}
               </p>
+              {transaction.hasFiscalNote ? (
+                <p className="mt-1.5 text-xs leading-5 text-muted-foreground">
+                  Esta despesa possui NFC-e vinculada. Desvincule a nota antes
+                  de alterar o tipo.
+                </p>
+              ) : null}
             </div>
 
             <ConfirmField

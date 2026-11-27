@@ -25,6 +25,7 @@ export interface Transaction {
   description: string | null
   direction: TransactionDirection | null
   attachmentsCount?: number
+  hasFiscalNote?: boolean
   createdAt: string
   updatedAt: string
 }

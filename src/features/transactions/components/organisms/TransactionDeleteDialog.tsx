@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { AlertTriangle } from 'lucide-react'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { Button } from '@/shared/components/ui/button'
 import { resolveApiError } from '@/shared/errors'
@@ -77,6 +78,23 @@ export function TransactionDeleteDialog({
                     )}. Essa ação não pode ser revertida.`}
               </AlertDialogDescription>
             </AlertDialogHeader>
+
+            {transaction.hasFiscalNote ? (
+              <div
+                role="status"
+                className="flex items-start gap-3 rounded-2xl border border-state-warning/40 bg-state-warning/10 p-3.5 text-xs leading-5 text-foreground"
+              >
+                <AlertTriangle
+                  className="mt-0.5 h-4 w-4 shrink-0 text-state-warning"
+                  aria-hidden="true"
+                />
+                <span>
+                  A NFC-e vinculada e sua lista de compras também serão
+                  removidas, e a chave de acesso ficará liberada para
+                  importação futura.
+                </span>
+              </div>
+            ) : null}
 
             {errorPresentation ? (
               <ApiErrorAlert error={errorPresentation} />

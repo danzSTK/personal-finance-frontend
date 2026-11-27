@@ -4,6 +4,7 @@ import {
   ArrowLeftRight,
   HandCoins,
   Plus,
+  QrCode,
   ReceiptText,
   Tags,
 } from 'lucide-react'
@@ -15,6 +16,7 @@ interface MobileQuickActionsProps {
   onCreateIncome: () => void
   onCreateExpense: () => void
   onCreateTransfer: () => void
+  onImportFiscalNote: () => void
   onCreateCategory: () => void
 }
 
@@ -37,6 +39,7 @@ export function MobileQuickActions({
   onCreateIncome,
   onCreateExpense,
   onCreateTransfer,
+  onImportFiscalNote,
   onCreateCategory,
 }: MobileQuickActionsProps) {
   const incomeActionRef = useRef<HTMLButtonElement>(null)
@@ -127,6 +130,13 @@ export function MobileQuickActions({
               tone="info"
               placementClassName="col-span-2 col-start-1 row-start-2"
               onClick={() => selectAction(onCreateTransfer)}
+            />
+            <QuickActionButton
+              label="Ler NFC-e"
+              icon={<QrCode className="h-7 w-7" />}
+              tone="brand"
+              placementClassName="col-span-2 col-start-3 row-start-2"
+              onClick={() => selectAction(onImportFiscalNote)}
             />
             <QuickActionButton
               label="Nova categoria"

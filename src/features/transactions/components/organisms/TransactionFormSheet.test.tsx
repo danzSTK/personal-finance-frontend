@@ -267,4 +267,70 @@ describe('TransactionFormSheet', () => {
       expect(onOpenChange).toHaveBeenCalledWith(false)
     })
   })
+
+  it('exibe atalho Importar via NFC-e na criação de EXPENSE e fecha o formulário ao acionar', async () => {
+    const user = userEvent.setup()
+    const onOpenChange = vi.fn()
+    const onImportFiscalNote = vi.fn()
+
+    render(
+      <TransactionFormSheet
+        state={{ mode: 'create', type: 'EXPENSE' }}
+        accounts={[]}
+        categories={[]}
+        onOpenChange={onOpenChange}
+        onImportFiscalNote={onImportFiscalNote}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    const importButton = screen.getByRole('button', {
+      name: 'Importar via NFC-e',
+    })
+    expect(importButton).toBeInTheDocument()
+
+    await user.click(importButton)
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+    expect(onImportFiscalNote).toHaveBeenCalledTimes(1)
+  })
+
+  it('não exibe atalho Importar via NFC-e para INCOME', () => {
+    render(
+      <TransactionFormSheet
+        state={{ mode: 'create', type: 'INCOME' }}
+        accounts={[]}
+        categories={[]}
+        onOpenChange={vi.fn()}
+        onImportFiscalNote={vi.fn()}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    expect(
+      screen.queryByRole('button', { name: 'Importar via NFC-e' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('bloqueia troca de type e exibe nota explicativa ao editar EXPENSE com hasFiscalNote true', () => {
+    render(
+      <TransactionFormSheet
+        state={{
+          mode: 'edit',
+          transaction: { ...mockExpense, hasFiscalNote: true },
+        }}
+        accounts={[]}
+        categories={[]}
+        onOpenChange={vi.fn()}
+      />,
+      { wrapper: createWrapper() }
+    )
+
+    expect(screen.getAllByRole('combobox')[0]).toBeDisabled()
+    expect(screen.getAllByRole('combobox')[0]).toHaveTextContent('Despesa')
+    expect(
+      screen.getByText(
+        'Esta despesa possui NFC-e vinculada. Desvincule a nota antes de alterar o tipo.'
+      )
+    ).toBeInTheDocument()
+  })
 })

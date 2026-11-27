@@ -575,6 +575,9 @@ const MobileBottomNavigation = ({
             onCreateTransfer={() =>
               navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.transfer)
             }
+            onImportFiscalNote={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.fiscalNote)
+            }
             onCreateCategory={() =>
               navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.category)
             }

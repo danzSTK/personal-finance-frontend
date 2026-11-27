@@ -66,12 +66,12 @@ As tarefas estão ordenadas em blocos autocontidos para delegação sequencial/p
 
 ## Bloco 4 — Integração com `transactions` e `auth` (Quick Actions)
 
-- [ ] **9. Atualizar tipos, URLs e Quick Actions (`transactions` + `auth`)**
+- [x] **9. Atualizar tipos, URLs e Quick Actions (`transactions` + `auth`)**
   - Adicionar `hasFiscalNote?: boolean` em `src/features/transactions/types/transaction.types.ts`.
   - Suportar `create=FISCAL_NOTE` em `src/features/transactions/utils/transactionUrl.utils.ts` (e atualizar testes de URL).
   - Adicionar `AUTH_QUICK_ACTION_ROUTES.fiscalNote` em `src/features/auth/constants/auth.constants.ts` e botão **"Ler NFC-e"** em `MobileQuickActions.tsx` + `AuthAppShell.tsx`.
 
-- [ ] **10. Integrar NFC-e na listagem, detalhes, formulários e exclusão de `transactions`**
+- [x] **10. Integrar NFC-e na listagem, detalhes, formulários e exclusão de `transactions`**
   - `TransactionsTable.tsx`: renderizar `FiscalNoteBadge` e ação *"Vincular NFC-e"* no menu `...` (apenas `EXPENSE` com `!hasFiscalNote`).
   - `TransactionDetailsSheet.tsx`: seção **Nota fiscal** (`EXPENSE`) com busca lazy (`useTransactionFiscalNote`), `FiscalNoteSummaryCard`, ação *"Vincular NFC-e"*, abertura de `FiscalNoteDetailsSheet` e `FiscalNoteUnlinkDialog`.
   - `TransactionFormSheet.tsx`: atalho *"Importar via NFC-e"* na criação de `EXPENSE`; bloqueio de troca de `type` quando `mode === 'edit'` e `hasFiscalNote === true`.
