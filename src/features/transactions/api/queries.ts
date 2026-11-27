@@ -63,18 +63,27 @@ export const usePendingTransactionRange = (type: PendingTransactionType) => {
   }
 }
 
+export const getTransactionById = async (
+  transactionId: string
+): Promise<Transaction> => {
+  const { data } = await api.get<Transaction>(
+    `${TRANSACTION_API_ENDPOINTS.transactions}/${transactionId}`
+  )
+
+  return data
+}
+
 export const useTransaction = (transactionId: string | null) =>
   useQuery({
     queryKey: transactionId
       ? TRANSACTION_QUERY_KEYS.detail(transactionId)
       : TRANSACTION_QUERY_KEYS.detail('idle'),
     enabled: transactionId !== null,
-    queryFn: async () => {
-      const { data } = await api.get<Transaction>(
-        `${TRANSACTION_API_ENDPOINTS.transactions}/${transactionId}`
-      )
-
-      return data
+    queryFn: () => {
+      if (!transactionId) {
+        return Promise.reject(new Error('Transaction ID is required'))
+      }
+      return getTransactionById(transactionId)
     },
   })
 

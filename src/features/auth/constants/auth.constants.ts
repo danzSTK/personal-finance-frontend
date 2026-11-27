@@ -14,6 +14,7 @@ export const AUTH_ROUTES = {
   accounts: '/accounts',
   categories: '/categories',
   transactions: '/transactions',
+  fiscalNotes: '/fiscal-notes',
   emailVerification: '/verification-email',
   emailVerificationPending: '/email-verification-pending',
   settings: SETTINGS_BASE_ROUTE,
@@ -30,6 +31,7 @@ export const AUTH_QUICK_ACTION_ROUTES = {
   income: `${AUTH_ROUTES.transactions}?view=INCOME&create=INCOME`,
   expense: `${AUTH_ROUTES.transactions}?view=EXPENSE&create=EXPENSE`,
   transfer: `${AUTH_ROUTES.transactions}?view=TRANSFER&create=TRANSFER`,
+  fiscalNote: `${AUTH_ROUTES.transactions}?view=EXPENSE&create=FISCAL_NOTE`,
   category: `${AUTH_ROUTES.categories}?create=EXPENSE`,
 } as const
 

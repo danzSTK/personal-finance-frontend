@@ -7,6 +7,7 @@ import {
   Home,
   LayoutDashboard,
   LogOut,
+  QrCode,
   ReceiptText,
   Settings,
   Tags,
@@ -46,6 +47,7 @@ type MainSection =
   | 'accounts'
   | 'categories'
   | 'transactions'
+  | 'fiscal-notes'
   | 'settings'
 
 interface AuthAppShellProps {
@@ -90,6 +92,13 @@ const primaryNavigation: Array<{
     description: 'Lançamentos',
     icon: <ReceiptText className="h-4 w-4" />,
     route: AUTH_ROUTES.transactions,
+  },
+  {
+    id: 'fiscal-notes',
+    label: 'Notas fiscais',
+    description: 'NFC-e e compras',
+    icon: <QrCode className="h-4 w-4" />,
+    route: AUTH_ROUTES.fiscalNotes,
   },
 ]
 
@@ -521,7 +530,7 @@ const MobileBottomNavigation = ({
   onLogout,
 }: MobileBottomNavigationProps) => {
   const [isQuickActionsOpen, setIsQuickActionsOpen] = useState(false)
-  const isMoreActive = ['categories', 'settings'].includes(
+  const isMoreActive = ['fiscal-notes', 'categories', 'settings'].includes(
     activeSection
   )
 
@@ -575,6 +584,9 @@ const MobileBottomNavigation = ({
             onCreateTransfer={() =>
               navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.transfer)
             }
+            onImportFiscalNote={() =>
+              navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.fiscalNote)
+            }
             onCreateCategory={() =>
               navigateFromQuickAction(AUTH_QUICK_ACTION_ROUTES.category)
             }
@@ -611,6 +623,13 @@ const MobileBottomNavigation = ({
 
           <div className="mt-5">
             <div className="overflow-hidden rounded-2xl border border-border bg-background">
+              <MobileMoreMenuItem
+                label="Notas fiscais"
+                description="NFC-e e histórico de compras"
+                icon={<QrCode className="h-4 w-4" />}
+                isActive={activeSection === 'fiscal-notes'}
+                onClick={() => onNavigate(AUTH_ROUTES.fiscalNotes)}
+              />
               <MobileMoreMenuItem
                 label="Categorias"
                 description="Receitas e despesas"

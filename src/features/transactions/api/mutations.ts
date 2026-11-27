@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { api } from '@/features/auth/api/auth.api'
 import { ACCOUNT_QUERY_KEYS } from '@/features/accounts/constants/account.constants'
+import { FISCAL_NOTES_QUERY_KEYS } from '@/features/fiscal-notes'
 import { showApiErrorToast } from '@/shared/errors'
 import { toast } from '@/shared/hooks/use-toast'
 import {
@@ -147,17 +148,29 @@ export const useConfirmTransaction = () => {
 }
 
 export const useDeleteTransaction = () => {
+  const queryClient = useQueryClient()
   const invalidateTransactionData = useInvalidateTransactionData()
 
   return useMutation({
     mutationFn: async (transactionId: string) => {
       await api.delete(transactionPath(transactionId))
     },
-    onSuccess: () => {
+    onSuccess: (_data, deletedTransactionId) => {
+      queryClient.removeQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.byTransaction(deletedTransactionId),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.lists(),
+        exact: false,
+      })
+      void queryClient.invalidateQueries({
+        queryKey: FISCAL_NOTES_QUERY_KEYS.details(),
+        exact: false,
+      })
       invalidateTransactionData()
       toast({
         title: 'Transação excluída',
-        description: 'O lançamento saiu do histórico ativo.',
+        description: 'O lançamento foi excluído permanentemente.',
       })
     },
     onError: (error) => showApiErrorToast(error, 'transactions.delete'),

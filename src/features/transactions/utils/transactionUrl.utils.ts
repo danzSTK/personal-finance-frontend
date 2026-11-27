@@ -2,6 +2,7 @@ import {
   TRANSACTION_CREATE_INTENT_QUERY_PARAM,
   TRANSACTION_DEFAULT_LIMIT,
   TRANSACTION_DEFAULT_PAGE,
+  TRANSACTION_OPEN_ID_QUERY_PARAM,
   TRANSACTION_PAGE_SIZE_OPTIONS,
 } from '../constants/transaction.constants'
 import type { TransactionView } from '../types/transaction-ui.types'
@@ -14,10 +15,9 @@ import {
   type YearMonth,
 } from '@/shared/utils/dateOnly'
 
-export type TransactionCreateIntent = Extract<
-  TransactionView,
-  'INCOME' | 'EXPENSE' | 'TRANSFER' | 'ADJUSTMENT'
->
+export type TransactionCreateIntent =
+  | Extract<TransactionView, 'INCOME' | 'EXPENSE' | 'TRANSFER' | 'ADJUSTMENT'>
+  | 'FISCAL_NOTE'
 
 export interface TransactionUrlState {
   view: TransactionView
@@ -57,6 +57,37 @@ const TRANSACTION_VIEW_VALUES: TransactionView[] = [
 
 const TRANSACTION_STATUS_VALUES: TransactionStatus[] = ['PENDING', 'EFFECTIVE']
 
+const SAFE_TRANSACTION_ID_PATTERN = /^[a-zA-Z0-9_-]{1,128}$/
+
+export const parseTransactionOpenId = (
+  searchParams: URLSearchParams
+): string | null => {
+  const trimmed = searchParams.get(TRANSACTION_OPEN_ID_QUERY_PARAM)?.trim()
+  if (!trimmed || !SAFE_TRANSACTION_ID_PATTERN.test(trimmed)) {
+    return null
+  }
+
+  return trimmed
+}
+
+export const clearTransactionOpenParam = (
+  searchParams: URLSearchParams
+): URLSearchParams => {
+  const nextSearchParams = new URLSearchParams(searchParams)
+  nextSearchParams.delete(TRANSACTION_OPEN_ID_QUERY_PARAM)
+  return nextSearchParams
+}
+
+export const parseYearMonthFromDateOnly = (
+  value: string | null | undefined
+): YearMonth | null => {
+  if (!value || !isValidDateOnly(value)) {
+    return null
+  }
+
+  return parsePeriod(value.slice(0, 7))
+}
+
 export const parseTransactionCreateIntent = (
   searchParams: URLSearchParams
 ): TransactionCreateIntent | null => {
@@ -65,9 +96,18 @@ export const parseTransactionCreateIntent = (
   return value === 'INCOME' ||
     value === 'EXPENSE' ||
     value === 'TRANSFER' ||
-    value === 'ADJUSTMENT'
+    value === 'ADJUSTMENT' ||
+    value === 'FISCAL_NOTE'
     ? value
     : null
+}
+
+export const clearTransactionCreateParam = (
+  searchParams: URLSearchParams
+): URLSearchParams => {
+  const nextSearchParams = new URLSearchParams(searchParams)
+  nextSearchParams.delete(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
+  return nextSearchParams
 }
 
 export const parseTransactionUrlState = (

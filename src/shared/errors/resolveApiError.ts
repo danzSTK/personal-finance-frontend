@@ -387,6 +387,94 @@ const codeCopy: Partial<Record<ApiErrorCode, Copy>> = {
       'O comprovante selecionado pode já ter sido removido.',
     recovery: 'retry',
   },
+  [API_ERROR_CODES.fiscalNoteInvalidInput]: {
+    title: 'Código da NFC-e inválido',
+    description:
+      'Confira se o QR Code foi lido por completo ou se os 44 dígitos da chave estão corretos.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.invalidFiscalNote]: {
+    title: 'Não foi possível validar esta nota fiscal',
+    description:
+      'Os dados desta nota fiscal não atendem às regras esperadas.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteNotFound]: {
+    title: 'Nota fiscal não encontrada',
+    description: 'Nenhuma nota fiscal está vinculada a esta despesa.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteSefazNotFound]: {
+    title: 'Nota fiscal não encontrada na SEFAZ-CE',
+    description:
+      'Verifique se a nota já foi autorizada ou se a chave de acesso está correta.',
+    recovery: 'correct-fields',
+  },
+  [API_ERROR_CODES.fiscalNoteAlreadyImported]: {
+    title: 'Esta nota fiscal já foi importada',
+    description:
+      'Esta NFC-e já está vinculada a uma despesa ativa na sua conta.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.transactionAlreadyHasFiscalNote]: {
+    title: 'Esta despesa já possui uma nota fiscal',
+    description: 'Desvincule a nota fiscal atual antes de anexar outra.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.transactionTypeDoesNotSupportFiscalNote]: {
+    title: 'Apenas despesas aceitam NFC-e',
+    description:
+      'Escolha uma transação do tipo despesa para vincular esta nota fiscal.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteUnsupportedUf]: {
+    title: 'Estado ainda não suportado',
+    description:
+      'Nesta versão, a Danfy lê apenas NFC-e emitidas no Ceará (UF 23).',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteHomologationNotAllowed]: {
+    title: 'Nota de teste não permitida',
+    description:
+      'Apenas notas fiscais emitidas em ambiente de produção podem ser importadas.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteCancelledOrDenied]: {
+    title: 'Nota fiscal cancelada ou denegada',
+    description:
+      'A SEFAZ informou que este documento fiscal não é mais válido.',
+    recovery: 'none',
+  },
+  [API_ERROR_CODES.fiscalNoteRateLimitExceeded]: {
+    title: 'Muitas consultas em sequência',
+    description:
+      'Você atingiu o limite temporário de consultas. Aguarde alguns instantes antes de consultar outra nota.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.fiscalNoteParseFailed]: {
+    title: 'Não conseguimos ler o retorno da SEFAZ-CE',
+    description:
+      'O formato retornado pela SEFAZ-CE não pôde ser processado agora. Tente novamente mais tarde.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.fiscalNoteResponseTooLarge]: {
+    title: 'Resposta da SEFAZ excedeu o limite suportado',
+    description:
+      'Não foi possível processar esta consulta agora. Tente novamente mais tarde.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.sefazTemporarilyUnavailable]: {
+    title: 'SEFAZ-CE temporariamente indisponível',
+    description:
+      'Não foi possível consultar a SEFAZ-CE agora. Tente novamente em instantes.',
+    recovery: 'retry',
+  },
+  [API_ERROR_CODES.sefazTimeout]: {
+    title: 'A SEFAZ-CE demorou para responder',
+    description:
+      'A consulta excedeu o tempo esperado. Tente novamente em instantes.',
+    recovery: 'retry',
+  },
 }
 
 const contextFallbacks: Record<ApiErrorContext, Copy> = {
@@ -501,6 +589,17 @@ const contextFallbacks: Record<ApiErrorContext, Copy> = {
     recovery: 'retry',
   },
   'transactions.attachments.delete': actionFailure('excluir este comprovante'),
+  'fiscal-notes.preview': {
+    title: 'Não foi possível consultar a NFC-e',
+    description:
+      'Confira sua conexão ou os dados da nota e tente novamente.',
+    recovery: 'retry',
+  },
+  'fiscal-notes.import': saveFailure('importar a NFC-e'),
+  'fiscal-notes.link': actionFailure('vincular a NFC-e à despesa'),
+  'fiscal-notes.list': loadFailure('as notas fiscais'),
+  'fiscal-notes.get': loadFailure('a nota fiscal'),
+  'fiscal-notes.unlink': actionFailure('desvincular a nota fiscal'),
   generic: serviceUnavailable(),
 }
 
@@ -515,7 +614,13 @@ export const resolveApiError = (
   const isNetworkError = isApiNetworkError(error)
   const retryAfterSeconds = parseRetryAfterSeconds(error)
 
-  const copy = resolveCopy(code, statusCode, context, isNetworkError)
+  const copy = resolveCopy(
+    code,
+    statusCode,
+    context,
+    isNetworkError,
+    retryAfterSeconds
+  )
 
   return {
     code,
@@ -527,11 +632,15 @@ export const resolveApiError = (
   }
 }
 
+const formatRetrySeconds = (seconds: number): string =>
+  `${seconds} ${seconds === 1 ? 'segundo' : 'segundos'}`
+
 const resolveCopy = (
   code: string | null,
   statusCode: number | null,
   context: ApiErrorContext,
-  isNetworkError: boolean
+  isNetworkError: boolean,
+  retryAfterSeconds: number | null
 ): Copy => {
   if (
     context === 'auth.sign-in' &&
@@ -548,6 +657,52 @@ const resolveCopy = (
       title: 'Não foi possível registrar o reajuste',
       description:
         'A configuração técnica de ajuste não está disponível para sua conta no momento.',
+      recovery: 'retry',
+    }
+  }
+
+  if (
+    (context === 'transactions.update' || context === 'transactions.confirm') &&
+    code === API_ERROR_CODES.transactionTypeDoesNotSupportFiscalNote
+  ) {
+    return {
+      title: 'Tipo da transação não pode ser alterado',
+      description:
+        'Desvincule a nota fiscal antes de alterar o tipo desta transação.',
+      recovery: 'none',
+    }
+  }
+
+  if (
+    context === 'fiscal-notes.list' &&
+    code === API_ERROR_CODES.fiscalNoteInvalidInput
+  ) {
+    return {
+      title: 'Filtros inválidos',
+      description:
+        'Confira os filtros de data, valor ou CNPJ informados e tente novamente.',
+      recovery: 'correct-fields',
+    }
+  }
+
+  if (
+    code === API_ERROR_CODES.fiscalNoteRateLimitExceeded &&
+    retryAfterSeconds !== null
+  ) {
+    return {
+      title: 'Muitas consultas em sequência',
+      description: `Aguarde ${formatRetrySeconds(retryAfterSeconds)} para consultar outra nota fiscal.`,
+      recovery: 'retry',
+    }
+  }
+
+  if (
+    code === API_ERROR_CODES.sefazTemporarilyUnavailable &&
+    retryAfterSeconds !== null
+  ) {
+    return {
+      title: 'SEFAZ-CE temporariamente indisponível',
+      description: `Aguarde ${formatRetrySeconds(retryAfterSeconds)} e tente novamente.`,
       recovery: 'retry',
     }
   }

@@ -4,7 +4,6 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useForm } from 'react-hook-form'
 import {
   CheckCircle2,
-  CircleDashed,
   Clock3,
   TrendingDown,
   TrendingUp,
@@ -58,6 +57,7 @@ import {
   computeTargetBalanceDelta,
 } from '../../utils/balanceAdjustment.utils'
 import { BalanceAdjustmentPreview } from '../molecules/BalanceAdjustmentPreview'
+import { AccountSelectLabel } from '../molecules/TransactionAccountSelect'
 
 interface BalanceAdjustmentSheetProps {
   state: BalanceAdjustmentSheetState
@@ -506,6 +506,15 @@ export function BalanceAdjustmentSheet({
                   <AccountSelectLabel
                     account={selectedAccount}
                     fallback="Escolha uma conta"
+                    trailing={
+                      selectedAccount ? (
+                        <span className="numeric shrink-0 text-xs text-muted-foreground">
+                          {formatCurrencyFromCents(
+                            selectedAccount.balance.currentCents
+                          )}
+                        </span>
+                      ) : undefined
+                    }
                   />
                 </SelectTrigger>
                 <SelectContent className="border-border bg-card text-foreground">
@@ -516,7 +525,16 @@ export function BalanceAdjustmentSheet({
                       hideIndicator
                       className="focus:bg-accent focus:text-foreground"
                     >
-                      <AccountSelectLabel account={account} />
+                      <AccountSelectLabel
+                        account={account}
+                        trailing={
+                          <span className="numeric shrink-0 text-xs text-muted-foreground">
+                            {formatCurrencyFromCents(
+                              account.balance.currentCents
+                            )}
+                          </span>
+                        }
+                      />
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -852,39 +870,6 @@ export function BalanceAdjustmentSheet({
         </form>
       </SheetContent>
     </Sheet>
-  )
-}
-
-interface AccountSelectLabelProps {
-  account: Account | null
-  fallback?: string
-}
-
-function AccountSelectLabel({
-  account,
-  fallback = 'Conta',
-}: AccountSelectLabelProps) {
-  if (!account) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-      <div className="flex min-w-0 items-center gap-2">
-        <AccountIdentity account={account} size="sm" />
-        <span className="truncate">{account.name}</span>
-      </div>
-      <span className="numeric shrink-0 text-xs text-muted-foreground">
-        {formatCurrencyFromCents(account.balance.currentCents)}
-      </span>
-    </div>
   )
 }
 

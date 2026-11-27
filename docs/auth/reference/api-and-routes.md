@@ -2,7 +2,7 @@
 area: auth
 type: reference
 status: current
-last_reviewed: 2026-11-24
+last_reviewed: 2026-11-27
 related:
   - ../README.md
   - ../concepts/session-and-cookie-model.md
@@ -31,6 +31,7 @@ Referências do contrato backend: `personal-finance-backend:docs/auth/reference/
 | `accounts` | `/accounts` | Privada (`ACTIVE`) | Delegada ao módulo `accounts`. |
 | `categories` | `/categories` | Privada (`ACTIVE`) | Delegada ao módulo `categories`. |
 | `transactions` | `/transactions` | Privada (`ACTIVE`) | Delegada ao módulo `transactions`. |
+| `fiscalNotes` | `/fiscal-notes` | Privada (`ACTIVE`) | Delegada a `FiscalNotesRoutePage` (`src/app/pages/`) + módulo `fiscal-notes`. |
 | `settings` | `/settings` | Privada (`ACTIVE`) | Layout base de configurações. |
 | `settingsAccount` | `/settings/account` | Privada (`ACTIVE`) | Perfil, username e avatar. |
 | `settingsSecurity` | `/settings/security` | Privada (`ACTIVE`) | Providers, alteração de senha e sessões ativas. |
@@ -41,6 +42,7 @@ Atalhos rápidos (`AUTH_QUICK_ACTION_ROUTES`):
 - `income`: `/transactions?view=INCOME&create=INCOME`
 - `expense`: `/transactions?view=EXPENSE&create=EXPENSE`
 - `transfer`: `/transactions?view=TRANSFER&create=TRANSFER`
+- `fiscalNote`: `/transactions?view=EXPENSE&create=FISCAL_NOTE` (botão **"Ler NFC-e"** no `MobileQuickActions`)
 - `category`: `/categories?create=EXPENSE`
 
 ## Endpoints Consumidos (`AUTH_API_ENDPOINTS`)

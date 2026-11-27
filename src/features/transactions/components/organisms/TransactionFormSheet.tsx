@@ -1,24 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import type { CSSProperties, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQueryClient } from '@tanstack/react-query'
 import { useForm, type UseFormReturn } from 'react-hook-form'
 import {
   CheckCircle2,
-  CircleDashed,
   Clock3,
+  QrCode,
   TrendingDown,
   TrendingUp,
 } from 'lucide-react'
-import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
-import {
-  getCategoryColorOption,
-  getCategoryColorToken,
-  getCategoryIconKey,
-  getCategoryIconOption,
-} from '@/features/categories/utils/category.utils'
 import { CurrencyInput } from '@/shared/components/atoms/CurrencyInput'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
@@ -65,6 +58,8 @@ import {
   getTransactionFormDefaults,
   getTransactionTypeLabel,
 } from '../../utils/transaction.utils'
+import { TransactionAccountSelect } from '../molecules/TransactionAccountSelect'
+import { TransactionCategorySelect } from '../molecules/TransactionCategorySelect'
 import { TransactionAttachmentsGallery } from './TransactionAttachmentsGallery'
 import {
   type StagedTransactionAttachment,
@@ -76,6 +71,7 @@ interface TransactionFormSheetProps {
   accounts: Account[]
   categories: Category[]
   onOpenChange: (isOpen: boolean) => void
+  onImportFiscalNote?: () => void
 }
 
 const inputClassName =
@@ -86,6 +82,7 @@ export function TransactionFormSheet({
   accounts,
   categories,
   onOpenChange,
+  onImportFiscalNote,
 }: TransactionFormSheetProps) {
   const queryClient = useQueryClient()
   const createMutation = useCreateTransaction()
@@ -183,13 +180,17 @@ export function TransactionFormSheet({
   const selectedType = form.watch('type')
   const isEditingAdjustment =
     state?.mode === 'edit' && state.transaction.type === 'ADJUSTMENT'
+  const isEditingFiscalNote =
+    state?.mode === 'edit' && Boolean(state.transaction.hasFiscalNote)
   const effectiveType: TransactionFormValues['type'] = isEditingAdjustment
     ? 'ADJUSTMENT'
-    : state?.mode === 'edit' && selectedType === 'ADJUSTMENT'
+    : isEditingFiscalNote
       ? state.transaction.type
-      : state?.mode === 'create' && selectedType === 'ADJUSTMENT'
-        ? state.type
-        : selectedType
+      : state?.mode === 'edit' && selectedType === 'ADJUSTMENT'
+        ? state.transaction.type
+        : state?.mode === 'create' && selectedType === 'ADJUSTMENT'
+          ? state.type
+          : selectedType
   const selectedDate = form.watch('date')
   const selectedStatus = form.watch('status')
   const supportsAttachments =
@@ -204,17 +205,6 @@ export function TransactionFormSheet({
   const destinationAccounts = activeAccounts.filter(
     (account) => account.id !== form.watch('accountId')
   )
-  const selectedAccount =
-    activeAccounts.find((account) => account.id === form.watch('accountId')) ??
-    null
-  const selectedDestinationAccount =
-    activeAccounts.find(
-      (account) => account.id === form.watch('destinationAccountId')
-    ) ?? null
-  const selectedCategory =
-    availableCategories.find(
-      (category) => category.id === form.watch('categoryId')
-    ) ?? null
   const todayDate = getTodayDateOnly()
   const yesterdayDate = getYesterdayDateOnly()
   const effectiveStatusLabel =
@@ -372,6 +362,34 @@ export function TransactionFormSheet({
         </SheetHeader>
 
         <form className="mt-6 space-y-5" onSubmit={handleSubmit} noValidate>
+          {!isEditing &&
+          effectiveType === 'EXPENSE' &&
+          onImportFiscalNote ? (
+            <div className="flex flex-col gap-3 rounded-2xl border border-brand/30 bg-brand/10 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-foreground">
+                  Tem o cupom fiscal?
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Preencha os dados lendo o QR Code da NFC-e.
+                </p>
+              </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9 shrink-0 rounded-xl border-brand/40 bg-card text-foreground hover:bg-brand/15 hover:text-foreground"
+                onClick={() => {
+                  onOpenChange(false)
+                  onImportFiscalNote()
+                }}
+              >
+                <QrCode className="h-4 w-4 text-brand" aria-hidden="true" />
+                Importar via NFC-e
+              </Button>
+            </div>
+          ) : null}
+
           {isEditing ? (
             <TransactionFormField
               label="Tipo"
@@ -396,8 +414,9 @@ export function TransactionFormSheet({
                 <Select
                   key="standard-type"
                   value={effectiveType}
+                  disabled={isEditingFiscalNote}
                   onValueChange={(value) => {
-                    if (!value) return
+                    if (!value || isEditingFiscalNote) return
 
                     form.setValue(
                       'type',
@@ -425,6 +444,12 @@ export function TransactionFormSheet({
                   </SelectContent>
                 </Select>
               )}
+              {isEditingFiscalNote ? (
+                <span className="block text-xs leading-5 text-muted-foreground">
+                  Esta despesa possui NFC-e vinculada. Desvincule a nota antes
+                  de alterar o tipo.
+                </span>
+              ) : null}
             </TransactionFormField>
           ) : null}
 
@@ -612,33 +637,21 @@ export function TransactionFormSheet({
             label={effectiveType === 'TRANSFER' ? 'Conta de origem' : 'Conta'}
             error={form.formState.errors.accountId?.message}
           >
-            <Select
+            <TransactionAccountSelect
+              accounts={activeAccounts}
               value={form.watch('accountId')}
               onValueChange={setOriginAccount}
-            >
-              <SelectTrigger className={inputClassName}>
-                <AccountSelectLabel
-                  account={selectedAccount}
-                  fallback={
-                    effectiveType === 'TRANSFER'
-                      ? 'Escolha a origem'
-                      : 'Escolha uma conta'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent className="border-border bg-card text-foreground">
-                {activeAccounts.map((account) => (
-                  <SelectItem
-                    key={account.id}
-                    value={account.id}
-                    hideIndicator
-                    className="focus:bg-accent focus:text-foreground"
-                  >
-                    <AccountSelectLabel account={account} />
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              placeholder={
+                effectiveType === 'TRANSFER'
+                  ? 'Escolha a origem'
+                  : 'Escolha uma conta'
+              }
+              ariaLabel={
+                effectiveType === 'TRANSFER' ? 'Conta de origem' : 'Conta'
+              }
+              invalid={Boolean(form.formState.errors.accountId)}
+              triggerClassName={inputClassName}
+            />
           </TransactionFormField>
 
           {effectiveType === 'TRANSFER' ? (
@@ -646,7 +659,8 @@ export function TransactionFormSheet({
               label="Conta de destino"
               error={form.formState.errors.destinationAccountId?.message}
             >
-              <Select
+              <TransactionAccountSelect
+                accounts={destinationAccounts}
                 value={form.watch('destinationAccountId') ?? ''}
                 onValueChange={(value) =>
                   form.setValue('destinationAccountId', value, {
@@ -654,26 +668,11 @@ export function TransactionFormSheet({
                     shouldValidate: true,
                   })
                 }
-              >
-                <SelectTrigger className={inputClassName}>
-                  <AccountSelectLabel
-                    account={selectedDestinationAccount}
-                    fallback="Escolha o destino"
-                  />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card text-foreground">
-                  {destinationAccounts.map((account) => (
-                    <SelectItem
-                      key={account.id}
-                      value={account.id}
-                      hideIndicator
-                      className="focus:bg-accent focus:text-foreground"
-                    >
-                      <AccountSelectLabel account={account} />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Escolha o destino"
+                ariaLabel="Conta de destino"
+                invalid={Boolean(form.formState.errors.destinationAccountId)}
+                triggerClassName={inputClassName}
+              />
             </TransactionFormField>
           ) : null}
 
@@ -700,7 +699,8 @@ export function TransactionFormSheet({
               label="Categoria"
               error={form.formState.errors.categoryId?.message}
             >
-              <Select
+              <TransactionCategorySelect
+                categories={availableCategories}
                 value={form.watch('categoryId') ?? ''}
                 onValueChange={(value) =>
                   form.setValue('categoryId', value, {
@@ -708,26 +708,11 @@ export function TransactionFormSheet({
                     shouldValidate: true,
                   })
                 }
-              >
-                <SelectTrigger className={inputClassName}>
-                  <CategorySelectLabel
-                    category={selectedCategory}
-                    fallback="Escolha uma categoria"
-                  />
-                </SelectTrigger>
-                <SelectContent className="border-border bg-card text-foreground">
-                  {availableCategories.map((category) => (
-                    <SelectItem
-                      key={category.id}
-                      value={category.id}
-                      hideIndicator
-                      className="focus:bg-accent focus:text-foreground"
-                    >
-                      <CategorySelectLabel category={category} />
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                placeholder="Escolha uma categoria"
+                ariaLabel="Categoria"
+                invalid={Boolean(form.formState.errors.categoryId)}
+                triggerClassName={inputClassName}
+              />
             </TransactionFormField>
           ) : null}
 
@@ -828,76 +813,6 @@ function TransactionDescriptionField({
         }
       />
     </TransactionFormField>
-  )
-}
-
-interface AccountSelectLabelProps {
-  account: Account | null
-  fallback?: string
-}
-
-function AccountSelectLabel({
-  account,
-  fallback = 'Conta',
-}: AccountSelectLabelProps) {
-  if (!account) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <AccountIdentity account={account} size="sm" />
-      <span className="truncate">{account.name}</span>
-    </div>
-  )
-}
-
-interface CategorySelectLabelProps {
-  category: Category | null
-  fallback?: string
-}
-
-function CategorySelectLabel({
-  category,
-  fallback = 'Categoria',
-}: CategorySelectLabelProps) {
-  if (!category) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  const Icon = getCategoryIconOption(getCategoryIconKey(category)).icon
-  const color = getCategoryColorOption(
-    getCategoryColorToken(category),
-    category.type === 'INCOME' ? 'INCOME' : 'EXPENSE'
-  )
-  const style: CSSProperties = {
-    backgroundColor: color.hex,
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-foreground"
-        style={style}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="truncate">{category.displayName}</span>
-    </div>
   )
 }
 

@@ -18,6 +18,7 @@ Descreve os fluxos separados de efetivação de lançamentos pendentes (`Transac
 
 - **Pré-condição:** disponível apenas quando `transaction.status === 'PENDING'` (acionado pelo menu da linha ou por `TransactionDetailsSheet`).
 - **Copy adaptativa por tipo:** `Confirmar recebimento` (`INCOME`), `Pagar despesa` (`EXPENSE`), `Confirmar transferência` (`TRANSFER`) ou `Confirmar ajuste` (`ADJUSTMENT`).
+- **Proteção com NFC-e vinculada:** exibe o tipo fixo e, quando `transaction.hasFiscalNote === true`, apresenta aviso explícito de que a despesa possui NFC-e vinculada e exige desvínculo antes de qualquer alteração de tipo (também protegido pelo backend via `TRANSACTION_TYPE_DOES_NOT_SUPPORT_FISCAL_NOTE`).
 - **Campos ajustáveis antes de efetivar:** `amountCents`, `date` (`DateOnly`), `accountId` e (quando `TRANSFER`) `destinationAccountId` distinta da origem (exigindo ao menos 2 contas ativas).
 - **Validação e envio:** validado por `transactionConfirmSchema` → `PATCH /transactions/:id/confirm` (`useConfirmTransaction`).
 - **Sucesso:** invalida `['transactions']` e `['accounts']` (`exact: false`), exibe toast de sucesso e fecha o sheet.
@@ -26,8 +27,8 @@ Descreve os fluxos separados de efetivação de lançamentos pendentes (`Transac
 ## Fluxo 2 — Excluir Transação (`TransactionDeleteDialog`)
 
 - **Pré-condição:** disponível para lançamentos não-`TRANSFER`. Para `TRANSFER`, a ação é ocultada no menu e em `TransactionDetailsSheet` (exibindo orientação: *"Para corrigir, faça uma nova transferência no sentido contrário."*) e bloqueada defensivamente em `TransactionDeleteDialog`.
-- **Confirmação:** `AlertDialog` exibe descrição, valor formatado e aviso de irreversibilidade antes de disparar `DELETE /transactions/:id` (`useDeleteTransaction`).
-- **Sucesso:** invalida `['transactions']` e `['accounts']` (`exact: false`), exibe toast de sucesso e fecha o dialog.
+- **Confirmação:** `AlertDialog` exibe descrição, valor formatado e aviso de irreversibilidade antes de disparar `DELETE /transactions/:id` (`useDeleteTransaction`). Quando `transaction.hasFiscalNote === true`, exibe alerta adicional (`state-warning`) informando que a NFC-e vinculada e sua lista de compras também serão removidas e que a chave de acesso ficará liberada para importação futura.
+- **Sucesso:** `useDeleteTransaction` remove o cache da nota associada (`FISCAL_NOTES_QUERY_KEYS.byTransaction(deletedTransactionId)`), invalida `['transactions']` e `['accounts']` (`exact: false`), exibe toast de sucesso e fecha o dialog.
 - **Erro (`TRANSACTION_CANNOT_DELETE_TRANSFER`, `TRANSACTION_NOT_FOUND`, etc.):** mantém o dialog aberto exibindo `ApiErrorAlert` inline (`transactions.delete`) — nota: o hook `useDeleteTransaction` atualmente também chama `showApiErrorToast` em `onError`.
 
 ## Consumo de Backend

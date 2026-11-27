@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { ReactNode, RefObject } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useSearchParams } from 'react-router-dom'
 import {
   ChevronFirst,
@@ -8,14 +9,26 @@ import {
   ChevronRight,
   EllipsisVertical,
   ListFilter,
+  QrCode,
 } from 'lucide-react'
 import { AuthAppShell } from '@/features/auth/components/templates/AuthAppShell'
 import { useAccountSummary, useAccounts } from '@/features/accounts/api/queries'
 import { useCategories } from '@/features/categories/api/queries'
+import {
+  FiscalNoteDetailsSheet,
+  FiscalNoteReaderSheet,
+  FiscalNoteUnlinkDialog,
+  type FiscalNoteAccountOption,
+  type FiscalNoteCategoryOption,
+  type FiscalNoteDetail,
+  type FiscalNoteImportResponse,
+  type FiscalNoteReaderSheetState,
+} from '@/features/fiscal-notes'
 import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { ExpandableSearch } from '@/shared/components/molecules/ExpandableSearch'
 import { MonthYearPicker } from '@/shared/components/molecules/MonthYearPicker'
-import { resolveApiError } from '@/shared/errors'
+import { resolveApiError, showApiErrorToast } from '@/shared/errors'
+import { toast } from '@/shared/hooks/use-toast'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
 import {
@@ -40,15 +53,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/components/ui/select'
-import { useTransactions } from '../../api/queries'
+import { uploadTransactionAttachments } from '../../api/attachment.mutations'
+import { getTransactionById, useTransactions } from '../../api/queries'
 import {
-  TRANSACTION_CREATE_INTENT_QUERY_PARAM,
   TRANSACTION_DEFAULT_LIMIT,
   TRANSACTION_DEFAULT_PAGE,
   TRANSACTION_PAGE_SIZE_OPTIONS,
+  TRANSACTION_QUERY_KEYS,
   TRANSACTION_SEARCH_DEBOUNCE_MS,
 } from '../../constants/transaction.constants'
 import type { Transaction } from '../../types/transaction.types'
+import { ATTACHMENT_MAX_FILES } from '../../types/transaction-attachment.types'
 import type {
   BalanceAdjustmentSheetState,
   TransactionAdvancedFilters,
@@ -61,17 +76,27 @@ import type {
 import { viewToTransactionType } from '../../utils/transaction.utils'
 import {
   buildTransactionSearchParams,
-  parseTransactionUrlState,
+  clearTransactionCreateParam,
+  clearTransactionOpenParam,
   parseTransactionCreateIntent,
+  parseTransactionOpenId,
+  parseTransactionUrlState,
+  parseYearMonthFromDateOnly,
   type TransactionUrlPatch,
 } from '../../utils/transactionUrl.utils'
 import { BalanceAdjustmentSheet } from '../organisms/BalanceAdjustmentSheet'
 import { TransactionConfirmSheet } from '../organisms/TransactionConfirmSheet'
+import { TransactionAccountSelect } from '../molecules/TransactionAccountSelect'
+import { TransactionCategorySelect } from '../molecules/TransactionCategorySelect'
 import { TransactionCreateButton } from '../molecules/TransactionCreateButton'
 import { TransactionDeleteDialog } from '../organisms/TransactionDeleteDialog'
 import { TransactionDetailsSheet } from '../organisms/TransactionDetailsSheet'
 import { TransactionFiltersSheet } from '../organisms/TransactionFiltersSheet'
 import { TransactionFormSheet } from '../organisms/TransactionFormSheet'
+import {
+  type StagedTransactionAttachment,
+  TransactionStagedAttachmentsField,
+} from '../organisms/TransactionStagedAttachmentsField'
 import { TransactionTypeSelect } from '../molecules/TransactionTypeSelect'
 import {
   TransactionsEmptyState,
@@ -82,6 +107,7 @@ import { TransactionsSkeleton } from '../organisms/TransactionsSkeleton'
 import { TransactionsTable } from '../organisms/TransactionsTable'
 
 export function TransactionsPage() {
+  const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const transactionUrlState = useMemo(
     () => parseTransactionUrlState(searchParams),
@@ -89,6 +115,10 @@ export function TransactionsPage() {
   )
   const createIntent = useMemo(
     () => parseTransactionCreateIntent(searchParams),
+    [searchParams]
+  )
+  const openTransactionId = useMemo(
+    () => parseTransactionOpenId(searchParams),
     [searchParams]
   )
   const { view, period, page, limit, search, filters } = transactionUrlState
@@ -106,7 +136,74 @@ export function TransactionsPage() {
     useState<TransactionDetailsSheetState>(null)
   const [deleteDialogState, setDeleteDialogState] =
     useState<TransactionDeleteDialogState>(null)
+  const [readerSheetState, setReaderSheetState] =
+    useState<FiscalNoteReaderSheetState>({ open: false, mode: 'import' })
+  const [fiscalNoteDetailsState, setFiscalNoteDetailsState] =
+    useState<FiscalNoteDetail | null>(null)
+  const [unlinkDialogState, setUnlinkDialogState] = useState<{
+    transactionId: string
+    fiscalNote: FiscalNoteDetail
+  } | null>(null)
+  const [stagedFiscalNoteAttachments, setStagedFiscalNoteAttachments] =
+    useState<StagedTransactionAttachment[]>([])
+  const stagedFiscalNoteAttachmentsRef = useRef<StagedTransactionAttachment[]>(
+    []
+  )
+  stagedFiscalNoteAttachmentsRef.current = stagedFiscalNoteAttachments
+  const [isOpeningExistingTransaction, setIsOpeningExistingTransaction] =
+    useState(false)
   const searchInputRef = useRef<HTMLInputElement>(null)
+  const isMountedRef = useRef(true)
+  const inFlightOpenTransactionIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+
+  const clearStagedFiscalNoteAttachments = useCallback(() => {
+    stagedFiscalNoteAttachmentsRef.current.forEach((item) => {
+      URL.revokeObjectURL(item.previewUrl)
+    })
+    setStagedFiscalNoteAttachments([])
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      stagedFiscalNoteAttachmentsRef.current.forEach((item) => {
+        URL.revokeObjectURL(item.previewUrl)
+      })
+    }
+  }, [])
+
+  const openFiscalNoteImport = useCallback(() => {
+    clearStagedFiscalNoteAttachments()
+    setReaderSheetState({ open: true, mode: 'import' })
+  }, [clearStagedFiscalNoteAttachments])
+
+  const closeFiscalNoteReader = useCallback(() => {
+    clearStagedFiscalNoteAttachments()
+    setReaderSheetState((current) => ({ ...current, open: false }))
+  }, [clearStagedFiscalNoteAttachments])
+
+  const openFiscalNoteLink = useCallback(
+    (transaction: Transaction) => {
+      clearStagedFiscalNoteAttachments()
+      setReaderSheetState({
+        open: true,
+        mode: 'link',
+        targetTransaction: {
+          id: transaction.id,
+          amountCents: transaction.amountCents,
+          date: transaction.date,
+          description: transaction.description,
+        },
+      })
+    },
+    [clearStagedFiscalNoteAttachments]
+  )
 
   const updateUrlState = useCallback(
     (patch: TransactionUrlPatch, replace = false) => {
@@ -123,7 +220,9 @@ export function TransactionsPage() {
       return
     }
 
-    if (createIntent === 'ADJUSTMENT') {
+    if (createIntent === 'FISCAL_NOTE') {
+      openFiscalNoteImport()
+    } else if (createIntent === 'ADJUSTMENT') {
       setBalanceAdjustmentSheetState({
         initialAccountId: filters.accountId,
       })
@@ -131,10 +230,85 @@ export function TransactionsPage() {
       setFormSheetState({ mode: 'create', type: createIntent })
     }
 
-    const nextSearchParams = new URLSearchParams(searchParams)
-    nextSearchParams.delete(TRANSACTION_CREATE_INTENT_QUERY_PARAM)
-    setSearchParams(nextSearchParams, { replace: true })
-  }, [createIntent, filters.accountId, searchParams, setSearchParams])
+    setSearchParams(clearTransactionCreateParam(searchParams), {
+      replace: true,
+    })
+  }, [
+    createIntent,
+    filters.accountId,
+    openFiscalNoteImport,
+    searchParams,
+    setSearchParams,
+  ])
+
+  useEffect(() => {
+    if (!openTransactionId) {
+      return
+    }
+
+    if (inFlightOpenTransactionIdRef.current === openTransactionId) {
+      return
+    }
+
+    inFlightOpenTransactionIdRef.current = openTransactionId
+    setSearchParams((prevParams) => clearTransactionOpenParam(prevParams), {
+      replace: true,
+    })
+
+    const loadDeepLinkedTransaction = async () => {
+      try {
+        const transaction = await queryClient.fetchQuery({
+          queryKey: TRANSACTION_QUERY_KEYS.detail(openTransactionId),
+          queryFn: () => getTransactionById(openTransactionId),
+        })
+
+        if (
+          !isMountedRef.current ||
+          inFlightOpenTransactionIdRef.current !== openTransactionId
+        ) {
+          return
+        }
+
+        const transactionPeriod = parseYearMonthFromDateOnly(transaction.date)
+        if (transactionPeriod) {
+          setSearchParams(
+            (prevParams) => {
+              const latestState = parseTransactionUrlState(prevParams)
+              if (
+                latestState.period.year === transactionPeriod.year &&
+                latestState.period.month === transactionPeriod.month
+              ) {
+                return prevParams
+              }
+
+              return buildTransactionSearchParams(latestState, {
+                period: transactionPeriod,
+                dateFrom: getMonthStartDateOnly(transactionPeriod),
+                dateTo: getMonthEndDateOnly(transactionPeriod),
+                page: TRANSACTION_DEFAULT_PAGE,
+              })
+            },
+            { replace: true }
+          )
+        }
+
+        setDetailsSheetState({ transaction })
+      } catch (fetchError) {
+        if (
+          isMountedRef.current &&
+          inFlightOpenTransactionIdRef.current === openTransactionId
+        ) {
+          showApiErrorToast(fetchError, 'transactions.detail')
+        }
+      } finally {
+        if (inFlightOpenTransactionIdRef.current === openTransactionId) {
+          inFlightOpenTransactionIdRef.current = null
+        }
+      }
+    }
+
+    void loadDeepLinkedTransaction()
+  }, [openTransactionId, queryClient, setSearchParams])
 
   useEffect(() => {
     setSearchDraft(search)
@@ -220,6 +394,41 @@ export function TransactionsPage() {
     ],
     [expenseCategoriesResponse?.data, incomeCategoriesResponse?.data]
   )
+  const activeAccounts = useMemo(
+    () => accounts.filter((account) => !account.isArchived),
+    [accounts]
+  )
+  const expenseCategories = useMemo(
+    () =>
+      categories.filter(
+        (category) => !category.isArchived && category.type === 'EXPENSE'
+      ),
+    [categories]
+  )
+  const fiscalNoteAccounts = useMemo<FiscalNoteAccountOption[]>(
+    () =>
+      accounts
+        .filter((account) => !account.isArchived)
+        .map((account) => ({
+          id: account.id,
+          name: account.name,
+          isArchived: account.isArchived,
+          isDefault: account.isDefault,
+        })),
+    [accounts]
+  )
+  const fiscalNoteCategories = useMemo<FiscalNoteCategoryOption[]>(
+    () =>
+      (expenseCategoriesResponse?.data ?? [])
+        .filter((category) => !category.isArchived && category.type === 'EXPENSE')
+        .map((category) => ({
+          id: category.id,
+          displayName: category.displayName,
+          type: category.type,
+          isArchived: category.isArchived,
+        })),
+    [expenseCategoriesResponse?.data]
+  )
   const transactions = useMemo(() => {
     const data = transactionsResponse?.data ?? []
     const normalizedSearch = search.trim().toLowerCase()
@@ -295,6 +504,80 @@ export function TransactionsPage() {
     setDetailsSheetState(null)
     setDeleteDialogState({ transaction })
   }
+
+  const handleAddStagedFiscalNoteFiles = (files: File[]) => {
+    setStagedFiscalNoteAttachments((current) => {
+      const remaining = Math.max(ATTACHMENT_MAX_FILES - current.length, 0)
+      const accepted = files.slice(0, remaining)
+      const nextItems = accepted.map((file, idx) => ({
+        id: `staged-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 8)}`,
+        file,
+        previewUrl: URL.createObjectURL(file),
+      }))
+      return [...current, ...nextItems]
+    })
+  }
+
+  const handleRemoveStagedFiscalNoteFile = (id: string) => {
+    setStagedFiscalNoteAttachments((current) => {
+      const target = current.find((item) => item.id === id)
+      if (target) {
+        URL.revokeObjectURL(target.previewUrl)
+      }
+      return current.filter((item) => item.id !== id)
+    })
+  }
+
+  const handleAfterFiscalNoteImport = async (
+    result: FiscalNoteImportResponse
+  ) => {
+    const filesToUpload = stagedFiscalNoteAttachmentsRef.current.map(
+      (item) => item.file
+    )
+    if (filesToUpload.length === 0) {
+      return
+    }
+
+    try {
+      await uploadTransactionAttachments(result.transaction.id, filesToUpload)
+      void queryClient.invalidateQueries({
+        queryKey: TRANSACTION_QUERY_KEYS.attachments(result.transaction.id),
+      })
+      void queryClient.invalidateQueries({
+        queryKey: TRANSACTION_QUERY_KEYS.transactions,
+        exact: false,
+      })
+    } catch {
+      toast({
+        variant: 'destructive',
+        title: 'NFC-e importada, mas o comprovante falhou',
+        description:
+          'A despesa e a nota fiscal foram salvas. Você pode enviar os comprovantes nos detalhes da despesa.',
+      })
+    } finally {
+      clearStagedFiscalNoteAttachments()
+    }
+  }
+
+  const handleOpenExistingTransaction = async (
+    existingTransactionId: string
+  ) => {
+    setIsOpeningExistingTransaction(true)
+    try {
+      const existingTransaction = await queryClient.fetchQuery({
+        queryKey: TRANSACTION_QUERY_KEYS.detail(existingTransactionId),
+        queryFn: () => getTransactionById(existingTransactionId),
+      })
+      closeFiscalNoteReader()
+      setDetailsSheetState({ transaction: existingTransaction })
+    } catch (fetchError) {
+      showApiErrorToast(fetchError, 'transactions.detail')
+    } finally {
+      setIsOpeningExistingTransaction(false)
+    }
+  }
+
+  const showFiscalNoteAction = view === 'ALL' || view === 'EXPENSE'
 
   const clearSearch = () => {
     setSearchDraft('')
@@ -386,6 +669,18 @@ export function TransactionsPage() {
                 className="hidden md:flex"
               />
 
+              {showFiscalNoteAction ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="hidden h-11 gap-2 rounded-xl border-border bg-secondary px-3.5 text-foreground hover:bg-accent hover:text-foreground md:inline-flex"
+                  onClick={openFiscalNoteImport}
+                >
+                  <QrCode className="h-4 w-4 text-brand" aria-hidden="true" />
+                  <span>Ler NFC-e</span>
+                </Button>
+              ) : null}
+
               {view === 'EXPENSE' ||
               view === 'INCOME' ||
               view === 'TRANSFER' ||
@@ -434,6 +729,18 @@ export function TransactionsPage() {
                     Opções
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-border" />
+                  {showFiscalNoteAction ? (
+                    <DropdownMenuItem
+                      className="rounded-xl focus:bg-accent focus:text-foreground"
+                      onSelect={openFiscalNoteImport}
+                    >
+                      <QrCode
+                        className="h-4 w-4 text-brand"
+                        aria-hidden="true"
+                      />
+                      Ler NFC-e
+                    </DropdownMenuItem>
+                  ) : null}
                   <DropdownMenuItem
                     className="rounded-xl focus:bg-accent focus:text-foreground"
                     onSelect={() => setIsFiltersOpen(true)}
@@ -498,6 +805,7 @@ export function TransactionsPage() {
                   onOpenDetails={(transaction) =>
                     setDetailsSheetState({ transaction })
                   }
+                  onLinkFiscalNote={openFiscalNoteLink}
                 />
 
                 <TransactionsPagination
@@ -557,6 +865,7 @@ export function TransactionsPage() {
         state={formSheetState}
         accounts={accounts}
         categories={categories}
+        onImportFiscalNote={openFiscalNoteImport}
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setFormSheetState(null)
@@ -603,6 +912,14 @@ export function TransactionsPage() {
             openEditSheet(detailsSheetState.transaction)
           }
         }}
+        onLinkFiscalNote={openFiscalNoteLink}
+        onViewFiscalNote={(fiscalNote) => setFiscalNoteDetailsState(fiscalNote)}
+        onUnlinkFiscalNote={(transaction, fiscalNote) =>
+          setUnlinkDialogState({
+            transactionId: transaction.id,
+            fiscalNote,
+          })
+        }
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setDetailsSheetState(null)
@@ -615,6 +932,135 @@ export function TransactionsPage() {
         onOpenChange={(isOpen) => {
           if (!isOpen) {
             setDeleteDialogState(null)
+          }
+        }}
+      />
+
+      {readerSheetState.mode === 'link' &&
+      readerSheetState.targetTransaction !== null ? (
+        <FiscalNoteReaderSheet
+          open={readerSheetState.open}
+          mode="link"
+          linkTarget={readerSheetState.targetTransaction}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              closeFiscalNoteReader()
+            }
+          }}
+          onLinked={() => {
+            const linkedTransactionId =
+              readerSheetState.targetTransaction?.id ?? null
+            if (!linkedTransactionId) {
+              return
+            }
+            setDetailsSheetState((current) =>
+              current && current.transaction.id === linkedTransactionId
+                ? {
+                    transaction: {
+                      ...current.transaction,
+                      hasFiscalNote: true,
+                    },
+                  }
+                : current
+            )
+          }}
+          onOpenExistingTransaction={(existingId) =>
+            void handleOpenExistingTransaction(existingId)
+          }
+          isOpeningExistingTransaction={isOpeningExistingTransaction}
+        />
+      ) : (
+        <FiscalNoteReaderSheet
+          open={readerSheetState.open && readerSheetState.mode === 'import'}
+          mode="import"
+          accounts={fiscalNoteAccounts}
+          categories={fiscalNoteCategories}
+          renderAccountField={({ value, onChange, disabled, invalid }) => (
+            <TransactionAccountSelect
+              accounts={activeAccounts}
+              value={value}
+              onValueChange={onChange}
+              disabled={disabled}
+              invalid={invalid}
+              ariaLabel="Conta"
+            />
+          )}
+          renderCategoryField={({ value, onChange, disabled, invalid }) => (
+            <TransactionCategorySelect
+              categories={expenseCategories}
+              value={value}
+              onValueChange={onChange}
+              disabled={disabled}
+              invalid={invalid}
+              ariaLabel="Categoria"
+            />
+          )}
+          renderAttachmentsField={({ disabled, isUploading }) => (
+            <TransactionStagedAttachmentsField
+              items={stagedFiscalNoteAttachments}
+              disabled={disabled}
+              isUploading={isUploading}
+              onAddFiles={handleAddStagedFiscalNoteFiles}
+              onRemove={handleRemoveStagedFiscalNoteFile}
+              onReorder={setStagedFiscalNoteAttachments}
+            />
+          )}
+          onAfterImport={handleAfterFiscalNoteImport}
+          onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              closeFiscalNoteReader()
+            }
+          }}
+          onOpenExistingTransaction={(existingId) =>
+            void handleOpenExistingTransaction(existingId)
+          }
+          isOpeningExistingTransaction={isOpeningExistingTransaction}
+        />
+      )}
+
+      <FiscalNoteDetailsSheet
+        open={fiscalNoteDetailsState !== null}
+        fiscalNote={fiscalNoteDetailsState}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setFiscalNoteDetailsState(null)
+          }
+        }}
+        onRequestUnlink={
+          fiscalNoteDetailsState
+            ? () =>
+                setUnlinkDialogState({
+                  transactionId: fiscalNoteDetailsState.transactionId,
+                  fiscalNote: fiscalNoteDetailsState,
+                })
+            : undefined
+        }
+      />
+
+      <FiscalNoteUnlinkDialog
+        open={unlinkDialogState !== null}
+        transactionId={unlinkDialogState?.transactionId ?? null}
+        fiscalNote={unlinkDialogState?.fiscalNote ?? null}
+        onOpenChange={(isOpen) => {
+          if (!isOpen) {
+            setUnlinkDialogState(null)
+          }
+        }}
+        onUnlinked={() => {
+          const unlinkedTransactionId =
+            unlinkDialogState?.transactionId ?? null
+          setFiscalNoteDetailsState(null)
+          if (unlinkedTransactionId) {
+            setDetailsSheetState((current) =>
+              current && current.transaction.id === unlinkedTransactionId
+                ? {
+                    transaction: {
+                      ...current.transaction,
+                      hasFiscalNote: false,
+                    },
+                  }
+                : current
+            )
           }
         }}
       />

@@ -15,6 +15,7 @@ export const TRANSACTION_ROUTES = {
 } as const
 
 export const TRANSACTION_CREATE_INTENT_QUERY_PARAM = 'create'
+export const TRANSACTION_OPEN_ID_QUERY_PARAM = 'openTransaction'
 
 export const TRANSACTION_API_ENDPOINTS = {
   transactions: '/transactions',

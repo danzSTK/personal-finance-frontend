@@ -1,15 +1,8 @@
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { CheckCircle2, Clock3, CircleDashed } from 'lucide-react'
-import { AccountIdentity } from '@/features/accounts'
 import type { Account } from '@/features/accounts/types/account.types'
 import type { Category } from '@/features/categories/types/category.types'
-import {
-  getCategoryColorOption,
-  getCategoryColorToken,
-  getCategoryIconKey,
-  getCategoryIconOption,
-} from '@/features/categories/utils/category.utils'
 import { DateOnlyPicker } from '@/shared/components/molecules/DateOnlyPicker'
 import { Button } from '@/shared/components/ui/button'
 import { cn } from '@/shared/lib/utils'
@@ -33,6 +26,8 @@ import type {
   TransactionAdvancedFilters,
   TransactionView,
 } from '../../types/transaction-ui.types'
+import { AccountSelectLabel } from '../molecules/TransactionAccountSelect'
+import { CategorySelectLabel } from '../molecules/TransactionCategorySelect'
 
 interface TransactionFiltersSheetProps {
   open: boolean
@@ -293,73 +288,6 @@ export function TransactionFiltersSheet({
         </SheetFooter>
       </SheetContent>
     </Sheet>
-  )
-}
-
-interface AccountSelectLabelProps {
-  account: Account | null
-  fallback?: string
-}
-
-function AccountSelectLabel({
-  account,
-  fallback = 'Conta',
-}: AccountSelectLabelProps) {
-  if (!account) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <AccountIdentity account={account} size="sm" />
-      <span className="truncate">{account.name}</span>
-    </div>
-  )
-}
-
-interface CategorySelectLabelProps {
-  category: Category | null
-  fallback?: string
-}
-
-function CategorySelectLabel({
-  category,
-  fallback = 'Categoria',
-}: CategorySelectLabelProps) {
-  if (!category) {
-    return (
-      <div className="flex min-w-0 items-center gap-2">
-        <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-state-info/10 text-state-info">
-          <CircleDashed className="h-4 w-4" />
-        </span>
-        <span className="truncate">{fallback}</span>
-      </div>
-    )
-  }
-
-  const Icon = getCategoryIconOption(getCategoryIconKey(category)).icon
-  const color = getCategoryColorOption(
-    getCategoryColorToken(category),
-    category.type === 'INCOME' ? 'INCOME' : 'EXPENSE'
-  )
-
-  return (
-    <div className="flex min-w-0 items-center gap-2">
-      <span
-        className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-foreground"
-        style={{ backgroundColor: color.hex }}
-      >
-        <Icon className="h-4 w-4" />
-      </span>
-      <span className="truncate">{category.displayName}</span>
-    </div>
   )
 }
 

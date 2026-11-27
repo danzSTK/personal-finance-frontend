@@ -1,7 +1,8 @@
-import type { CSSProperties, ReactNode } from 'react'
+import { useMemo, type CSSProperties, type ReactNode } from 'react'
 import {
   ArrowLeftRight,
   Edit3,
+  QrCode,
   SlidersHorizontal,
   Trash2,
   TrendingDown,
@@ -16,8 +17,16 @@ import {
   getCategoryIconKey,
   getCategoryIconOption,
 } from '@/features/categories/utils/category.utils'
-import { useIsMobile } from '@/shared/hooks/use-mobile'
+import {
+  type FiscalNoteDetail,
+  FiscalNoteSummaryCard,
+  useTransactionFiscalNote,
+} from '@/features/fiscal-notes'
+import { ApiErrorAlert } from '@/shared/components/molecules/ApiErrorAlert'
 import { Button } from '@/shared/components/ui/button'
+import { Skeleton } from '@/shared/components/ui/skeleton'
+import { resolveApiError } from '@/shared/errors'
+import { useIsMobile } from '@/shared/hooks/use-mobile'
 import { cn } from '@/shared/lib/utils'
 import { formatCurrencyFromCents } from '@/shared/utils/formatters'
 import {
@@ -28,6 +37,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/shared/components/ui/sheet'
+import type { Transaction } from '../../types/transaction.types'
 import type { TransactionDetailsSheetState } from '../../types/transaction-ui.types'
 import {
   formatSignedTransactionAmount,
@@ -55,6 +65,12 @@ interface TransactionDetailsSheetProps {
   onConfirm: () => void
   onDelete: () => void
   onEdit: () => void
+  onLinkFiscalNote?: (transaction: Transaction) => void
+  onViewFiscalNote?: (fiscalNote: FiscalNoteDetail) => void
+  onUnlinkFiscalNote?: (
+    transaction: Transaction,
+    fiscalNote: FiscalNoteDetail
+  ) => void
 }
 
 export function TransactionDetailsSheet({
@@ -65,9 +81,23 @@ export function TransactionDetailsSheet({
   onConfirm,
   onDelete,
   onEdit,
+  onLinkFiscalNote,
+  onViewFiscalNote,
+  onUnlinkFiscalNote,
 }: TransactionDetailsSheetProps) {
   const transaction = state?.transaction ?? null
   const isMobile = useIsMobile()
+  const isExpense = transaction?.type === 'EXPENSE'
+  const fiscalNoteQuery = useTransactionFiscalNote(transaction?.id, {
+    enabled: Boolean(transaction && isExpense && transaction.hasFiscalNote),
+  })
+  const fiscalNoteErrorPresentation = useMemo(
+    () =>
+      fiscalNoteQuery.error
+        ? resolveApiError(fiscalNoteQuery.error, 'fiscal-notes.get')
+        : null,
+    [fiscalNoteQuery.error]
+  )
   const derivedStatus = transaction
     ? getTransactionDerivedStatus(transaction)
     : 'PENDING'
@@ -189,6 +219,76 @@ export function TransactionDetailsSheet({
                     Comprovantes
                   </h4>
                   <TransactionAttachmentsGallery transaction={transaction} />
+                </div>
+              ) : null}
+
+              {transaction.type === 'EXPENSE' ? (
+                <div className="mt-6">
+                  <h4 className="mb-2 text-sm font-medium text-foreground">
+                    Nota fiscal
+                  </h4>
+                  {transaction.hasFiscalNote ? (
+                    fiscalNoteQuery.isLoading ? (
+                      <div
+                        role="status"
+                        aria-label="Carregando nota fiscal"
+                        className="space-y-3 rounded-2xl border border-border bg-secondary p-4"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-2">
+                            <Skeleton className="h-5 w-24 rounded-full bg-card" />
+                            <Skeleton className="h-4 w-44 rounded-lg bg-card" />
+                            <Skeleton className="h-3 w-32 rounded-lg bg-card" />
+                          </div>
+                          <Skeleton className="h-8 w-20 rounded-lg bg-card" />
+                        </div>
+                        <Skeleton className="h-20 w-full rounded-xl bg-card" />
+                        <Skeleton className="h-10 w-full rounded-xl bg-card" />
+                      </div>
+                    ) : fiscalNoteErrorPresentation ? (
+                      <ApiErrorAlert
+                        error={fiscalNoteErrorPresentation}
+                        onRetry={() => void fiscalNoteQuery.refetch()}
+                      />
+                    ) : fiscalNoteQuery.data ? (
+                      <FiscalNoteSummaryCard
+                        fiscalNote={fiscalNoteQuery.data}
+                        onViewFullList={() =>
+                          onViewFiscalNote?.(fiscalNoteQuery.data)
+                        }
+                        onUnlink={() =>
+                          onUnlinkFiscalNote?.(
+                            transaction,
+                            fiscalNoteQuery.data
+                          )
+                        }
+                      />
+                    ) : null
+                  ) : (
+                    <div className="flex flex-col gap-3 rounded-2xl border border-border bg-secondary p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-foreground">
+                          Nenhuma NFC-e vinculada
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          Leia o QR Code do cupom fiscal para anexar a lista de
+                          compras.
+                        </p>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="h-10 shrink-0 rounded-xl border-border bg-card text-foreground hover:bg-accent hover:text-foreground"
+                        onClick={() => onLinkFiscalNote?.(transaction)}
+                      >
+                        <QrCode
+                          className="h-4 w-4 text-brand"
+                          aria-hidden="true"
+                        />
+                        Vincular NFC-e
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : null}
             </div>
